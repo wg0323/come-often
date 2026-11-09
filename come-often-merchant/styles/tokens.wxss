@@ -1,0 +1,24 @@
+/* 商家端视觉 token，独立维护，不与顾客端共用。
+ * 计划 4.8：浅灰底 + 纯白卡片 + 近黑文字；四状态色只用于订单状态，不挪作装饰。
+ */
+page {
+  --mk-bg: #f2f3f5;
+  --mk-card: #ffffff;
+  --mk-text: #1a1a1a;
+  --mk-text-secondary: #6b6b6b;
+  --mk-text-inverse: #ffffff;
+  --mk-divider: #e5e6e8;
+  --mk-press: #eceef0;
+  --mk-status-pending: #d9480f;
+  --mk-status-cooking: #c8873a;
+  --mk-status-ready: #3f7d58;
+  --mk-status-done: #9a9a9a;
+  --mk-touch-min: 88rpx;
+  --mk-button-height: 96rpx;
+  --mk-radius-card: 8rpx;
+  --mk-radius-button: 8rpx;
+  --mk-radius-tag: 4rpx;
+  --mk-space-page: 24rpx;
+  --mk-space-card: 20rpx;
+  --mk-space-gap: 12rpx;
+}

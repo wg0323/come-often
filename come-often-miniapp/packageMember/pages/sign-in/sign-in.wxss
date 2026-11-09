@@ -1,0 +1,100 @@
+.page {
+  min-height: 100vh;
+  padding: var(--co-space-page);
+  box-sizing: border-box;
+}
+
+.sign-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 48rpx var(--co-space-card);
+  background-color: var(--co-card);
+  border-radius: var(--co-radius-card);
+  border: 1rpx solid var(--co-divider);
+}
+
+.sign-title {
+  color: var(--co-text-primary);
+  font-size: 32rpx;
+  font-weight: 600;
+  letter-spacing: 1rpx;
+}
+
+.sign-balance {
+  margin-top: 24rpx;
+  color: var(--co-cinnabar);
+  font-size: 72rpx;
+  font-weight: 700;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+}
+
+.sign-label {
+  margin-top: 8rpx;
+  color: var(--co-text-tertiary);
+  font-size: 24rpx;
+}
+
+.primary-btn {
+  width: 100%;
+  min-height: 88rpx;
+  margin-top: 40rpx;
+  line-height: 88rpx;
+  background-color: var(--co-ink);
+  color: var(--co-card);
+  font-size: 28rpx;
+  text-align: center;
+  border-radius: var(--co-radius-button);
+}
+
+.primary-btn--done {
+  background-color: var(--co-card);
+  color: var(--co-text-tertiary);
+  border: 1rpx solid var(--co-divider);
+}
+
+.primary-btn--disabled {
+  opacity: 0.6;
+}
+
+.primary-btn--hover {
+  opacity: 0.86;
+}
+
+.sign-tip {
+  margin-top: 20rpx;
+  color: var(--co-text-tertiary);
+  font-size: 24rpx;
+  text-align: center;
+}
+
+.rule-card {
+  margin-top: var(--co-space-gap);
+  padding: var(--co-space-card);
+  background-color: var(--co-card);
+  border-radius: var(--co-radius-card);
+  border: 1rpx solid var(--co-divider);
+}
+
+.card-title {
+  color: var(--co-text-primary);
+  font-size: 32rpx;
+  font-weight: 600;
+  letter-spacing: 1rpx;
+}
+
+.rule-row {
+  display: flex;
+  justify-content: space-between;
+  margin-top: var(--co-space-gap);
+  color: var(--co-text-secondary);
+  font-size: 28rpx;
+}
+
+.rule-tip {
+  display: block;
+  margin-top: var(--co-space-card);
+  color: var(--co-text-tertiary);
+  font-size: 24rpx;
+}

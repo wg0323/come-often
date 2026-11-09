@@ -1,0 +1,63 @@
+<view wx:if="{{visible}}" class="mask" bindtap="onClose">
+  <view class="panel" catchtap="noop">
+    <view class="panel-head">
+      <text class="panel-title">购物车（{{totalCount}} 件）</text>
+      <view class="panel-clear" catchtap="onClear">清空</view>
+      <view class="panel-close" catchtap="onClose">×</view>
+    </view>
+
+    <scroll-view class="panel-body" scroll-y enhanced="{{true}}" show-scrollbar="{{false}}">
+      <view class="panel-body-inner">
+        <view wx:if="{{loading}}" class="empty">加载中…</view>
+        <view wx:elif="{{items.length === 0}}" class="empty">购物车还是空的，先挑几道菜吧</view>
+        <view wx:for="{{items}}" wx:key="itemId" wx:for-index="index" class="cart-row-wrap">
+          <view class="row-remove" data-item-id="{{item.itemId}}" catchtap="onRemove">
+            <view class="remove-line remove-line--a"></view>
+            <view class="remove-line remove-line--b"></view>
+          </view>
+          <view
+            class="cart-row {{item.invalid ? 'cart-row--invalid' : ''}} {{draggingIndex === index ? 'cart-row--dragging' : ''}}"
+            style="transform: translateX({{item.offsetX}}rpx);"
+            data-item-id="{{item.itemId}}"
+            data-index="{{index}}"
+            bindtouchstart="onTouchStart"
+            bindtouchmove="onTouchMove"
+            bindtouchend="onTouchEnd"
+          >
+            <view
+              class="check {{item.selected ? 'check--active' : ''}}"
+              data-item-id="{{item.itemId}}"
+              catchtap="onToggleItem"
+            >
+              <view wx:if="{{item.selected}}" class="check-mark"></view>
+            </view>
+            <image class="row-image" src="{{item.imageUrl}}" mode="aspectFill" lazy-load />
+            <view class="row-info">
+              <text class="row-name">{{item.dishName}}</text>
+              <text class="row-desc">{{item.specDesc}}{{item.addonDesc}}</text>
+              <text wx:if="{{item.invalid}}" class="invalid-text">{{item.invalidReason}}</text>
+              <view class="row-bottom">
+                <text class="row-price">¥{{item.unitPrice}}</text>
+                <view class="quantity">
+                  <view class="qty-btn" data-item-id="{{item.itemId}}" data-delta="-1" catchtap="onChangeQuantity">－</view>
+                  <text class="qty-value">{{item.quantity}}</text>
+                  <view class="qty-btn" data-item-id="{{item.itemId}}" data-delta="1" catchtap="onChangeQuantity">＋</view>
+                </view>
+              </view>
+            </view>
+          </view>
+        </view>
+        <view wx:if="{{items.length > 0}}" class="amount-note">合计由服务端试算，最终金额以确认订单页为准</view>
+      </view>
+    </scroll-view>
+
+    <view class="panel-bar">
+      <view class="bar-price">
+        <text class="bar-label">合计</text>
+        <text class="price-symbol">¥</text>
+        <text class="price-num">{{totalAmount}}</text>
+      </view>
+      <view class="bar-btn" catchtap="onCheckout">去结算</view>
+    </view>
+  </view>
+</view>

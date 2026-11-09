@@ -1,0 +1,105 @@
+.page {
+  min-height: 100vh;
+  padding: var(--co-space-gap) var(--co-space-page) var(--co-space-page);
+  box-sizing: border-box;
+}
+
+.summary-card {
+  display: flex;
+  align-items: baseline;
+  gap: 16rpx;
+  margin-bottom: var(--co-space-gap);
+  padding: var(--co-space-card);
+  background-color: var(--co-card);
+  border-radius: var(--co-radius-card);
+}
+
+.score-num {
+  color: var(--co-cinnabar);
+  font-size: 48rpx;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.score-unit {
+  color: var(--co-cinnabar);
+  font-size: 24rpx;
+}
+
+.summary-count {
+  color: var(--co-text-secondary);
+  font-size: 24rpx;
+}
+
+.state {
+  padding: 120rpx 0;
+  color: var(--co-text-tertiary);
+  font-size: 24rpx;
+  text-align: center;
+}
+
+.review-card {
+  margin-bottom: var(--co-space-gap);
+  padding: var(--co-space-card);
+  background-color: var(--co-card);
+  border-radius: var(--co-radius-card);
+}
+
+.review-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+.review-nickname {
+  color: var(--co-text-primary);
+  font-size: 28rpx;
+  font-weight: 600;
+}
+
+.review-time {
+  color: var(--co-text-tertiary);
+  font-size: 24rpx;
+}
+
+.review-stars {
+  margin-top: 8rpx;
+  font-size: 24rpx;
+}
+
+.stars {
+  color: var(--co-gold);
+}
+
+.stars--empty {
+  color: var(--co-divider);
+}
+
+.review-content {
+  display: block;
+  margin-top: 12rpx;
+  color: var(--co-text-primary);
+  font-size: 28rpx;
+  line-height: 1.6;
+}
+
+.review-images {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12rpx;
+  margin-top: 16rpx;
+}
+
+/* 评价图沿用 4:3 比例，与列表图一致 */
+.review-image {
+  width: 200rpx;
+  height: 150rpx;
+  border-radius: var(--co-radius-tag);
+}
+
+.loading {
+  padding: 32rpx 0;
+  color: var(--co-text-tertiary);
+  font-size: 24rpx;
+  text-align: center;
+}

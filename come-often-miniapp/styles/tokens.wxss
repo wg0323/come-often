@@ -1,0 +1,22 @@
+/* 顾客端视觉 token。页面内禁止写死色值，与商家端各自独立维护。 */
+page {
+  --co-ink: #22302a;
+  --co-paper: #faf7f2;
+  --co-card: #ffffff;
+  --co-cinnabar: #a3412e;
+  --co-gold: #b08a4b;
+  --co-text-primary: #1e1e1e;
+  --co-text-secondary: #6b6b6b;
+  --co-text-tertiary: #9a9a9a;
+  --co-divider: #ede7de;
+  --co-mask: rgba(34, 48, 42, 0.45);
+  --co-success: #3f7d58;
+  --co-warning: #c8873a;
+  --co-danger: #b23a36;
+  --co-radius-card: 12rpx;
+  --co-radius-button: 8rpx;
+  --co-radius-tag: 4rpx;
+  --co-space-page: 32rpx;
+  --co-space-card: 24rpx;
+  --co-space-gap: 20rpx;
+}

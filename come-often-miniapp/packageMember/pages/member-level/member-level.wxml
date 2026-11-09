@@ -1,0 +1,47 @@
+<scroll-view class="page-scroll" scroll-y enhanced="{{true}}" show-scrollbar="{{false}}">
+<view class="page">
+  <view wx:if="{{overview}}" class="level-card">
+    <text class="level-code">{{overview.currentLevel ? overview.currentLevel.levelCode : 'NORMAL'}}</text>
+    <text class="level-name">{{overview.currentLevel ? overview.currentLevel.levelName : '普通会员'}}</text>
+    <view class="level-metrics">
+      <view class="metric">
+        <text class="metric-num">{{overview.annualAmount}}</text>
+        <text class="metric-label">本年度消费额</text>
+      </view>
+      <view class="metric">
+        <text class="metric-num">{{overview.totalEarned}}</text>
+        <text class="metric-label">累计积分</text>
+      </view>
+    </view>
+    <view wx:if="{{overview.nextLevel}}" class="level-next">
+      <text class="next-text">距「{{overview.nextLevel.levelName}}」还差 ¥{{overview.gapAmount}} 与 {{overview.gapPoints}} 积分</text>
+    </view>
+    <view wx:else class="level-next">
+      <text class="next-text">已是最高等级，感谢一路支持</text>
+    </view>
+  </view>
+
+  <text class="section-heading">全部等级</text>
+
+  <view wx:if="{{overview}}" class="level-list">
+    <view
+      wx:for="{{overview.levels}}"
+      wx:key="levelId"
+      class="level-row {{overview.currentLevel && overview.currentLevel.levelId === item.levelId ? 'level-row--current' : ''}}"
+    >
+      <view class="row-head">
+        <text class="row-name">{{item.levelName}}</text>
+        <text class="row-code">{{item.levelCode}}</text>
+      </view>
+      <view class="row-body">
+        <text class="row-cond">年度消费满 ¥{{item.minAmount}}</text>
+        <text class="row-cond">累计积分满 {{item.minPoints}}</text>
+      </view>
+      <text class="row-benefit">会员折扣 {{item.discountRate}}</text>
+    </view>
+  </view>
+
+  <view wx:if="{{loading}}" class="loading">加载中…</view>
+  <view wx:elif="{{loaded}}" class="level-tip">等级在订单完成后自动结算，只升不降；折扣权益在后续阶段生效</view>
+</view>
+</scroll-view>

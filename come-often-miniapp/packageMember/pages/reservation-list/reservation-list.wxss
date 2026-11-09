@@ -1,0 +1,191 @@
+.page {
+  min-height: 100vh;
+  padding: var(--co-space-page);
+  box-sizing: border-box;
+}
+
+.tabs {
+  display: flex;
+  gap: var(--co-space-gap);
+  margin-bottom: var(--co-space-card);
+}
+
+.tab {
+  padding: 12rpx 28rpx;
+  border: 1rpx solid var(--co-divider);
+  border-radius: var(--co-radius-button);
+  background-color: var(--co-card);
+  color: var(--co-text-secondary);
+  font-size: 24rpx;
+}
+
+.tab--active {
+  border-color: var(--co-ink);
+  background-color: var(--co-ink);
+  color: var(--co-card);
+}
+
+.card {
+  margin-bottom: var(--co-space-gap);
+  padding: var(--co-space-card);
+  border: 1rpx solid var(--co-divider);
+  border-radius: var(--co-radius-card);
+  background-color: var(--co-card);
+}
+
+.card-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+.card-date {
+  color: var(--co-text-primary);
+  font-size: 32rpx;
+  font-weight: 600;
+}
+
+.card-status {
+  color: var(--co-cinnabar);
+  font-size: 24rpx;
+}
+
+.card-line {
+  display: block;
+  margin-top: 10rpx;
+  color: var(--co-text-secondary);
+  font-size: 24rpx;
+}
+
+.card-remark {
+  display: block;
+  margin-top: 8rpx;
+  color: var(--co-text-tertiary);
+  font-size: 22rpx;
+}
+
+.card-no {
+  display: block;
+  margin-top: 8rpx;
+  color: var(--co-text-tertiary);
+  font-size: 22rpx;
+}
+
+.card-actions {
+  display: flex;
+  gap: 16rpx;
+  margin-top: 20rpx;
+  padding-top: 16rpx;
+  border-top: 1rpx solid var(--co-divider);
+}
+
+.action {
+  padding: 8rpx 24rpx;
+  border: 1rpx solid var(--co-divider);
+  border-radius: var(--co-radius-button);
+  color: var(--co-text-secondary);
+  font-size: 24rpx;
+}
+
+.action--primary {
+  border-color: var(--co-ink);
+  background-color: var(--co-ink);
+  color: var(--co-card);
+}
+
+.action--danger {
+  border-color: var(--co-danger);
+  color: var(--co-danger);
+}
+
+.tip {
+  padding: 32rpx 0;
+  color: var(--co-text-tertiary);
+  font-size: 24rpx;
+  text-align: center;
+}
+
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20rpx;
+  padding: 80rpx 0;
+}
+
+.empty-text {
+  color: var(--co-text-tertiary);
+  font-size: 24rpx;
+}
+
+.empty-action {
+  padding: 12rpx 36rpx;
+  border-radius: var(--co-radius-button);
+  background-color: var(--co-ink);
+  color: var(--co-card);
+  font-size: 26rpx;
+}
+
+.overlay {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(34, 48, 42, 0.72);
+}
+
+.code-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 560rpx;
+  padding: 40rpx var(--co-space-card);
+  border-radius: var(--co-radius-card);
+  background-color: var(--co-card);
+}
+
+.code-title {
+  color: var(--co-text-secondary);
+  font-size: 26rpx;
+  letter-spacing: 2rpx;
+}
+
+/* 固定 CSS 宽高，须与 reservation-list.js 的 QR_SIZE 一致；禁止改回 {{}} 动态绑定 */
+.code-qr {
+  width: 200px;
+  height: 200px;
+  margin-top: 24rpx;
+  background-color: var(--co-card);
+}
+
+.code-value {
+  margin-top: 24rpx;
+  color: var(--co-ink);
+  font-size: 34rpx;
+  font-weight: 700;
+  letter-spacing: 2rpx;
+  word-break: break-all;
+  text-align: center;
+}
+
+.code-tip {
+  margin-top: 16rpx;
+  color: var(--co-text-tertiary);
+  font-size: 22rpx;
+}
+
+.code-meta {
+  margin-top: 8rpx;
+  color: var(--co-text-secondary);
+  font-size: 22rpx;
+}
+
+.code-actions {
+  display: flex;
+  gap: 24rpx;
+  margin-top: 32rpx;
+}

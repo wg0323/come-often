@@ -1,0 +1,26 @@
+<scroll-view class="page-scroll" scroll-y enhanced="{{true}}" show-scrollbar="{{false}}">
+<view class="login-page">
+  <view class="login-title">商家工作台</view>
+  <view class="login-subtitle">首次登录需绑定员工微信，之后免密进入</view>
+
+  <view class="form-card">
+    <input
+      class="form-input"
+      placeholder="登录账号"
+      value="{{username}}"
+      bindinput="onInputUsername"
+    />
+    <input
+      class="form-input"
+      placeholder="密码"
+      password
+      value="{{password}}"
+      bindinput="onInputPassword"
+    />
+    <view wx:if="{{errorText}}" class="error-text">{{errorText}}</view>
+    <button class="submit" loading="{{loading}}" bindtap="onTapLogin">登录并绑定微信</button>
+  </view>
+
+  <view class="hint">本地初始账号 manager / waiter，初始密码 Come@2026</view>
+</view>
+</scroll-view>

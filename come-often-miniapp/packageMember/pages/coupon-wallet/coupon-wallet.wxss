@@ -1,0 +1,132 @@
+.page {
+  min-height: 100vh;
+  padding: var(--co-space-page);
+  box-sizing: border-box;
+}
+
+.tabs {
+  display: flex;
+  gap: var(--co-space-gap);
+  padding-bottom: 12rpx;
+  border-bottom: 1rpx solid var(--co-divider);
+}
+
+.tab {
+  flex: 1;
+  padding: 12rpx 0;
+  color: var(--co-text-secondary);
+  font-size: 28rpx;
+  text-align: center;
+  border-radius: var(--co-radius-button);
+}
+
+.tab--active {
+  color: var(--co-cinnabar);
+  font-weight: 600;
+  border-bottom: 4rpx solid var(--co-cinnabar);
+  border-radius: 0;
+}
+
+.list {
+  margin-top: var(--co-space-gap);
+}
+
+.coupon {
+  display: flex;
+  align-items: center;
+  gap: var(--co-space-gap);
+  margin-bottom: var(--co-space-gap);
+  padding: var(--co-space-card);
+  background-color: var(--co-card);
+  border-radius: var(--co-radius-card);
+  border: 1rpx solid var(--co-divider);
+}
+
+.coupon--hover {
+  opacity: 0.86;
+}
+
+.coupon--inactive {
+  opacity: 0.56;
+}
+
+.coupon-face {
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  justify-content: center;
+  width: 180rpx;
+  padding: 16rpx 0;
+  border-right: 1rpx solid var(--co-divider);
+}
+
+.coupon-face-value {
+  color: var(--co-cinnabar);
+  font-size: 36rpx;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.coupon-face-cond {
+  margin-top: 8rpx;
+  color: var(--co-text-tertiary);
+  font-size: 24rpx;
+}
+
+.coupon-body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+}
+
+.coupon-name {
+  color: var(--co-text-primary);
+  font-size: 32rpx;
+  font-weight: 600;
+  letter-spacing: 1rpx;
+}
+
+.coupon-type {
+  margin-top: 8rpx;
+  color: var(--co-text-secondary);
+  font-size: 24rpx;
+}
+
+.coupon-expire {
+  margin-top: 8rpx;
+  color: var(--co-text-tertiary);
+  font-size: 24rpx;
+  font-variant-numeric: tabular-nums;
+}
+
+.coupon-state {
+  flex: none;
+  color: var(--co-text-tertiary);
+  font-size: 24rpx;
+}
+
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 160rpx 0;
+}
+
+.empty-text {
+  color: var(--co-text-secondary);
+  font-size: 28rpx;
+}
+
+.empty-tip {
+  margin-top: 12rpx;
+  color: var(--co-text-tertiary);
+  font-size: 24rpx;
+}
+
+.loading,
+.list-end {
+  padding: 32rpx 0;
+  color: var(--co-text-tertiary);
+  font-size: 24rpx;
+  text-align: center;
+}

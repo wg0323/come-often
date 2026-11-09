@@ -1,0 +1,48 @@
+<scroll-view class="page-scroll" scroll-y enhanced="{{true}}" show-scrollbar="{{false}}" refresher-enabled="{{true}}" refresher-triggered="{{refresherTriggered}}" bindrefresherrefresh="onRefresherRefresh" bindscrolltolower="onReachBottom">
+<view class="page">
+  <view class="tabs">
+    <view
+      wx:for="{{tabs}}"
+      wx:key="status"
+      class="tab {{activeStatus === item.status ? 'tab--active' : ''}}"
+      data-status="{{item.status}}"
+      bindtap="onTapTab"
+    >
+      {{item.label}}
+    </view>
+  </view>
+
+  <view wx:if="{{newOrderHint}}" class="notice">{{newOrderHint}}</view>
+
+  <view
+    wx:for="{{orders}}"
+    wx:key="orderNo"
+    class="card order-card"
+    data-orderno="{{item.orderNo}}"
+    bindtap="onTapOrder"
+  >
+    <view class="order-head">
+      <text class="pickup-code">{{item.pickupCode || '—'}}</text>
+      <text class="tag {{item.statusClass}}">{{item.statusText}}</text>
+    </view>
+    <view class="order-meta">
+      <text class="muted">{{item.orderType === 'DINE_IN' ? '到店用餐' : '自提'}} · {{item.createTimeText}}</text>
+      <text class="value">¥{{item.moneyText}}</text>
+    </view>
+    <text class="order-items">{{item.itemSummary}}</text>
+    <text class="order-remark">备注：{{item.remarkText}}</text>
+    <view
+      wx:if="{{item.action}}"
+      class="btn btn--primary order-action"
+      data-orderno="{{item.orderNo}}"
+      data-tostatus="{{item.action.toStatus}}"
+      catchtap="onTapAction"
+    >
+      {{item.action.label}}
+    </view>
+  </view>
+
+  <view wx:if="{{!loading && orders.length === 0}}" class="empty">当前没有订单</view>
+  <view wx:if="{{orders.length > 0 && !hasMore}}" class="muted list-end">没有更多了</view>
+</view>
+</scroll-view>

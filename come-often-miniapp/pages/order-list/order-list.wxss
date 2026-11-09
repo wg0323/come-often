@@ -1,0 +1,107 @@
+.page {
+  min-height: 100vh;
+  padding: var(--co-space-page);
+  box-sizing: border-box;
+}
+
+.order-card {
+  margin-bottom: var(--co-space-gap);
+  padding: var(--co-space-card);
+  background-color: var(--co-card);
+  border-radius: var(--co-radius-card);
+}
+
+.order-card--hover,
+.empty-btn--hover,
+.review-btn--hover {
+  opacity: 0.8;
+}
+
+.head-row,
+.foot-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.order-no {
+  color: var(--co-text-primary);
+  font-size: 28rpx;
+  font-variant-numeric: tabular-nums;
+}
+
+.order-status {
+  color: var(--co-cinnabar);
+  font-size: 24rpx;
+}
+
+.summary {
+  display: block;
+  margin-top: 16rpx;
+  color: var(--co-text-secondary);
+  font-size: 24rpx;
+}
+
+.foot-row {
+  margin-top: 16rpx;
+}
+
+.type,
+.code,
+.time {
+  color: var(--co-text-tertiary);
+  font-size: 24rpx;
+}
+
+.code {
+  color: var(--co-gold);
+  font-variant-numeric: tabular-nums;
+}
+
+.amount {
+  color: var(--co-cinnabar);
+  font-variant-numeric: tabular-nums;
+}
+
+.price-symbol {
+  font-size: 24rpx;
+}
+
+.price-num {
+  font-size: 36rpx;
+  font-weight: 700;
+}
+
+.time {
+  font-variant-numeric: tabular-nums;
+}
+
+.review-btn {
+  padding: 6rpx 20rpx;
+  border: 1rpx solid var(--co-ink);
+  border-radius: var(--co-radius-button);
+  color: var(--co-ink);
+  font-size: 24rpx;
+  font-weight: 600;
+}
+
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 160rpx;
+}
+
+.empty-text {
+  color: var(--co-text-secondary);
+  font-size: 28rpx;
+}
+
+.empty-btn {
+  margin-top: var(--co-space-gap);
+  padding: 16rpx 48rpx;
+  border-radius: var(--co-radius-button);
+  background-color: var(--co-ink);
+  color: var(--co-card);
+  font-size: 28rpx;
+}

@@ -1,0 +1,151 @@
+.page {
+  min-height: 100vh;
+  padding: var(--co-space-page) var(--co-space-page) 160rpx;
+  box-sizing: border-box;
+}
+
+.form-card {
+  margin-bottom: var(--co-space-gap);
+  padding: var(--co-space-card);
+  background-color: var(--co-card);
+  border-radius: var(--co-radius-card);
+}
+
+.card-title {
+  display: block;
+  color: var(--co-text-primary);
+  font-size: 32rpx;
+  font-weight: 600;
+}
+
+.form-desc {
+  display: block;
+  margin-top: 12rpx;
+  color: var(--co-text-secondary);
+  font-size: 24rpx;
+  line-height: 1.6;
+}
+
+.rate-row {
+  display: flex;
+  gap: 16rpx;
+  margin-top: 20rpx;
+}
+
+.rate-star {
+  color: var(--co-divider);
+  font-size: 56rpx;
+  line-height: 1;
+}
+
+.rate-star--active {
+  color: var(--co-gold);
+}
+
+.dish-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12rpx;
+  margin-top: 16rpx;
+}
+
+.dish-chip {
+  padding: 10rpx 20rpx;
+  border: 1rpx solid var(--co-divider);
+  border-radius: var(--co-radius-tag);
+  color: var(--co-text-secondary);
+  font-size: 26rpx;
+}
+
+.dish-chip--active {
+  border-color: var(--co-ink);
+  color: var(--co-ink);
+  font-weight: 600;
+}
+
+.content-input {
+  margin-top: 16rpx;
+  padding: 16rpx;
+  border: 1rpx solid var(--co-divider);
+  border-radius: var(--co-radius-button);
+  color: var(--co-text-primary);
+  font-size: 28rpx;
+}
+
+.image-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16rpx;
+  margin-top: 16rpx;
+}
+
+.image-item {
+  position: relative;
+}
+
+/* 评价图统一 4:3 缩略图，与服务端 320 宽产物一致 */
+.image-thumb {
+  width: 160rpx;
+  height: 120rpx;
+  border-radius: var(--co-radius-tag);
+}
+
+.image-remove {
+  position: absolute;
+  right: -8rpx;
+  top: -12rpx;
+  width: 36rpx;
+  height: 36rpx;
+  line-height: 32rpx;
+  background-color: var(--co-ink);
+  color: var(--co-card);
+  font-size: 24rpx;
+  text-align: center;
+  border-radius: 50%;
+}
+
+.image-add {
+  width: 160rpx;
+  height: 120rpx;
+  line-height: 120rpx;
+  border: 1rpx dashed var(--co-divider);
+  border-radius: var(--co-radius-tag);
+  color: var(--co-text-tertiary);
+  font-size: 40rpx;
+  text-align: center;
+}
+
+.image-add--hover {
+  opacity: 0.7;
+}
+
+.action-bar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 16rpx var(--co-space-page);
+  padding-bottom: calc(16rpx + env(safe-area-inset-bottom));
+  background-color: var(--co-card);
+  box-shadow: 0 -2rpx 12rpx var(--co-divider);
+  box-sizing: border-box;
+}
+
+.primary-btn {
+  height: 88rpx;
+  line-height: 88rpx;
+  background-color: var(--co-ink);
+  color: var(--co-card);
+  font-size: 28rpx;
+  font-weight: 600;
+  text-align: center;
+  border-radius: var(--co-radius-button);
+}
+
+.primary-btn--disabled {
+  background-color: var(--co-text-tertiary);
+}
+
+.primary-btn--hover {
+  opacity: 0.8;
+}

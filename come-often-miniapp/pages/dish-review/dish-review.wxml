@@ -1,0 +1,42 @@
+<scroll-view class="page-scroll" scroll-y enhanced="{{true}}" show-scrollbar="{{false}}" bindscrolltolower="onReachBottom">
+<view class="page">
+  <view class="summary-card">
+    <view class="summary-score">
+      <text class="score-num">{{averageRating}}</text>
+      <text class="score-unit">分</text>
+    </view>
+    <text class="summary-count">{{reviewCount}} 条评价</text>
+  </view>
+
+  <view wx:if="{{reviews.length === 0 && !loading}}" class="state">还没有评价，等你来写第一条</view>
+
+  <view wx:for="{{reviews}}" wx:key="id" wx:for-index="reviewIndex" class="review-card">
+    <view class="review-head">
+      <text class="review-nickname">{{item.nickname}}</text>
+      <text class="review-time">{{item.createTime}}</text>
+    </view>
+    <view class="review-stars">
+      <text class="stars">{{item.stars}}</text>
+      <text class="stars stars--empty">{{item.emptyStars}}</text>
+    </view>
+    <text wx:if="{{item.content}}" class="review-content">{{item.content}}</text>
+    <view wx:if="{{item.images.length > 0}}" class="review-images">
+      <image
+        wx:for="{{item.images}}"
+        wx:for-item="url"
+        wx:key="*this"
+        class="review-image"
+        src="{{url}}"
+        mode="aspectFill"
+        lazy-load
+        data-url="{{url}}"
+        data-review-index="{{reviewIndex}}"
+        bindtap="onPreviewImage"
+      />
+    </view>
+  </view>
+
+  <view wx:if="{{loading}}" class="loading">加载中…</view>
+  <view wx:elif="{{reviews.length > 0 && reviews.length >= total}}" class="loading">共 {{total}} 条评价</view>
+</view>
+</scroll-view>

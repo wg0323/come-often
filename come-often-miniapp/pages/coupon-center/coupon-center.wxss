@@ -1,0 +1,144 @@
+.page {
+  min-height: 100vh;
+  padding: var(--co-space-page);
+  box-sizing: border-box;
+}
+
+.wallet-entry {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--co-space-card);
+  background-color: var(--co-ink);
+  border-radius: var(--co-radius-card);
+  color: var(--co-card);
+}
+
+.wallet-entry--hover {
+  opacity: 0.86;
+}
+
+.wallet-text {
+  font-size: 28rpx;
+  font-weight: 600;
+}
+
+.wallet-arrow {
+  font-size: 36rpx;
+}
+
+.coupon-list {
+  margin-top: var(--co-space-gap);
+}
+
+.coupon-card {
+  display: flex;
+  margin-bottom: var(--co-space-gap);
+  padding: var(--co-space-card);
+  background-color: var(--co-card);
+  border: 1rpx solid var(--co-divider);
+  border-radius: var(--co-radius-card);
+}
+
+.coupon-card--group {
+  border-color: var(--co-gold);
+}
+
+.coupon-left {
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  justify-content: center;
+  width: 200rpx;
+  padding-right: var(--co-space-card);
+  border-right: 1rpx dashed var(--co-divider);
+}
+
+.coupon-amount {
+  color: var(--co-cinnabar);
+  font-size: 40rpx;
+  font-weight: 700;
+}
+
+.coupon-condition {
+  margin-top: 8rpx;
+  color: var(--co-text-secondary);
+  font-size: 24rpx;
+}
+
+.coupon-right {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+  padding-left: var(--co-space-card);
+}
+
+.coupon-title-row {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+}
+
+.coupon-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: 30rpx;
+  font-weight: 600;
+}
+
+.group-tag {
+  flex: none;
+  padding: 2rpx 10rpx;
+  border-radius: var(--co-radius-tag);
+  background-color: var(--co-gold);
+  color: var(--co-card);
+  font-size: 22rpx;
+}
+
+.coupon-type,
+.coupon-meta {
+  margin-top: 8rpx;
+  color: var(--co-text-tertiary);
+  font-size: 24rpx;
+}
+
+.coupon-btn {
+  align-self: flex-end;
+  margin-top: 16rpx;
+  padding: 8rpx 24rpx;
+  border-radius: var(--co-radius-button);
+  background-color: var(--co-cinnabar);
+  color: var(--co-card);
+  font-size: 24rpx;
+}
+
+.coupon-btn--disabled {
+  background-color: var(--co-divider);
+  color: var(--co-text-tertiary);
+}
+
+.state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--co-space-gap);
+  padding: 120rpx 0;
+  color: var(--co-text-tertiary);
+  font-size: 28rpx;
+}
+
+.state-text {
+  font-size: 28rpx;
+}
+
+.retry-btn {
+  padding: 12rpx 32rpx;
+  border: 1rpx solid var(--co-divider);
+  border-radius: var(--co-radius-button);
+  color: var(--co-text-secondary);
+  font-size: 26rpx;
+}

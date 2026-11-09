@@ -1,0 +1,25 @@
+<scroll-view class="page-scroll" scroll-y enhanced="{{true}}" show-scrollbar="{{false}}">
+<view class="page">
+  <view class="sign-card">
+    <text class="sign-title">每日签到</text>
+    <text class="sign-balance">{{account ? account.balance : 0}}</text>
+    <text class="sign-label">当前可用积分</text>
+    <view
+      class="primary-btn {{account && account.signedToday ? 'primary-btn--done' : ''}} {{loading ? 'primary-btn--disabled' : ''}}"
+      bindtap="onSignIn"
+      hover-class="primary-btn--hover"
+    >{{account && account.signedToday ? '今日已签到' : '立即签到'}}</view>
+    <text wx:if="{{rule}}" class="sign-tip">每次签到 +{{rule.signInPoints}} 分，每人每天一次</text>
+  </view>
+
+  <view wx:if="{{rule}}" class="rule-card">
+    <text class="card-title">积分规则</text>
+    <view class="rule-row"><text>每日签到</text><text>+{{rule.signInPoints}} 分</text></view>
+    <view class="rule-row"><text>每日分享</text><text>+{{rule.sharePoints}} 分</text></view>
+    <view class="rule-row"><text>在线消费</text><text>每 1 元 +{{rule.orderEarnRate}} 分</text></view>
+    <view class="rule-row"><text>积分抵现</text><text>{{rule.exchangeRate}} 分抵 ¥1</text></view>
+    <view class="rule-row"><text>积分有效期</text><text>{{rule.validDays}} 天</text></view>
+    <text class="rule-tip">积分在订单完成后发放，取消与退款订单不发放</text>
+  </view>
+</view>
+</scroll-view>

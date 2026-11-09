@@ -1,0 +1,132 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  padding: var(--co-space-page);
+  box-sizing: border-box;
+}
+
+.brand {
+  display: flex;
+  flex-direction: column;
+  gap: 12rpx;
+  margin-top: 160rpx;
+}
+
+.brand-name {
+  font-size: 56rpx;
+  font-weight: 600;
+  letter-spacing: 4rpx;
+  color: var(--co-ink);
+}
+
+.brand-slogan {
+  font-size: 26rpx;
+  color: var(--co-text-tertiary);
+  letter-spacing: 2rpx;
+}
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  margin-top: 80rpx;
+  padding: var(--co-space-card);
+  background-color: var(--co-card);
+  border-radius: var(--co-radius-card);
+}
+
+.panel-title {
+  font-size: 32rpx;
+  font-weight: 600;
+}
+
+.panel-desc {
+  margin-top: 12rpx;
+  font-size: 24rpx;
+  line-height: 1.6;
+  color: var(--co-text-secondary);
+}
+
+.primary-button {
+  height: 88rpx;
+  line-height: 88rpx;
+  margin-top: 40rpx;
+  padding: 0;
+  background-color: var(--co-ink);
+  color: var(--co-card);
+  font-size: 28rpx;
+  font-weight: 600;
+  border-radius: var(--co-radius-button);
+}
+
+.primary-button::after {
+  border: none;
+}
+
+.primary-button[disabled] {
+  opacity: 0.6;
+}
+
+.dev-block {
+  display: flex;
+  flex-direction: column;
+  margin-top: 48rpx;
+}
+
+.divider {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+}
+
+.divider::before,
+.divider::after {
+  content: '';
+  flex: 1;
+  height: 1rpx;
+  background-color: var(--co-divider);
+}
+
+.divider-text {
+  font-size: 22rpx;
+  color: var(--co-text-tertiary);
+  letter-spacing: 2rpx;
+}
+
+.dev-tip {
+  margin-top: 20rpx;
+  font-size: 22rpx;
+  line-height: 1.6;
+  color: var(--co-text-tertiary);
+}
+
+.dev-input {
+  height: 80rpx;
+  margin-top: 20rpx;
+  padding: 0 var(--co-space-card);
+  background-color: var(--co-paper);
+  border: 1rpx solid var(--co-divider);
+  border-radius: var(--co-radius-button);
+  font-size: 28rpx;
+  box-sizing: border-box;
+}
+
+.dev-button {
+  height: 80rpx;
+  line-height: 80rpx;
+  margin-top: 20rpx;
+  padding: 0;
+  background-color: var(--co-card);
+  border: 1rpx solid var(--co-ink);
+  color: var(--co-ink);
+  font-size: 26rpx;
+  border-radius: var(--co-radius-button);
+}
+
+.dev-button::after {
+  border: none;
+}
+
+.dev-button[disabled] {
+  opacity: 0.6;
+}

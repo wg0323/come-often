@@ -1,0 +1,39 @@
+<scroll-view class="page-scroll" scroll-y enhanced="{{true}}" show-scrollbar="{{false}}">
+<view class="page">
+  <view wx:if="{{orders.length > 0}}" class="list">
+    <view
+      wx:for="{{orders}}"
+      wx:key="orderNo"
+      class="order-card"
+      data-order-no="{{item.orderNo}}"
+      bindtap="onTapOrder"
+      hover-class="order-card--hover"
+    >
+      <view class="head-row">
+        <text class="order-no">{{item.orderNo}}</text>
+        <text class="order-status">{{item.statusText}}</text>
+      </view>
+      <text class="summary">{{item.itemSummary}}</text>
+      <view class="foot-row">
+        <text class="type">{{item.orderType === 'DINE_IN' ? '到店用餐' : '自提'}}</text>
+        <text wx:if="{{item.pickupCode}}" class="code">{{item.pickupCode}}</text>
+        <text class="amount"><text class="price-symbol">¥</text><text class="price-num">{{item.payAmount}}</text></text>
+      </view>
+      <view class="foot-row">
+        <text class="time">{{item.createTime}}</text>
+        <view
+          wx:if="{{item.canReview}}"
+          class="review-btn"
+          data-order-no="{{item.orderNo}}"
+          catchtap="onGoReview"
+        >去评价</view>
+      </view>
+    </view>
+  </view>
+
+  <view wx:elif="{{!loading}}" class="empty">
+    <text class="empty-text">还没有订单</text>
+    <view class="empty-btn" bindtap="onGoDish" hover-class="empty-btn--hover">去点菜</view>
+  </view>
+</view>
+</scroll-view>

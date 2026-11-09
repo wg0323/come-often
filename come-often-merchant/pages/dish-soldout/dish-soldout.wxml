@@ -1,0 +1,29 @@
+<scroll-view class="page-scroll" scroll-y enhanced="{{true}}" show-scrollbar="{{false}}" refresher-enabled="{{true}}" refresher-triggered="{{refresherTriggered}}" bindrefresherrefresh="onRefresherRefresh">
+<view class="page">
+  <view wx:for="{{categories}}" wx:key="key" class="card category">
+    <view class="category-head" data-categoryid="{{item.categoryId}}" bindtap="onTapCategory">
+      <text class="category-name">{{item.categoryName}}</text>
+      <text class="muted">{{item.expanded ? '收起' : '展开'}}（{{item.dishes.length}}）</text>
+    </view>
+
+    <view wx:if="{{item.expanded}}">
+      <view wx:for="{{item.dishes}}" wx:for-item="dish" wx:key="key" class="dish-row">
+        <view class="dish-main">
+          <text class="dish-name">{{dish.dishName}}</text>
+          <text class="muted">¥{{dish.priceText}} · {{dish.remainText}}</text>
+        </view>
+        <view
+          class="btn {{dish.actionClass}} dish-action"
+          data-dishid="{{dish.dishId}}"
+          data-soldout="{{dish.soldOut}}"
+          bindtap="onTapToggle"
+        >
+          {{dish.actionLabel}}
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <view wx:if="{{!loading && categories.length === 0}}" class="empty">没有上架菜品</view>
+</view>
+</scroll-view>

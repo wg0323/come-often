@@ -1,0 +1,173 @@
+.page {
+  min-height: 100vh;
+  padding: var(--co-space-page);
+  box-sizing: border-box;
+}
+
+.note {
+  padding: 16rpx var(--co-space-card);
+  border-radius: var(--co-radius-tag);
+  background-color: var(--co-card);
+  color: var(--co-text-secondary);
+  font-size: 24rpx;
+}
+
+.ticket-card,
+.take-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 40rpx;
+  padding: 48rpx var(--co-space-card);
+  background-color: var(--co-card);
+  border: 2rpx solid var(--co-gold);
+  border-radius: var(--co-radius-card);
+}
+
+.ticket-label,
+.take-title {
+  color: var(--co-text-secondary);
+  font-size: 28rpx;
+}
+
+.ticket-no {
+  margin-top: 16rpx;
+  color: var(--co-cinnabar);
+  font-size: 88rpx;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 4rpx;
+}
+
+.ticket-status {
+  margin-top: 8rpx;
+  padding: 4rpx 20rpx;
+  border-radius: var(--co-radius-tag);
+  background-color: var(--co-ink);
+  color: var(--co-card);
+  font-size: 24rpx;
+}
+
+.ticket-status--called {
+  background-color: var(--co-cinnabar);
+}
+
+.ticket-divider {
+  width: 100%;
+  height: 1rpx;
+  margin: 32rpx 0;
+  border-top: 1rpx dashed var(--co-divider);
+}
+
+.ticket-wait {
+  color: var(--co-text-primary);
+  font-size: 32rpx;
+  font-weight: 600;
+}
+
+.ticket-meta {
+  margin-top: 12rpx;
+  color: var(--co-text-tertiary);
+  font-size: 24rpx;
+}
+
+.ticket-actions {
+  display: flex;
+  gap: var(--co-space-gap);
+  margin-top: var(--co-space-gap);
+}
+
+.secondary-btn,
+.danger-btn,
+.primary-btn {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  height: 80rpx;
+  border-radius: var(--co-radius-button);
+  font-size: 28rpx;
+}
+
+.secondary-btn {
+  border: 1rpx solid var(--co-divider);
+  color: var(--co-text-secondary);
+}
+
+.danger-btn {
+  color: var(--co-danger);
+  border: 1rpx solid var(--co-danger);
+}
+
+.secondary-btn--hover,
+.danger-btn--hover,
+.primary-btn--hover {
+  opacity: 0.86;
+}
+
+.stepper {
+  display: flex;
+  align-items: center;
+  gap: 32rpx;
+  margin: 32rpx 0;
+}
+
+.stepper-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 72rpx;
+  height: 72rpx;
+  border: 1rpx solid var(--co-divider);
+  border-radius: var(--co-radius-button);
+  color: var(--co-text-primary);
+  font-size: 36rpx;
+}
+
+.stepper-value {
+  min-width: 100rpx;
+  text-align: center;
+  font-size: 32rpx;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.primary-btn {
+  width: 100%;
+  height: 88rpx;
+  background-color: var(--co-cinnabar);
+  color: var(--co-card);
+}
+
+.primary-btn--disabled {
+  opacity: 0.6;
+}
+
+.take-tip {
+  margin-top: 20rpx;
+  color: var(--co-text-tertiary);
+  font-size: 24rpx;
+  text-align: center;
+}
+
+.state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--co-space-gap);
+  padding: 120rpx 0;
+  color: var(--co-text-tertiary);
+  font-size: 28rpx;
+}
+
+.state-text {
+  font-size: 28rpx;
+}
+
+.retry-btn {
+  padding: 12rpx 32rpx;
+  border: 1rpx solid var(--co-divider);
+  border-radius: var(--co-radius-button);
+  color: var(--co-text-secondary);
+  font-size: 26rpx;
+}

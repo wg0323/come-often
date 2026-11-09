@@ -1,0 +1,281 @@
+.mask {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 100;
+  background-color: var(--co-mask);
+}
+
+.panel {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  display: flex;
+  flex-direction: column;
+  max-height: 72vh;
+  background-color: var(--co-paper);
+  border-radius: var(--co-radius-card) var(--co-radius-card) 0 0;
+  animation: slide-up 0.2s ease-out;
+}
+
+@keyframes slide-up {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+.panel-head {
+  display: flex;
+  align-items: center;
+  gap: var(--co-space-gap);
+  padding: var(--co-space-card);
+  border-bottom: 1rpx solid var(--co-divider);
+}
+
+.panel-title {
+  flex: 1;
+  font-size: 30rpx;
+  font-weight: 600;
+}
+
+.panel-clear,
+.panel-close {
+  color: var(--co-text-tertiary);
+  font-size: 26rpx;
+}
+
+.panel-close {
+  font-size: 40rpx;
+  line-height: 40rpx;
+}
+
+.panel-body {
+  flex: 1;
+  min-height: 0;
+  box-sizing: border-box;
+}
+
+/* 左右留白交给内层：scroll-view 自身加 padding 会把内容盒撑宽，右侧数量控件被裁掉 */
+.panel-body-inner {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 0 var(--co-space-card);
+}
+
+/* 左滑删除：红色删除区在行底层，内容行覆盖其上并整体平移 */
+.cart-row-wrap {
+  position: relative;
+  overflow: hidden;
+  border-bottom: 1rpx solid var(--co-divider);
+}
+
+.row-remove {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 160rpx;
+  background-color: var(--co-danger);
+}
+
+.remove-line {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 32rpx;
+  height: 3rpx;
+  background-color: var(--co-card);
+  transform: translate(-50%, -50%) rotate(45deg);
+}
+
+.remove-line--b {
+  transform: translate(-50%, -50%) rotate(-45deg);
+}
+
+.cart-row {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  gap: 16rpx;
+  box-sizing: border-box;
+  width: 100%;
+  padding: var(--co-space-card) 0;
+  background-color: var(--co-paper);
+  transition: transform 0.18s ease-out;
+}
+
+.cart-row--dragging {
+  transition: none;
+}
+
+.cart-row--invalid {
+  opacity: 0.6;
+}
+
+.check {
+  position: relative;
+  flex: none;
+  align-self: center;
+  width: 36rpx;
+  height: 36rpx;
+  border: 1rpx solid var(--co-divider);
+  border-radius: 50%;
+  background-color: var(--co-card);
+  box-sizing: border-box;
+}
+
+.check--active {
+  background-color: var(--co-cinnabar);
+  border-color: var(--co-cinnabar);
+}
+
+/* 对勾用两条边旋转绘制，几何中心与圆心重合，不受字体基线影响 */
+.check-mark {
+  position: absolute;
+  left: 50%;
+  top: 46%;
+  width: 14rpx;
+  height: 8rpx;
+  border-left: 3rpx solid var(--co-card);
+  border-bottom: 3rpx solid var(--co-card);
+  transform: translate(-50%, -50%) rotate(-45deg);
+}
+
+/* 1:1 正方形等比填满不留白边，高度与行内文字块齐平；aspectFill 裁掉原图长边 */
+.row-image {
+  flex: none;
+  align-self: center;
+  width: 120rpx;
+  height: 120rpx;
+  border-radius: var(--co-radius-tag);
+  background-color: var(--co-card);
+  object-fit: cover;
+}
+
+.row-info {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.row-name {
+  display: block;
+  overflow: hidden;
+  font-size: 28rpx;
+  font-weight: 600;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.row-desc,
+.invalid-text,
+.amount-note {
+  margin-top: 6rpx;
+  color: var(--co-text-tertiary);
+  font-size: 22rpx;
+}
+
+.invalid-text {
+  color: var(--co-danger);
+}
+
+.row-bottom {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  justify-content: space-between;
+  margin-top: 12rpx;
+}
+
+.row-price {
+  flex: 1;
+  min-width: 0;
+  color: var(--co-cinnabar);
+  font-size: 30rpx;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.quantity {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 8rpx;
+}
+
+.qty-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40rpx;
+  height: 40rpx;
+  border: 1rpx solid var(--co-divider);
+  border-radius: var(--co-radius-tag);
+  font-size: 26rpx;
+}
+
+.qty-value {
+  min-width: 28rpx;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.amount-note {
+  padding: 20rpx 0;
+  text-align: center;
+}
+
+.empty {
+  padding: 80rpx 0;
+  color: var(--co-text-tertiary);
+  font-size: 26rpx;
+  text-align: center;
+}
+
+.panel-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--co-space-card);
+  padding-bottom: calc(var(--co-space-card) + env(safe-area-inset-bottom));
+  border-top: 1rpx solid var(--co-divider);
+  background-color: var(--co-card);
+}
+
+.bar-price {
+  color: var(--co-cinnabar);
+  font-variant-numeric: tabular-nums;
+}
+
+.bar-label {
+  margin-right: 12rpx;
+  color: var(--co-text-secondary);
+  font-size: 24rpx;
+}
+
+.price-symbol {
+  font-size: 24rpx;
+}
+
+.price-num {
+  font-size: 40rpx;
+  font-weight: 700;
+}
+
+.bar-btn {
+  padding: 16rpx 48rpx;
+  border-radius: var(--co-radius-button);
+  background-color: var(--co-cinnabar);
+  color: var(--co-card);
+  font-size: 28rpx;
+}

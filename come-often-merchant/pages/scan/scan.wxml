@@ -1,0 +1,14 @@
+<scroll-view class="page-scroll" scroll-y enhanced="{{true}}" show-scrollbar="{{false}}">
+<view class="page scan-page">
+  <view class="scan-tip">券码 / 预约签到码 / 取餐码统一扫，系统自动判断并核销</view>
+
+  <view class="scan-button" bindtap="onTapScan">
+    <text class="scan-icon">扫码</text>
+    <text class="scan-text">扫一扫</text>
+  </view>
+
+  <view class="scan-note">请在顾客出示动态码后点击扫码；核销结果以整屏色块反馈。</view>
+
+  <view class="scan-back" bindtap="onTapHome">返回工作台</view>
+</view>
+</scroll-view>

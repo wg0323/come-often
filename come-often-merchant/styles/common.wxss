@@ -1,0 +1,162 @@
+/* 商家端公共样式：只放多页复用的容器、卡片、按钮与状态标签。
+ * 颜色全部取自 tokens.wxss，页面内不写死色值。
+ */
+.page {
+  min-height: 100vh;
+  padding: var(--mk-space-page);
+  box-sizing: border-box;
+  background-color: var(--mk-bg);
+}
+
+.page-title {
+  display: block;
+  margin-bottom: var(--mk-space-card);
+  color: var(--mk-text);
+  font-size: 36rpx;
+  font-weight: 600;
+}
+
+.card {
+  padding: var(--mk-space-card);
+  border: 1rpx solid var(--mk-divider);
+  border-radius: var(--mk-radius-card);
+  background-color: var(--mk-card);
+  box-sizing: border-box;
+}
+
+.card + .card {
+  margin-top: var(--mk-space-card);
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.row + .row {
+  margin-top: var(--mk-space-gap);
+}
+
+.label {
+  color: var(--mk-text-secondary);
+  font-size: 26rpx;
+}
+
+.value {
+  color: var(--mk-text);
+  font-size: 28rpx;
+  font-variant-numeric: tabular-nums;
+}
+
+.muted {
+  color: var(--mk-text-secondary);
+  font-size: 24rpx;
+}
+
+.divider {
+  height: 1rpx;
+  margin: var(--mk-space-card) 0;
+  background-color: var(--mk-divider);
+}
+
+.tabs {
+  display: flex;
+  margin-bottom: var(--mk-space-card);
+  padding: 6rpx;
+  border-radius: var(--mk-radius-card);
+  background-color: var(--mk-card);
+}
+
+.tab {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--mk-touch-min);
+  border-radius: var(--mk-radius-button);
+  color: var(--mk-text-secondary);
+  font-size: 26rpx;
+}
+
+.tab--active {
+  background-color: var(--mk-text);
+  color: var(--mk-text-inverse);
+  font-weight: 600;
+}
+
+.btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: var(--mk-button-height);
+  border-radius: var(--mk-radius-button);
+  box-sizing: border-box;
+  font-size: 30rpx;
+  line-height: 1;
+}
+
+.btn--primary {
+  background-color: var(--mk-text);
+  color: var(--mk-text-inverse);
+}
+
+.btn--ghost {
+  border: 1rpx solid var(--mk-divider);
+  background-color: var(--mk-card);
+  color: var(--mk-text);
+}
+
+.btn--danger {
+  border: 1rpx solid var(--mk-status-pending);
+  background-color: var(--mk-card);
+  color: var(--mk-status-pending);
+}
+
+.btn--disabled {
+  background-color: var(--mk-divider);
+  color: var(--mk-text-secondary);
+}
+
+.btn + .btn {
+  margin-top: var(--mk-space-gap);
+}
+
+.tag {
+  display: inline-block;
+  padding: 4rpx 12rpx;
+  border-radius: var(--mk-radius-tag);
+  font-size: 24rpx;
+}
+
+.tag--pending {
+  color: var(--mk-status-pending);
+  border: 1rpx solid var(--mk-status-pending);
+}
+
+.tag--cooking {
+  color: var(--mk-status-cooking);
+  border: 1rpx solid var(--mk-status-cooking);
+}
+
+.tag--ready {
+  color: var(--mk-status-ready);
+  border: 1rpx solid var(--mk-status-ready);
+}
+
+.tag--done {
+  color: var(--mk-status-done);
+  border: 1rpx solid var(--mk-status-done);
+}
+
+.empty {
+  margin-top: 48rpx;
+  color: var(--mk-text-secondary);
+  font-size: 26rpx;
+  text-align: center;
+}
+
+.footer-safe {
+  height: calc(var(--mk-space-page) + env(safe-area-inset-bottom));
+}

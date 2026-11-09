@@ -1,0 +1,7 @@
+{
+  "navigationBarTitleText": "员工登录",
+  "enablePullDownRefresh": false,
+  "disableScroll": true,
+  "navigationBarBackgroundColor": "#f2f3f5",
+  "navigationBarTextStyle": "black"
+}

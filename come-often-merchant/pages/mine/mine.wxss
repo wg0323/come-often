@@ -1,0 +1,30 @@
+.profile {
+  margin-bottom: var(--mk-space-card);
+}
+
+.profile-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.profile-name {
+  color: var(--mk-text);
+  font-size: 36rpx;
+  font-weight: 700;
+}
+
+.role-tag {
+  flex-shrink: 0;
+  margin-left: var(--mk-space-gap);
+  padding: 6rpx 14rpx;
+  border: 1rpx solid var(--mk-divider);
+  border-radius: var(--mk-radius-tag);
+  color: var(--mk-text-secondary);
+  font-size: 22rpx;
+}
+
+.mine-tip {
+  margin-top: var(--mk-space-card);
+  text-align: center;
+}

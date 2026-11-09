@@ -1,0 +1,46 @@
+<scroll-view class="page-scroll" scroll-y enhanced="{{true}}" show-scrollbar="{{false}}">
+<view class="page">
+  <view class="member-card">
+    <view class="member-head">
+      <view class="avatar">{{avatarText}}</view>
+      <view class="member-info">
+        <text class="member-name">{{nickname}}</text>
+        <text class="member-phone">已登录 · {{phone}}</text>
+      </view>
+    </view>
+    <view class="member-foot">
+      <view class="stat">
+        <text class="stat-num">{{balance}}</text>
+        <text class="stat-label">可用积分</text>
+      </view>
+      <view class="stat stat--link" bindtap="onTapLevel" hover-class="entry--hover">
+        <text class="stat-level">{{levelName}}</text>
+        <text class="stat-label">会员等级 ›</text>
+      </view>
+    </view>
+  </view>
+
+  <view class="cell-group">
+    <view
+      wx:for="{{menuItems}}"
+      wx:key="key"
+      class="cell"
+      data-url="{{item.url}}"
+      bindtap="onTapCell"
+      hover-class="cell--hover"
+    >
+      <view class="cell-body">
+        <text class="cell-label">{{item.label}}</text>
+        <text class="cell-desc">{{item.desc}}</text>
+      </view>
+      <text class="cell-arrow">›</text>
+    </view>
+  </view>
+
+  <view class="cell-group">
+    <view class="cell cell--logout" bindtap="onTapLogout" hover-class="cell--hover">
+      <text class="cell-label cell-label--logout">退出登录</text>
+    </view>
+  </view>
+</view>
+</scroll-view>

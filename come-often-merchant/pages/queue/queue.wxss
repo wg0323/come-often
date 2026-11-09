@@ -1,0 +1,47 @@
+.ticket-no {
+  font-size: 40rpx;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.tag {
+  padding: 4rpx 16rpx;
+  border-radius: var(--mk-radius-tag);
+  font-size: 24rpx;
+}
+
+.tag--WAITING {
+  background-color: var(--mk-status-pending);
+  color: var(--mk-text-inverse);
+}
+
+.tag--CALLED {
+  background-color: var(--mk-status-cooking);
+  color: var(--mk-text-inverse);
+}
+
+.tag--SEATED {
+  background-color: var(--mk-status-ready);
+  color: var(--mk-text-inverse);
+}
+
+.tag--CANCELLED,
+.tag--EXPIRED {
+  background-color: var(--mk-divider);
+  color: var(--mk-text-secondary);
+}
+
+.actions {
+  display: flex;
+  gap: var(--mk-space-gap);
+  margin-top: var(--mk-space-card);
+}
+
+.actions .btn {
+  flex: 1;
+}
+
+.refresh,
+.retry {
+  margin-top: var(--mk-space-card);
+}

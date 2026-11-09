@@ -1,0 +1,49 @@
+spring:
+  application:
+    name: come-often-server
+  profiles:
+    active: dev
+  task:
+    scheduling:
+      pool:
+        # 7 个兜底任务共用调度器：批量任务跑几分钟时不能把每分钟的 MQ 补偿扫描一起推迟
+        size: 4
+  servlet:
+    multipart:
+      max-file-size: 20MB
+      max-request-size: 20MB
+
+server:
+  port: 8080
+  servlet:
+    encoding:
+      charset: UTF-8
+      enabled: true
+      force: true
+
+mybatis-plus:
+  mapper-locations: classpath*:/mapper/**/*.xml
+  global-config:
+    db-config:
+      id-type: ASSIGN_ID
+      logic-delete-field: isDeleted
+      logic-delete-value: 1
+      logic-not-delete-value: 0
+  configuration:
+    map-underscore-to-camel-case: true
+
+knife4j:
+  enable: true
+  production: false
+  setting:
+    language: zh_cn
+
+springdoc:
+  api-docs:
+    enabled: true
+    path: /v3/api-docs
+  packages-to-scan: com.comeoften.module
+
+logging:
+  level:
+    root: info

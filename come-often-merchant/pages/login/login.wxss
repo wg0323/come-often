@@ -1,0 +1,56 @@
+.login-page {
+  min-height: 100vh;
+  padding: var(--mk-space-page);
+  box-sizing: border-box;
+  background-color: var(--mk-bg);
+}
+
+.login-title {
+  margin-top: 80rpx;
+  color: var(--mk-text);
+  font-size: 44rpx;
+  font-weight: 600;
+}
+
+.login-subtitle {
+  margin-top: 12rpx;
+  color: var(--mk-text-secondary);
+  font-size: 26rpx;
+}
+
+.form-card {
+  margin-top: 48rpx;
+  padding: var(--mk-space-card);
+  border-radius: var(--mk-radius-card);
+  background-color: var(--mk-card);
+}
+
+.form-input {
+  min-height: var(--mk-touch-min);
+  padding: 0 16rpx;
+  border-bottom: 1rpx solid var(--mk-divider);
+  color: var(--mk-text);
+  font-size: 30rpx;
+}
+
+.error-text {
+  margin-top: 20rpx;
+  color: var(--mk-status-pending);
+  font-size: 26rpx;
+}
+
+.submit {
+  height: var(--mk-button-height);
+  margin-top: 32rpx;
+  background-color: var(--mk-text);
+  color: var(--mk-card);
+  font-size: 30rpx;
+  line-height: var(--mk-button-height);
+}
+
+.hint {
+  margin-top: 32rpx;
+  color: var(--mk-text-secondary);
+  font-size: 24rpx;
+  text-align: center;
+}

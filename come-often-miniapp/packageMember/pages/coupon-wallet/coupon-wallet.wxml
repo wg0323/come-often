@@ -1,0 +1,44 @@
+<scroll-view class="page-scroll" scroll-y enhanced="{{true}}" show-scrollbar="{{false}}" bindscrolltolower="onReachBottom">
+<view class="page">
+  <view class="tabs">
+    <view
+      wx:for="{{tabs}}"
+      wx:key="key"
+      class="tab {{activeTab === item.key ? 'tab--active' : ''}}"
+      data-key="{{item.key}}"
+      bindtap="onTabChange"
+    >{{item.label}}</view>
+  </view>
+
+  <view wx:if="{{coupons.length > 0}}" class="list">
+    <view
+      wx:for="{{coupons}}"
+      wx:key="userCouponId"
+      class="coupon {{item.status === 1 || item.status === 2 ? 'coupon--inactive' : ''}}"
+      data-id="{{item.userCouponId}}"
+      data-status="{{item.status}}"
+      bindtap="onTapCoupon"
+      hover-class="coupon--hover"
+    >
+      <view class="coupon-face">
+        <text class="coupon-face-value">{{item.faceText}}</text>
+        <text class="coupon-face-cond">{{item.conditionText}}</text>
+      </view>
+      <view class="coupon-body">
+        <text class="coupon-name">{{item.templateName}}</text>
+        <text class="coupon-type">{{item.couponTypeText}}</text>
+        <text class="coupon-expire">{{item.status === 0 ? '有效期至' : '状态'}} {{item.status === 0 ? item.expireAt : item.statusText}}</text>
+      </view>
+      <text class="coupon-state">{{item.statusText}}</text>
+    </view>
+  </view>
+
+  <view wx:elif="{{loaded && !loading}}" class="empty">
+    <text class="empty-text">暂无{{activeTab === 'unused' ? '可用' : ''}}优惠券</text>
+    <text class="empty-tip">下单时可在确认订单页选择可用的券</text>
+  </view>
+
+  <view wx:if="{{loading}}" class="loading">加载中…</view>
+  <view wx:elif="{{!hasMore && coupons.length > 0}}" class="list-end">没有更多了</view>
+</view>
+</scroll-view>

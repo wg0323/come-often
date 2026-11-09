@@ -1,0 +1,128 @@
+<view class="layout">
+  <view class="mode-bar" bindtap="onTapSwitchMode" hover-class="mode-bar--hover">
+    <text class="mode-text">{{orderModeText || '请选择用餐方式'}}</text>
+    <text class="mode-switch">切换</text>
+  </view>
+
+  <view class="rails">
+    <scroll-view class="category-rail" scroll-y enhanced="{{true}}" show-scrollbar="{{false}}">
+      <view
+        wx:for="{{categories}}"
+        wx:key="id"
+        class="category-item {{item.id === activeCategoryId ? 'category-item--active' : ''}}"
+        data-id="{{item.id}}"
+        bindtap="onTapCategory"
+      >
+        <text class="category-name">{{item.categoryName}}</text>
+      </view>
+    </scroll-view>
+
+    <scroll-view class="dish-rail" scroll-y enhanced="{{true}}" show-scrollbar="{{false}}">
+      <view wx:if="{{loading}}" class="state">加载中…</view>
+      <view wx:elif="{{empty}}" class="state">该分类暂无上架菜品</view>
+      <view
+        wx:for="{{dishes}}"
+        wx:key="id"
+        class="dish-card"
+        data-id="{{item.id}}"
+        bindtap="onTapDish"
+        hover-class="dish-card--hover"
+      >
+        <view class="dish-image-wrap">
+          <image class="dish-image" src="{{item.imageUrl}}" mode="aspectFill" lazy-load />
+          <text wx:if="{{item.preorder}}" class="badge badge--gold">需提前 1 天预定</text>
+          <text wx:if="{{item.soldOut}}" class="badge badge--soldout">今日已售罄</text>
+        </view>
+        <view class="dish-body">
+          <text class="dish-name">{{item.dishName}}</text>
+          <view class="sub-row">
+            <text class="dish-subtitle">{{item.preorder ? item.craftInfo : item.subtitle}}</text>
+            <text wx:if="{{!item.preorder}}" class="sales">月售 {{item.monthlySales}}</text>
+          </view>
+          <view class="tag-row">
+            <text wx:for="{{item.tags}}" wx:for-item="tag" wx:key="*this" class="tag">{{tag}}</text>
+          </view>
+          <view class="dish-bottom">
+            <view class="price"><text class="price-symbol">¥</text><text class="price-num">{{item.price}}</text></view>
+            <!-- 预定菜要选用餐时间与定金，只能进详情；售罄不带加购入口 -->
+            <view
+              wx:if="{{!item.soldOut && !item.preorder}}"
+              class="add-btn"
+              data-id="{{item.id}}"
+              catchtap="onQuickAdd"
+              hover-class="add-btn--hover"
+            />
+          </view>
+        </view>
+      </view>
+    </scroll-view>
+  </view>
+
+  <view class="cart-bar">
+    <view class="cart-bubble" bindtap="onOpenCart" hover-class="cart-bubble--hover">
+      <image class="cart-icon" src="/assets/tabbar/cart.png" mode="aspectFit" />
+      <text wx:if="{{cartCount > 0}}" class="cart-badge">{{cartCount}}</text>
+    </view>
+    <view class="cart-summary" bindtap="onOpenCart">
+      <text class="cart-total">¥{{cartTotal}}</text>
+      <text class="cart-tip">购物车 · 点击展开</text>
+    </view>
+    <view class="cart-checkout" bindtap="onOpenCart">选好了</view>
+  </view>
+
+  <view wx:if="{{modeVisible}}" class="mode-mask" catchtap="noop">
+    <view class="mode-dialog" catchtap="noop">
+      <text class="mode-title">先选择用餐方式</text>
+      <view class="mode-options">
+        <view
+          class="mode-option {{modeDraft === 'DINE_IN' ? 'mode-option--active' : ''}}"
+          data-mode="DINE_IN"
+          bindtap="onSelectMode"
+        >
+          <text class="option-title">堂食</text>
+          <text class="option-desc">需先扫描桌码绑定桌台</text>
+        </view>
+        <view
+          class="mode-option {{modeDraft === 'PICKUP' ? 'mode-option--active' : ''}}"
+          data-mode="PICKUP"
+          bindtap="onSelectMode"
+        >
+          <text class="option-title">自提</text>
+          <text class="option-desc">需选择预约取餐时间</text>
+        </view>
+      </view>
+
+      <block wx:if="{{modeDraft === 'DINE_IN'}}">
+        <view class="table-row">
+          <text class="field-label">已绑定桌码</text>
+          <text class="table-code">{{tableCode || '未绑定'}}</text>
+        </view>
+        <view class="scan-btn" bindtap="onScanTable">扫码绑定桌码</view>
+        <input
+          class="table-input"
+          value="{{tableCodeInput}}"
+          placeholder="或手动输入桌码，如 T01"
+          bindinput="onTableCodeInput"
+        />
+        <text class="mode-tip">未绑定桌码时请扫桌上的二维码，或向店员询问桌码</text>
+      </block>
+      <block wx:else>
+        <text class="field-label">预约自提时间</text>
+        <view class="picker-row">
+          <picker mode="date" value="{{pickupDate}}" bindchange="onPickupDateChange">
+            <view class="picker">{{pickupDate}}</view>
+          </picker>
+          <picker mode="time" value="{{pickupClock}}" bindchange="onPickupClockChange">
+            <view class="picker">{{pickupClock}}</view>
+          </picker>
+        </view>
+        <text class="mode-tip">自提需预约到店时间，时间晚于当前时刻即可</text>
+      </block>
+
+      <view class="mode-confirm" bindtap="onConfirmMode">确定，开始点餐</view>
+      <view wx:if="{{orderMode}}" class="mode-cancel" bindtap="onCancelMode">暂不切换</view>
+    </view>
+  </view>
+
+  <cart-panel visible="{{cartVisible}}" bind:close="onCloseCart" bind:change="onCartChange" />
+</view>

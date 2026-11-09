@@ -1,0 +1,206 @@
+.page {
+  min-height: 100vh;
+  padding: var(--co-space-page) var(--co-space-page) 160rpx;
+  box-sizing: border-box;
+}
+
+.cart-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 16rpx;
+  margin-bottom: var(--co-space-gap);
+  padding: var(--co-space-card);
+  background-color: var(--co-card);
+  border-radius: var(--co-radius-card);
+}
+
+.cart-card--invalid {
+  opacity: 0.6;
+}
+
+.check {
+  flex: none;
+  width: 40rpx;
+  height: 40rpx;
+  margin-top: 40rpx;
+  line-height: 40rpx;
+  border: 1rpx solid var(--co-divider);
+  border-radius: var(--co-radius-tag);
+  color: var(--co-card);
+  font-size: 24rpx;
+  text-align: center;
+}
+
+.check--active {
+  border-color: var(--co-ink);
+  background-color: var(--co-ink);
+}
+
+.check--hover,
+.quantity-btn--hover,
+.primary-btn--hover,
+.empty-btn--hover {
+  opacity: 0.8;
+}
+
+/* 4:3，与列表图同比例 */
+.cart-image {
+  flex: none;
+  width: 160rpx;
+  height: 120rpx;
+  border-radius: var(--co-radius-button);
+}
+
+.cart-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.title-row {
+  display: flex;
+  align-items: baseline;
+  gap: 12rpx;
+}
+
+.dish-name {
+  color: var(--co-text-primary);
+  font-size: 32rpx;
+  font-weight: 600;
+}
+
+.preorder-tag {
+  color: var(--co-gold);
+  font-size: 20rpx;
+  border: 1rpx solid var(--co-gold);
+  border-radius: var(--co-radius-tag);
+  padding: 2rpx 8rpx;
+}
+
+.desc,
+.invalid-text,
+.amount-note {
+  display: block;
+  margin-top: 8rpx;
+  color: var(--co-text-secondary);
+  font-size: 24rpx;
+}
+
+.invalid-text {
+  color: var(--co-danger);
+}
+
+.bottom-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 12rpx;
+}
+
+.price,
+.action-price {
+  color: var(--co-cinnabar);
+  font-variant-numeric: tabular-nums;
+}
+
+.price-symbol {
+  font-size: 24rpx;
+}
+
+.price-num {
+  font-size: 36rpx;
+  font-weight: 700;
+}
+
+.quantity {
+  display: flex;
+  align-items: center;
+  gap: 10rpx;
+}
+
+.quantity-btn {
+  width: 44rpx;
+  height: 44rpx;
+  line-height: 44rpx;
+  border: 1rpx solid var(--co-divider);
+  border-radius: var(--co-radius-button);
+  color: var(--co-text-primary);
+  text-align: center;
+}
+
+.quantity-value {
+  min-width: 28rpx;
+  color: var(--co-text-primary);
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+
+.remove-btn {
+  margin-left: 8rpx;
+  color: var(--co-text-tertiary);
+  font-size: 24rpx;
+}
+
+.amount-note {
+  margin: 0 0 var(--co-space-gap);
+  color: var(--co-text-tertiary);
+  text-align: center;
+}
+
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 160rpx;
+}
+
+.empty-text {
+  color: var(--co-text-secondary);
+  font-size: 28rpx;
+}
+
+.empty-btn {
+  margin-top: var(--co-space-gap);
+  padding: 16rpx 48rpx;
+  border-radius: var(--co-radius-button);
+  background-color: var(--co-ink);
+  color: var(--co-card);
+  font-size: 28rpx;
+}
+
+.action-bar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--co-space-gap);
+  /* 购物车是 tabBar 页，页面底部由 tabBar 接管，不再叠安全区 */
+  padding: 16rpx var(--co-space-page);
+  background-color: var(--co-card);
+  box-shadow: 0 -2rpx 12rpx var(--co-divider);
+  box-sizing: border-box;
+}
+
+/* 与确认订单页一致：金额块吃掉剩余空间，去结算贴到右侧内边距 */
+.action-price {
+  flex: 1;
+}
+
+.action-label {
+  display: block;
+  color: var(--co-text-tertiary);
+  font-size: 24rpx;
+}
+
+.primary-btn {
+  min-width: 240rpx;
+  height: 88rpx;
+  line-height: 88rpx;
+  background-color: var(--co-ink);
+  color: var(--co-card);
+  font-size: 28rpx;
+  font-weight: 600;
+  text-align: center;
+  border-radius: var(--co-radius-button);
+}

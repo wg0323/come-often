@@ -1,0 +1,195 @@
+.page {
+  min-height: 100vh;
+  padding: var(--co-space-page) var(--co-space-page) 180rpx;
+  box-sizing: border-box;
+}
+
+.code-card,
+.section-card {
+  margin-bottom: var(--co-space-gap);
+  padding: var(--co-space-card);
+  background-color: var(--co-card);
+  border-radius: var(--co-radius-card);
+}
+
+.code-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  border: 2rpx solid var(--co-gold);
+}
+
+.code-label {
+  color: var(--co-text-secondary);
+  font-size: 24rpx;
+}
+
+.code-value {
+  margin-top: 16rpx;
+  color: var(--co-gold);
+  font-size: 64rpx;
+  font-weight: 700;
+  letter-spacing: 4rpx;
+  font-variant-numeric: tabular-nums;
+}
+
+.code-status {
+  margin-top: 12rpx;
+  color: var(--co-cinnabar);
+  font-size: 28rpx;
+}
+
+.code-note {
+  margin-top: 16rpx;
+  color: var(--co-text-secondary);
+  font-size: 24rpx;
+  line-height: 1.6;
+  text-align: center;
+}
+
+.card-title {
+  display: block;
+  margin-bottom: 12rpx;
+  color: var(--co-text-primary);
+  font-size: 32rpx;
+  font-weight: 600;
+}
+
+.amount-row {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 12rpx;
+  color: var(--co-text-secondary);
+  font-size: 24rpx;
+  font-variant-numeric: tabular-nums;
+}
+
+.amount-row--strong {
+  color: var(--co-cinnabar);
+  font-weight: 600;
+}
+
+.item-row {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  margin-top: 16rpx;
+}
+
+/* 4:3，与列表图同比例 */
+.item-image {
+  flex: none;
+  width: 120rpx;
+  height: 90rpx;
+  border-radius: var(--co-radius-button);
+}
+
+.item-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.item-name {
+  display: block;
+  color: var(--co-text-primary);
+  font-size: 28rpx;
+}
+
+.item-desc {
+  display: block;
+  color: var(--co-text-tertiary);
+  font-size: 24rpx;
+}
+
+.item-amount {
+  color: var(--co-cinnabar);
+  font-variant-numeric: tabular-nums;
+}
+
+.log-row {
+  display: flex;
+  flex-direction: column;
+  margin-top: 12rpx;
+  padding-bottom: 12rpx;
+  border-bottom: 1rpx solid var(--co-divider);
+}
+
+.log-status {
+  color: var(--co-text-primary);
+  font-size: 24rpx;
+}
+
+.log-remark,
+.log-time {
+  color: var(--co-text-tertiary);
+  font-size: 24rpx;
+}
+
+.action-bar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--co-space-gap);
+  padding: 16rpx var(--co-space-page);
+  padding-bottom: calc(16rpx + env(safe-area-inset-bottom));
+  background-color: var(--co-card);
+  box-shadow: 0 -2rpx 12rpx var(--co-divider);
+  box-sizing: border-box;
+}
+
+.primary-btn {
+  flex: 1;
+  height: 88rpx;
+  line-height: 88rpx;
+  background-color: var(--co-ink);
+  color: var(--co-card);
+  font-size: 28rpx;
+  font-weight: 600;
+  text-align: center;
+  border-radius: var(--co-radius-button);
+}
+
+.ghost-btn {
+  height: 88rpx;
+  line-height: 88rpx;
+  padding: 0 20rpx;
+  border: 1rpx solid var(--co-divider);
+  border-radius: var(--co-radius-button);
+  color: var(--co-text-secondary);
+  font-size: 24rpx;
+}
+
+.primary-btn--hover,
+.ghost-btn--hover,
+.review-btn--hover {
+  opacity: 0.8;
+}
+
+.review-hint {
+  display: block;
+  margin-top: 12rpx;
+  color: var(--co-text-secondary);
+  font-size: 24rpx;
+}
+
+.review-btn {
+  height: 72rpx;
+  line-height: 72rpx;
+  margin-top: 16rpx;
+  border: 1rpx solid var(--co-ink);
+  border-radius: var(--co-radius-button);
+  color: var(--co-ink);
+  font-size: 26rpx;
+  font-weight: 600;
+  text-align: center;
+}
+
+.loading {
+  padding: 120rpx 0;
+  color: var(--co-text-tertiary);
+  font-size: 24rpx;
+  text-align: center;
+}

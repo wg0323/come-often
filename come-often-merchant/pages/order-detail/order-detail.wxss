@@ -1,0 +1,69 @@
+.code-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: var(--mk-space-card);
+}
+
+.code-label {
+  color: var(--mk-text-secondary);
+  font-size: 26rpx;
+}
+
+.code-value {
+  margin: 12rpx 0;
+  color: var(--mk-text);
+  font-size: 72rpx;
+  font-weight: 700;
+  letter-spacing: 4rpx;
+  font-variant-numeric: tabular-nums;
+}
+
+.section-title {
+  margin-bottom: var(--mk-space-gap);
+  color: var(--mk-text);
+  font-size: 28rpx;
+  font-weight: 600;
+}
+
+.remark {
+  max-width: 460rpx;
+  text-align: right;
+}
+
+.item-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 12rpx 0;
+}
+
+.item-main {
+  display: flex;
+  flex-direction: column;
+}
+
+.item-name {
+  color: var(--mk-text);
+  font-size: 28rpx;
+}
+
+.strong {
+  font-weight: 700;
+}
+
+.log-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10rpx 0;
+}
+
+.log-status {
+  color: var(--mk-text);
+  font-size: 26rpx;
+}
+
+.actions {
+  margin-top: var(--mk-space-card);
+}

@@ -1,0 +1,121 @@
+<scroll-view class="page" scroll-y enhanced="{{true}}" show-scrollbar="{{false}}">
+  <view class="store-bar">
+    <view class="store-head">
+      <text class="store-name">{{storeName}}</text>
+      <text class="store-status {{businessStatusOpen ? '' : 'store-status--closed'}}">{{businessStatus}}</text>
+    </view>
+    <view class="store-hours">
+      <text class="hours-label">{{weekDayText}} 营业时间</text>
+      <text class="hours-value">{{todayHours}}</text>
+    </view>
+  </view>
+
+  <view class="search-entry" bindtap="onTapSearch" hover-class="search-entry--hover">
+    <text class="search-entry-text">搜索菜品、标签</text>
+  </view>
+
+  <swiper wx:if="{{banners.length > 0}}" class="banner" circular autoplay interval="4000">
+    <swiper-item wx:for="{{banners}}" wx:key="id" class="banner-item">
+      <image
+        class="banner-image"
+        src="{{item.imageUrl}}"
+        mode="aspectFill"
+        lazy-load
+        data-jump-type="{{item.jumpType}}"
+        data-jump-value="{{item.jumpValue}}"
+        bindtap="onTapBanner"
+      />
+      <text class="banner-title">{{item.title}}</text>
+    </swiper-item>
+  </swiper>
+
+  <view wx:if="{{noticeText}}" class="notice">
+    <text class="notice-label">公告</text>
+    <view class="notice-viewport">
+      <text class="notice-text">{{noticeText}}</text>
+    </view>
+  </view>
+
+  <view class="sections">
+    <view class="section section--ink" bindtap="onTapQueue" hover-class="section--hover">
+      <text class="section-title">取号</text>
+      <text class="section-desc">到店取号，随时看叫号</text>
+    </view>
+    <view class="section section--gold" bindtap="onTapReserve" hover-class="section--hover">
+      <text class="section-title">预约</text>
+      <text class="section-desc">订座 / 包厢，按时段来</text>
+    </view>
+  </view>
+
+  <view wx:if="{{signatureDishes.length > 0}}" class="signature">
+    <text class="section-heading">本店招牌</text>
+    <scroll-view class="signature-rail" scroll-x enhanced="{{true}}" show-scrollbar="{{false}}">
+      <view
+        wx:for="{{signatureDishes}}"
+        wx:key="id"
+        class="signature-card"
+        data-id="{{item.id}}"
+        bindtap="onTapDish"
+        hover-class="signature-card--hover"
+      >
+        <image class="signature-image" src="{{item.imageUrl}}" mode="aspectFill" lazy-load />
+        <text class="signature-name">{{item.dishName}}</text>
+        <view class="signature-price">
+          <text class="price-symbol">¥</text>
+          <text class="price-num">{{item.price}}</text>
+        </view>
+      </view>
+    </scroll-view>
+  </view>
+
+  <view wx:if="{{groupMealCoupons.length > 0}}" class="group-meal">
+    <view class="group-head">
+      <view class="group-head-left">
+        <text class="section-heading">团餐券</text>
+        <text class="group-subtitle">老客专享 · 先领券再点餐</text>
+      </view>
+      <text class="group-more" bindtap="onTapCouponCenter">全部券 ›</text>
+    </view>
+    <scroll-view class="group-rail" scroll-x enhanced="{{true}}" show-scrollbar="{{false}}">
+      <view wx:for="{{groupMealCoupons}}" wx:key="templateId" class="group-card">
+        <view class="group-card-top">
+          <text class="group-amount">{{item.faceText}}</text>
+          <text class="group-condition">{{item.conditionText}}</text>
+        </view>
+        <view class="group-card-bottom">
+          <text class="group-name">{{item.templateName}}</text>
+          <view
+            class="group-btn {{item.canReceive ? '' : 'group-btn--disabled'}}"
+            data-template-id="{{item.templateId}}"
+            data-can-receive="{{item.canReceive}}"
+            catchtap="onReceiveCoupon"
+          >{{item.buttonText}}</view>
+        </view>
+        <text class="group-remain">剩 {{item.remain}} 张 · 领取后 {{item.validDays}} 天有效</text>
+        <view class="notch notch--left"></view>
+        <view class="notch notch--right"></view>
+      </view>
+    </scroll-view>
+  </view>
+
+  <view wx:if="{{recommendedDishes.length > 0}}" class="signature">
+    <text class="section-heading">最近吃过</text>
+    <scroll-view class="signature-rail" scroll-x enhanced="{{true}}" show-scrollbar="{{false}}">
+      <view
+        wx:for="{{recommendedDishes}}"
+        wx:key="id"
+        class="signature-card"
+        data-id="{{item.id}}"
+        bindtap="onTapDish"
+        hover-class="signature-card--hover"
+      >
+        <image class="signature-image" src="{{item.imageUrl}}" mode="aspectFill" lazy-load />
+        <text class="signature-name">{{item.dishName}}</text>
+        <view class="signature-price">
+          <text class="price-symbol">¥</text>
+          <text class="price-num">{{item.price}}</text>
+        </view>
+      </view>
+    </scroll-view>
+  </view>
+</scroll-view>

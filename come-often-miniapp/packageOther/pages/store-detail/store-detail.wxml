@@ -1,0 +1,35 @@
+<scroll-view class="page-scroll" scroll-y enhanced="{{true}}" show-scrollbar="{{false}}">
+<view class="page">
+  <view wx:if="{{store}}" class="store-card">
+    <view class="store-head">
+      <text class="store-name">{{store.storeName}}</text>
+      <text class="store-status">{{store.businessStatusText}}</text>
+    </view>
+    <text class="store-address">{{store.address}}</text>
+    <text class="store-phone">{{store.phone}}</text>
+
+    <view class="hours">
+      <text class="section-heading">营业时间</text>
+      <view wx:for="{{store.businessHours}}" wx:key="weekDay" class="hour-row">
+        <text class="hour-day">{{weekDayText[item.weekDay - 1]}}</text>
+        <text class="hour-time">{{item.openTime}} - {{item.closeTime}}</text>
+      </view>
+    </view>
+
+    <view class="tables">
+      <text class="section-heading">桌型</text>
+      <view wx:for="{{tableGroups}}" wx:key="type" class="table-row">
+        <text class="table-label">{{item.label}}</text>
+        <text class="table-meta">{{item.count}} 桌 · 每桌约 {{item.capacity}} 人</text>
+      </view>
+    </view>
+  </view>
+
+  <view wx:if="{{loading}}" class="tip">加载中…</view>
+
+  <view class="actions">
+    <button class="button button--ghost" bindtap="onTapMine">我的预约</button>
+    <button class="button" bindtap="onTapReserve">预约订座</button>
+  </view>
+</view>
+</scroll-view>

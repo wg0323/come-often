@@ -1,0 +1,24 @@
+// PC 后台沿用顾客端品牌色 token；商家端独立维护 merchant/styles/tokens.wxss。页面内禁止写死色值。
+:root {
+  --co-ink: #22302a;
+  --co-paper: #faf7f2;
+  --co-card: #ffffff;
+  --co-cinnabar: #a3412e;
+  --co-gold: #b08a4b;
+  --co-text-primary: #1e1e1e;
+  --co-text-secondary: #6b6b6b;
+  --co-text-tertiary: #9a9a9a;
+  --co-divider: #ede7de;
+  --co-success: #3f7d58;
+  --co-warning: #c8873a;
+  --co-danger: #b23a36;
+  --co-radius-card: 12px;
+  --co-radius-button: 8px;
+  --co-radius-tag: 4px;
+  --co-space-page: 24px;
+  --co-space-card: 16px;
+
+  --el-color-primary: var(--co-ink);
+  --el-bg-color-page: var(--co-paper);
+  --el-border-color-lighter: var(--co-divider);
+}

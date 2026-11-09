@@ -1,0 +1,83 @@
+.page {
+  min-height: 100vh;
+  padding: var(--co-space-page) var(--co-space-page) 160rpx;
+  box-sizing: border-box;
+}
+
+.form-card {
+  margin-bottom: var(--co-space-gap);
+  padding: var(--co-space-card);
+  background-color: var(--co-card);
+  border-radius: var(--co-radius-card);
+}
+
+.card-title {
+  display: block;
+  margin-bottom: 12rpx;
+  color: var(--co-text-primary);
+  font-size: 32rpx;
+  font-weight: 600;
+}
+
+.form-desc {
+  display: block;
+  margin-top: 12rpx;
+  color: var(--co-text-secondary);
+  font-size: 24rpx;
+  line-height: 1.6;
+}
+
+.reason-input {
+  margin-top: 16rpx;
+  padding: 16rpx;
+  border: 1rpx solid var(--co-divider);
+  border-radius: var(--co-radius-button);
+  color: var(--co-text-primary);
+  font-size: 28rpx;
+}
+
+.action-bar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--co-space-gap);
+  padding: 16rpx var(--co-space-page);
+  padding-bottom: calc(16rpx + env(safe-area-inset-bottom));
+  background-color: var(--co-card);
+  box-shadow: 0 -2rpx 12rpx var(--co-divider);
+  box-sizing: border-box;
+}
+
+.ghost-btn {
+  height: 88rpx;
+  line-height: 88rpx;
+  padding: 0 32rpx;
+  border: 1rpx solid var(--co-divider);
+  border-radius: var(--co-radius-button);
+  color: var(--co-text-secondary);
+  font-size: 28rpx;
+}
+
+.primary-btn {
+  flex: 1;
+  height: 88rpx;
+  line-height: 88rpx;
+  background-color: var(--co-ink);
+  color: var(--co-card);
+  font-size: 28rpx;
+  font-weight: 600;
+  text-align: center;
+  border-radius: var(--co-radius-button);
+}
+
+.primary-btn--disabled {
+  background-color: var(--co-text-tertiary);
+}
+
+.primary-btn--hover,
+.ghost-btn--hover {
+  opacity: 0.8;
+}

@@ -1,0 +1,32 @@
+<scroll-view class="page-scroll" scroll-y enhanced="{{true}}" show-scrollbar="{{false}}" refresher-enabled="{{true}}" refresher-triggered="{{refresherTriggered}}" bindrefresherrefresh="onRefresherRefresh" bindscrolltolower="onReachBottom">
+<view class="page">
+  <view class="filters">
+    <picker mode="date" value="{{date}}" bindchange="onDateChange">
+      <view class="filter">{{date}}</view>
+    </picker>
+    <picker
+      mode="selector"
+      range="{{operators}}"
+      range-key="operatorName"
+      value="{{operatorIndex}}"
+      bindchange="onOperatorChange"
+    >
+      <view class="filter">{{operatorText}}</view>
+    </picker>
+  </view>
+
+  <view wx:for="{{records}}" wx:key="key" class="card record-card">
+    <view class="row">
+      <text class="record-name">{{item.templateName}}</text>
+      <text class="value">-¥{{item.discountText}}</text>
+    </view>
+    <view class="row">
+      <text class="label">{{item.operatorName || '未知员工'}} · {{item.channelText}}</text>
+      <text class="muted">{{item.verifyTimeText}}</text>
+    </view>
+  </view>
+
+  <view wx:if="{{!loading && records.length === 0}}" class="empty">当日没有核销记录</view>
+  <view wx:if="{{records.length > 0 && !hasMore}}" class="muted list-end">共 {{total}} 条</view>
+</view>
+</scroll-view>

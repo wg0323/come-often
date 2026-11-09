@@ -1,0 +1,21 @@
+<scroll-view class="page-scroll" scroll-y enhanced="{{true}}" show-scrollbar="{{false}}">
+<view class="result {{resultClass}}">
+  <view class="result-head">
+    <text class="result-title">{{result.resultTitle}}</text>
+    <text class="result-message">{{result.resultMessage}}</text>
+    <text class="result-type">{{result.codeTypeText}}</text>
+  </view>
+
+  <view wx:if="{{details.length > 0}}" class="result-body">
+    <view wx:for="{{details}}" wx:key="label" class="result-row">
+      <text class="result-label">{{item.label}}</text>
+      <text class="result-value">{{item.value}}</text>
+    </view>
+  </view>
+
+  <view class="result-actions">
+    <view class="result-btn" bindtap="onTapScanAgain">继续扫码</view>
+    <view class="result-btn result-btn--ghost" bindtap="onTapHome">返回工作台</view>
+  </view>
+</view>
+</scroll-view>

@@ -1,0 +1,55 @@
+.notice {
+  margin-bottom: var(--mk-space-card);
+  padding: 16rpx var(--mk-space-card);
+  border-radius: var(--mk-radius-card);
+  background-color: var(--mk-status-pending);
+  color: var(--mk-text-inverse);
+  font-size: 26rpx;
+}
+
+.order-card {
+  margin-bottom: var(--mk-space-card);
+}
+
+.order-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.pickup-code {
+  color: var(--mk-text);
+  font-size: 48rpx;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.order-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: var(--mk-space-gap);
+}
+
+.order-items {
+  display: block;
+  margin-top: var(--mk-space-gap);
+  color: var(--mk-text);
+  font-size: 26rpx;
+}
+
+.order-remark {
+  display: block;
+  margin-top: 8rpx;
+  color: var(--mk-text-secondary);
+  font-size: 26rpx;
+}
+
+.order-action {
+  margin-top: var(--mk-space-card);
+}
+
+.list-end {
+  margin-top: var(--mk-space-card);
+  text-align: center;
+}

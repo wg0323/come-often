@@ -1,0 +1,80 @@
+<scroll-view class="page-scroll" scroll-y enhanced="{{true}}" show-scrollbar="{{false}}">
+<view class="page">
+  <view wx:if="{{!loading && !canReview}}" class="form-card">
+    <text class="card-title">暂不可评价</text>
+    <text class="form-desc">只有已完成的订单可以评价，且同一笔订单只能评价一次。</text>
+  </view>
+
+  <block wx:if="{{canReview}}">
+    <view class="form-card">
+      <text class="card-title">这次用餐怎么样</text>
+      <view class="rate-row">
+        <text
+          wx:for="{{rateOptions}}"
+          wx:key="value"
+          class="rate-star {{item.active ? 'rate-star--active' : ''}}"
+          data-value="{{item.value}}"
+          bindtap="onRate"
+        >★</text>
+      </view>
+      <text class="form-desc">{{rating}} 分{{rating >= 4 ? '，感谢认可' : '，我们会继续改进'}}</text>
+    </view>
+
+    <view wx:if="{{dishes.length > 0}}" class="form-card">
+      <text class="card-title">评价哪道菜（选填）</text>
+      <text class="form-desc">一次评价最多关联一道菜，不选则只评本单整体。</text>
+      <view class="dish-row">
+        <view
+          wx:for="{{dishes}}"
+          wx:key="dishId"
+          class="dish-chip {{selectedDishId === item.dishId ? 'dish-chip--active' : ''}}"
+          data-dish-id="{{item.dishId}}"
+          bindtap="onSelectDish"
+        >{{item.dishName}}</view>
+      </view>
+    </view>
+
+    <view class="form-card">
+      <text class="card-title">评价内容</text>
+      <input
+        class="content-input"
+        value="{{content}}"
+        placeholder="说说口味、分量或服务（选填）"
+        maxlength="{{maxContent}}"
+        bindinput="onContentInput"
+      />
+      <text class="form-desc">{{content.length}} / {{maxContent}}</text>
+    </view>
+
+    <view class="form-card">
+      <text class="card-title">晒图（选填，最多 {{maxImages}} 张）</text>
+      <view class="image-row">
+        <view wx:for="{{images}}" wx:key="objectKey" class="image-item">
+          <image
+            class="image-thumb"
+            src="{{item.path}}"
+            mode="aspectFill"
+            data-url="{{item.path}}"
+            bindtap="onPreviewImage"
+          />
+          <text class="image-remove" data-index="{{index}}" bindtap="onRemoveImage">×</text>
+        </view>
+        <view
+          wx:if="{{images.length < maxImages}}"
+          class="image-add"
+          bindtap="onChooseImage"
+          hover-class="image-add--hover"
+        >＋</view>
+      </view>
+    </view>
+  </block>
+
+</view>
+</scroll-view>
+  <view wx:if="{{canReview}}" class="action-bar">
+    <view
+      class="primary-btn {{submitting ? 'primary-btn--disabled' : ''}}"
+      bindtap="onSubmit"
+      hover-class="primary-btn--hover"
+    >{{submitting ? '提交中…' : '提交评价'}}</view>
+  </view>

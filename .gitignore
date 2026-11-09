@@ -1,0 +1,64 @@
+# ============================================================
+# 白名单式忽略规则
+# 顺序不可打乱：先忽略全部 -> 放行指定条目 -> 再排除目录内的产物
+# 根目录新增任何文件或目录，默认都不会进仓库，需在此显式放行
+# ============================================================
+
+# 1) 根目录一律忽略，只放行以下条目
+/*
+!/.gitignore
+!/README.md
+!/assets/
+!/come-often-admin/
+!/come-often-merchant/
+!/come-often-miniapp/
+!/come-often-server/
+
+# 2) 放行上述目录中的内容（目录本身已在第 1 步重新包含）
+!/assets/**
+!/come-often-admin/**
+!/come-often-merchant/**
+!/come-often-miniapp/**
+!/come-often-server/**
+
+# 3) 即使位于白名单目录内，以下内容也不跟踪
+# Java / Maven
+target/
+*.class
+*.jar
+*.war
+*.ear
+*.iml
+.idea/
+
+# Node / Vite / Vue
+node_modules/
+dist/
+build/
+coverage/
+.vite/
+.turbo/
+.cache/
+*.tsbuildinfo
+*.map
+*.min.js
+.env
+.env.*
+*.local
+
+# 微信小程序
+miniprogram_npm/
+project.private.config.json
+.tea/
+
+# IDE 本机配置（含本机绝对路径，不共享）
+.vscode/
+
+# 日志与临时文件
+logs/
+*.log
+*.tmp
+*.bak
+*.swp
+.DS_Store
+Thumbs.db

@@ -1,0 +1,32 @@
+<scroll-view class="page-scroll" scroll-y enhanced="{{true}}" show-scrollbar="{{false}}">
+<view class="page">
+  <view wx:if="{{errorText}}" class="error">{{errorText}}</view>
+
+  <block wx:elif="{{code}}">
+    <view class="coupon-card">
+      <text class="coupon-face">{{code.faceText}}</text>
+      <text class="coupon-name">{{code.templateName}}</text>
+      <text class="coupon-cond">{{code.conditionText}}</text>
+      <text class="coupon-expire">有效期至 {{code.expireAt}}</text>
+    </view>
+
+    <view class="code-card" bindtap="onToggleEnlarge" hover-class="code-card--hover">
+      <text class="code-label">券码 · {{countdown}} 秒后刷新</text>
+      <text class="code-value">{{displayCode}}</text>
+      <text class="code-tip">收银台出示此券码，或点击放大并调亮屏幕</text>
+    </view>
+
+    <view class="note-card">
+      <text class="note-line">券码每 30 秒自动刷新，截图无效。</text>
+      <text class="note-line">同一张券只能核销一次，核销后状态变为已使用。</text>
+    </view>
+  </block>
+
+  <view wx:elif="{{loading}}" class="loading">加载中…</view>
+</view>
+</scroll-view>
+
+<view wx:if="{{enlarged}}" class="overlay" bindtap="onToggleEnlarge">
+  <text class="overlay-code">{{displayCode}}</text>
+  <text class="overlay-tip">屏幕已调至最亮，点击任意处退出</text>
+</view>

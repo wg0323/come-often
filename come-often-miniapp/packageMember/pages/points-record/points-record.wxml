@@ -1,0 +1,55 @@
+<scroll-view class="page-scroll" scroll-y enhanced="{{true}}" show-scrollbar="{{false}}" bindscrolltolower="onReachBottom">
+<view class="page">
+  <view wx:if="{{account}}" class="account-card">
+    <view class="account-head">
+      <view class="account-balance">
+        <text class="balance-label">可用积分</text>
+        <text class="balance-num">{{account.balance}}</text>
+      </view>
+      <view class="level-entry" bindtap="onTapLevel" hover-class="entry--hover">
+        <text class="level-name">{{account.levelName || '普通会员'}}</text>
+        <text class="level-more">会员等级 ›</text>
+      </view>
+    </view>
+    <view class="account-foot">
+      <text class="foot-item">累计获得 {{account.totalEarned}}</text>
+      <text class="foot-item">累计使用 {{account.totalUsed}}</text>
+    </view>
+  </view>
+
+  <view class="action-row">
+    <view
+      class="action-btn {{signing ? 'action-btn--disabled' : ''}}"
+      bindtap="onSignIn"
+      hover-class="entry--hover"
+    >每日签到</view>
+    <view class="action-btn" bindtap="onTapSignIn" hover-class="entry--hover">签到详情</view>
+    <view class="action-btn" bindtap="onShare" hover-class="entry--hover">分享得积分</view>
+  </view>
+
+  <text class="section-heading">积分明细</text>
+
+  <view wx:if="{{records.length > 0}}" class="list">
+    <view wx:for="{{records}}" wx:key="id" class="record">
+      <view class="record-body">
+        <text class="record-title">{{item.remark || item.changeTypeText}}</text>
+        <text class="record-time">{{item.createTime}}</text>
+      </view>
+      <view class="record-amount">
+        <text class="record-num {{item.changeAmount > 0 ? 'record-num--earn' : 'record-num--spend'}}">
+          {{item.changeAmount > 0 ? '+' : ''}}{{item.changeAmount}}
+        </text>
+        <text class="record-balance">余额 {{item.balanceAfter}}</text>
+      </view>
+    </view>
+  </view>
+
+  <view wx:elif="{{loaded && !loading}}" class="empty">
+    <text class="empty-text">暂无积分记录</text>
+    <text class="empty-tip">下单完成、签到、分享都能获得积分</text>
+  </view>
+
+  <view wx:if="{{loading}}" class="loading">加载中…</view>
+  <view wx:elif="{{!hasMore && records.length > 0}}" class="list-end">没有更多了</view>
+</view>
+</scroll-view>

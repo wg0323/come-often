@@ -1,0 +1,51 @@
+<scroll-view class="page-scroll" scroll-y enhanced="{{true}}" show-scrollbar="{{false}}" refresher-enabled="{{true}}" refresher-triggered="{{refresherTriggered}}" bindrefresherrefresh="onRefresherRefresh">
+<view class="page">
+  <text class="page-title">排队叫号</text>
+
+  <view class="tabs">
+    <view class="tab {{statusFilter === '' ? 'tab--active' : ''}}" data-status="" bindtap="onSwitchFilter">全部</view>
+    <view class="tab {{statusFilter === 'WAITING' ? 'tab--active' : ''}}" data-status="WAITING" bindtap="onSwitchFilter">等待中</view>
+    <view class="tab {{statusFilter === 'CALLED' ? 'tab--active' : ''}}" data-status="CALLED" bindtap="onSwitchFilter">已叫号</view>
+  </view>
+
+  <view wx:if="{{loading}}" class="muted">加载中…</view>
+  <view wx:elif="{{loadError}}" class="card">
+    <text class="muted">队列加载失败</text>
+    <view class="retry btn btn--ghost" bindtap="onRefresh">重新加载</view>
+  </view>
+  <view wx:elif="{{tickets.length === 0}}" class="card">
+    <text class="muted">当前没有排队号</text>
+  </view>
+
+  <view wx:for="{{tickets}}" wx:key="ticketNo" class="card">
+    <view class="row">
+      <text class="value ticket-no">{{item.ticketNo}}</text>
+      <text class="tag tag--{{item.status}}">{{item.statusText}}</text>
+    </view>
+    <view class="row"><text class="label">就餐人数</text><text class="value">{{item.partySize}} 位</text></view>
+    <view class="row"><text class="label">前面等待</text><text class="value">{{item.waitingCount}} 桌</text></view>
+    <view class="row"><text class="label">取号时间</text><text class="value">{{item.createTimeText}}</text></view>
+    <view class="row"><text class="label">会员手机</text><text class="value">{{item.memberPhone || '—'}}</text></view>
+    <view class="actions">
+      <view
+        wx:if="{{item.status === 'WAITING'}}"
+        class="btn btn--primary"
+        data-ticket-no="{{item.ticketNo}}"
+        data-action="call"
+        bindtap="onAction"
+      >叫号</view>
+      <view
+        wx:if="{{item.status === 'CALLED'}}"
+        class="btn btn--primary"
+        data-ticket-no="{{item.ticketNo}}"
+        data-action="seat"
+        bindtap="onAction"
+      >入座</view>
+    </view>
+  </view>
+
+  <view class="refresh">
+    <view class="btn btn--ghost" bindtap="onRefresh">刷新队列</view>
+  </view>
+</view>
+</scroll-view>

@@ -1,0 +1,74 @@
+<scroll-view class="page-scroll" scroll-y enhanced="{{true}}" show-scrollbar="{{false}}" refresher-enabled="{{true}}" refresher-triggered="{{refresherTriggered}}" bindrefresherrefresh="onRefresherRefresh">
+<view class="page" wx:if="{{order}}">
+  <view class="card code-card">
+    <text class="code-label">{{order.orderType === 'DINE_IN' ? '到店核销码' : '取餐码'}}</text>
+    <text class="code-value">{{order.pickupCode || '—'}}</text>
+    <text class="tag {{order.statusClass}}">{{order.statusText}}</text>
+  </view>
+
+  <view class="card">
+    <view class="row">
+      <text class="label">备注</text>
+      <text class="value remark">{{order.remarkText}}</text>
+    </view>
+    <view class="row">
+      <text class="label">下单时间</text>
+      <text class="value">{{order.createTimeText}}</text>
+    </view>
+    <view class="row">
+      <text class="label">订单类型</text>
+      <text class="value">{{order.orderTypeText}}</text>
+    </view>
+    <view class="row">
+      <text class="label">订单号</text>
+      <text class="value">{{order.orderNo}}</text>
+    </view>
+  </view>
+
+  <view class="card">
+    <view class="section-title">菜品明细</view>
+    <view wx:for="{{items}}" wx:key="key" class="item-row">
+      <view class="item-main">
+        <text class="item-name">{{item.dishName}} × {{item.quantity}}</text>
+        <text wx:if="{{item.specText}}" class="muted">{{item.specText}}</text>
+      </view>
+      <text class="value">¥{{item.amountText}}</text>
+    </view>
+    <view class="divider"></view>
+    <view class="row">
+      <text class="label">商品总额</text>
+      <text class="value">¥{{order.totalAmountText}}</text>
+    </view>
+    <view class="row">
+      <text class="label">优惠抵扣</text>
+      <text class="value">¥{{order.discountAmountText}}</text>
+    </view>
+    <view class="row">
+      <text class="label">实付金额</text>
+      <text class="value strong">¥{{order.payAmountText}}</text>
+    </view>
+    <view class="row" wx:if="{{order.balanceAmount > 0}}">
+      <text class="label">到店待付</text>
+      <text class="value">¥{{order.balanceAmountText}}</text>
+    </view>
+  </view>
+
+  <view class="card" wx:if="{{logs.length > 0}}">
+    <view class="section-title">状态日志</view>
+    <view wx:for="{{logs}}" wx:key="key" class="log-row">
+      <text class="log-status">{{item.statusText}}</text>
+      <text class="muted">{{item.timeText}}</text>
+    </view>
+  </view>
+
+  <view class="actions">
+    <view wx:if="{{action}}" class="btn btn--primary" bindtap="onTapAction">{{action.label}}</view>
+    <view wx:if="{{canRefund}}" class="btn btn--danger" bindtap="onTapRefund">发起退单</view>
+  </view>
+  <view class="footer-safe"></view>
+</view>
+
+<view class="page" wx:else>
+  <view class="empty">订单加载中</view>
+</view>
+</scroll-view>

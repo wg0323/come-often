@@ -1,0 +1,40 @@
+<scroll-view class="page-scroll" scroll-y enhanced="{{true}}" show-scrollbar="{{false}}" refresher-enabled="{{true}}" refresher-triggered="{{refresherTriggered}}" bindrefresherrefresh="onRefresherRefresh">
+<view class="page">
+  <view class="wallet-entry" bindtap="onTapWallet" hover-class="wallet-entry--hover">
+    <text class="wallet-text">我的券（已领 {{receivedCount}} 张）</text>
+    <text class="wallet-arrow">›</text>
+  </view>
+
+  <view wx:if="{{loading}}" class="state">加载中…</view>
+  <view wx:elif="{{loadError}}" class="state">
+    <text class="state-text">券列表加载失败</text>
+    <view class="retry-btn" bindtap="onRetry">重新加载</view>
+  </view>
+  <view wx:elif="{{coupons.length === 0}}" class="state">
+    <text class="state-text">当前没有可领取的券，稍后再来看看</text>
+  </view>
+  <view wx:else class="coupon-list">
+    <view wx:for="{{coupons}}" wx:key="templateId" class="coupon-card {{item.groupMeal ? 'coupon-card--group' : ''}}">
+      <view class="coupon-left">
+        <text class="coupon-amount">{{item.faceText}}</text>
+        <text class="coupon-condition">{{item.conditionText}}</text>
+      </view>
+      <view class="coupon-right">
+        <view class="coupon-title-row">
+          <text class="coupon-name">{{item.templateName}}</text>
+          <text wx:if="{{item.groupMeal}}" class="group-tag">团餐</text>
+        </view>
+        <text class="coupon-type">{{item.couponTypeText}}</text>
+        <text class="coupon-meta">剩 {{item.remain}} 张 · 领取后 {{item.validDays}} 天有效</text>
+        <text class="coupon-meta">可领至 {{item.endTimeText}}</text>
+        <view
+          class="coupon-btn {{item.canReceive ? '' : 'coupon-btn--disabled'}}"
+          data-template-id="{{item.templateId}}"
+          data-can-receive="{{item.canReceive}}"
+          bindtap="onReceive"
+        >{{item.buttonText}}</view>
+      </view>
+    </view>
+  </view>
+</view>
+</scroll-view>

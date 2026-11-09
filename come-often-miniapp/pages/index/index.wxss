@@ -1,0 +1,367 @@
+/* 页面滚动交给 scroll-view 接管，避免 WebView 自己绘制右侧滚动指示条 */
+.page {
+  height: 100vh;
+  padding: var(--co-space-page);
+  box-sizing: border-box;
+}
+
+.store-bar {
+  padding-bottom: 20rpx;
+  border-bottom: 1rpx solid var(--co-divider);
+}
+
+.store-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.store-name {
+  font-size: 40rpx;
+  font-weight: 600;
+  letter-spacing: 2rpx;
+}
+
+.store-status {
+  padding: 4rpx 14rpx;
+  border-radius: var(--co-radius-tag);
+  background-color: var(--co-success);
+  color: var(--co-card);
+  font-size: 22rpx;
+}
+
+.store-status--closed {
+  background-color: var(--co-text-tertiary);
+}
+
+.store-hours {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  margin-top: 12rpx;
+}
+
+.hours-label {
+  color: var(--co-text-tertiary);
+  font-size: 24rpx;
+}
+
+.hours-value {
+  color: var(--co-text-secondary);
+  font-size: 26rpx;
+  font-variant-numeric: tabular-nums;
+}
+
+.search-entry {
+  height: 72rpx;
+  line-height: 72rpx;
+  margin-top: var(--co-space-gap);
+  padding: 0 var(--co-space-card);
+  background-color: var(--co-card);
+  border: 1rpx solid var(--co-divider);
+  border-radius: var(--co-radius-button);
+  box-sizing: border-box;
+}
+
+.search-entry--hover {
+  opacity: 0.86;
+}
+
+.search-entry-text {
+  color: var(--co-text-tertiary);
+  font-size: 26rpx;
+}
+
+/* 3:2，与详情首图同比例 */
+.banner {
+  width: 100%;
+  height: 457rpx;
+  margin-top: var(--co-space-gap);
+  border-radius: var(--co-radius-card);
+  overflow: hidden;
+}
+
+.banner-item {
+  position: relative;
+}
+
+.banner-image {
+  width: 100%;
+  height: 100%;
+}
+
+.banner-title {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 12rpx var(--co-space-card);
+  background-color: var(--co-ink);
+  color: var(--co-card);
+  font-size: 24rpx;
+  opacity: 0.88;
+}
+
+.notice {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  margin-top: var(--co-space-gap);
+  padding: 12rpx var(--co-space-card);
+  background-color: var(--co-card);
+  border-radius: var(--co-radius-tag);
+}
+
+.notice-label {
+  flex: none;
+  color: var(--co-cinnabar);
+  font-size: 24rpx;
+  font-weight: 600;
+}
+
+/* 跑马灯只在自己的视口内滚动，不覆盖左侧「公告」标签 */
+.notice-viewport {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.notice-text {
+  display: inline-block;
+  /* padding 百分比相对视口宽度，让文字从右侧视口外开始进入 */
+  padding-left: 100%;
+  color: var(--co-text-secondary);
+  font-size: 24rpx;
+  white-space: nowrap;
+  animation: marquee 22s linear infinite;
+}
+
+@keyframes marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-100%);
+  }
+}
+
+.sections {
+  display: flex;
+  gap: var(--co-space-gap);
+  margin-top: var(--co-space-gap);
+}
+
+.section {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  justify-content: center;
+  height: 180rpx;
+  padding: var(--co-space-card);
+  box-sizing: border-box;
+  border-radius: var(--co-radius-card);
+}
+
+.section--hover,
+.signature-card--hover {
+  opacity: 0.86;
+}
+
+.section--ink {
+  background-color: var(--co-ink);
+  color: var(--co-card);
+}
+
+.section--gold {
+  border: 2rpx solid var(--co-gold);
+  background-color: var(--co-card);
+  color: var(--co-gold);
+}
+
+.section-title,
+.section-heading {
+  font-size: 32rpx;
+  font-weight: 600;
+  letter-spacing: 1rpx;
+}
+
+.section-desc {
+  margin-top: 12rpx;
+  font-size: 24rpx;
+}
+
+/* 团餐券：票券造型 + 左右半圆缺口，金边与首页其余卡片区分开 */
+.group-meal {
+  margin-top: 40rpx;
+}
+
+.group-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+}
+
+.group-head-left {
+  display: flex;
+  flex-direction: column;
+  gap: 6rpx;
+}
+
+.group-subtitle {
+  color: var(--co-text-tertiary);
+  font-size: 24rpx;
+}
+
+.group-more {
+  padding: 8rpx 0 8rpx 16rpx;
+  color: var(--co-cinnabar);
+  font-size: 24rpx;
+}
+
+.group-rail {
+  display: flex;
+  gap: var(--co-space-gap);
+  margin-top: var(--co-space-gap);
+  white-space: nowrap;
+}
+
+.group-card {
+  position: relative;
+  display: inline-flex;
+  flex: none;
+  flex-direction: column;
+  width: 420rpx;
+  padding: var(--co-space-card);
+  background-color: var(--co-card);
+  border: 2rpx solid var(--co-gold);
+  border-radius: var(--co-radius-card);
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.group-card-top {
+  display: flex;
+  align-items: baseline;
+  gap: 12rpx;
+}
+
+.group-amount {
+  color: var(--co-cinnabar);
+  font-size: 40rpx;
+  font-weight: 700;
+}
+
+.group-condition {
+  color: var(--co-text-secondary);
+  font-size: 24rpx;
+}
+
+.group-card-bottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12rpx;
+  margin-top: 16rpx;
+}
+
+.group-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: 28rpx;
+  font-weight: 600;
+}
+
+.group-btn {
+  flex: none;
+  padding: 8rpx 20rpx;
+  border-radius: var(--co-radius-button);
+  background-color: var(--co-cinnabar);
+  color: var(--co-card);
+  font-size: 24rpx;
+}
+
+.group-btn--disabled {
+  background-color: var(--co-divider);
+  color: var(--co-text-tertiary);
+}
+
+.group-remain {
+  margin-top: 12rpx;
+  padding-top: 12rpx;
+  border-top: 1rpx dashed var(--co-divider);
+  color: var(--co-text-tertiary);
+  font-size: 22rpx;
+}
+
+.notch {
+  position: absolute;
+  top: 50%;
+  width: 24rpx;
+  height: 24rpx;
+  margin-top: -12rpx;
+  border-radius: 50%;
+  background-color: var(--co-paper);
+}
+
+.notch--left {
+  left: -14rpx;
+}
+
+.notch--right {
+  right: -14rpx;
+}
+
+.signature {
+  margin-top: 40rpx;
+}
+
+.signature-rail {
+  display: flex;
+  gap: var(--co-space-gap);
+  margin-top: var(--co-space-gap);
+  white-space: nowrap;
+}
+
+.signature-card {
+  display: inline-flex;
+  flex: none;
+  flex-direction: column;
+  width: 240rpx;
+  padding-bottom: 12rpx;
+  background-color: var(--co-card);
+  border-radius: var(--co-radius-card);
+  overflow: hidden;
+}
+
+/* 4:3，与分类页列表图同比例 */
+.signature-image {
+  width: 240rpx;
+  height: 180rpx;
+}
+
+.signature-name {
+  padding: 10rpx 12rpx 0;
+  color: var(--co-text-primary);
+  font-size: 24rpx;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.signature-price {
+  padding: 4rpx 12rpx 0;
+  color: var(--co-cinnabar);
+  font-variant-numeric: tabular-nums;
+}
+
+.price-symbol {
+  font-size: 24rpx;
+}
+
+.price-num {
+  font-size: 36rpx;
+  font-weight: 700;
+}

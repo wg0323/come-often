@@ -1,0 +1,77 @@
+<scroll-view class="page-scroll" scroll-y enhanced="{{true}}" show-scrollbar="{{false}}">
+<view wx:if="{{preview}}" class="page">
+  <view class="amount-card">
+    <text class="card-title">金额明细（服务端试算）</text>
+    <view wx:for="{{preview.items}}" wx:key="dishId" class="amount-row">
+      <text>{{item.dishName}} × {{item.quantity}}</text>
+      <text>¥{{item.amount}}</text>
+    </view>
+    <view class="amount-row"><text>商品总额</text><text>¥{{preview.totalAmount}}</text></view>
+    <view wx:if="{{preview.discountAmount > 0}}" class="amount-row"><text>券抵扣</text><text>-¥{{preview.discountAmount}}</text></view>
+    <view wx:if="{{preview.pointsAmount > 0}}" class="amount-row"><text>积分抵现（{{preview.pointsUsed}} 分）</text><text>-¥{{preview.pointsAmount}}</text></view>
+    <view wx:if="{{preview.containsPreorder}}" class="amount-row"><text>定金（整单内抵扣，不退）</text><text>¥{{preview.depositAmount}}</text></view>
+    <view class="amount-row amount-row--strong"><text>实付金额</text><text>¥{{preview.payAmount}}</text></view>
+    <view wx:if="{{preview.containsPreorder}}" class="amount-row"><text>到店待付尾款</text><text>¥{{preview.balanceAmount}}</text></view>
+  </view>
+
+  <view class="form-card">
+    <text class="card-title">用餐方式</text>
+    <view class="switch-row">
+      <text>{{orderModeText}}</text>
+    </view>
+    <text class="coupon-tip">要改堂食/自提或时间，请返回点餐页顶部「切换」</text>
+  </view>
+
+  <view class="form-card">
+    <text class="card-title">优惠券</text>
+    <picker range="{{couponOptions}}" range-key="label" value="{{couponIndex}}" bindchange="onCouponChange">
+      <view class="switch-row">
+        <text>本单用券</text>
+        <text class="coupon-value">{{couponLabel}}</text>
+      </view>
+    </picker>
+    <text class="coupon-tip">一个订单只能用一张券，抵扣金额由服务端计算</text>
+  </view>
+
+  <view wx:if="{{preview.maxUsablePoints > 0}}" class="form-card">
+    <text class="card-title">积分抵现</text>
+    <view class="switch-row">
+      <text>可用 {{preview.pointsBalance}} 分，本单最多抵 {{preview.maxUsablePoints}} 分</text>
+      <switch checked="{{usePointsEnabled}}" bindchange="onPointsToggle" />
+    </view>
+    <text class="coupon-tip">{{preview.pointsExchangeRate}} 积分抵 ¥1，抵现后订单至少保留 ¥0.01</text>
+  </view>
+
+  <view wx:if="{{preview.containsPreorder}}" class="preorder-card">
+    <text class="preorder-title">{{preview.depositNote}}</text>
+    <text class="preorder-desc">需提前 {{preview.preorderLeadHours}} 小时预订，最早可选 {{preview.earliestDineInTime}}；仅限到店用餐，不可自提外带</text>
+    <text class="preorder-desc">订单类型由服务端强制为「到店用餐」</text>
+    <text class="field-label">到店用餐时间</text>
+    <view class="picker-row">
+      <picker mode="date" value="{{dineInDate}}" bindchange="onDineInDateChange">
+        <view class="picker">{{dineInDate}}</view>
+      </picker>
+      <picker mode="time" value="{{dineInTime}}" bindchange="onDineInTimeChange">
+        <view class="picker">{{dineInTime}}</view>
+      </picker>
+    </view>
+  </view>
+
+  <view class="form-card">
+    <text class="card-title">备注</text>
+    <input class="remark-input" value="{{remark}}" placeholder="少盐 / 加辣 / 打包" bindinput="onRemarkInput" />
+  </view>
+
+</view>
+<view wx:elif="{{loading}}" class="loading">加载中…</view>
+</scroll-view>
+  <view wx:if="{{preview}}" class="action-bar">
+    <view class="action-price">
+      <text class="action-label">{{preview.containsPreorder ? '本次应付定金' : '实付金额'}}</text>
+      <text class="price-symbol">¥</text>
+      <text class="price-num">{{preview.containsPreorder ? preview.depositAmount : preview.payAmount}}</text>
+    </view>
+    <view class="primary-btn {{submitting ? 'primary-btn--disabled' : ''}}" bindtap="onSubmit" hover-class="primary-btn--hover">
+      {{preview.containsPreorder ? '付定金下单' : '提交订单'}}
+    </view>
+  </view>

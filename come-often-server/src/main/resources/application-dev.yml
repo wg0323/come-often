@@ -1,0 +1,148 @@
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://${MYSQL_HOST:127.0.0.1}:${MYSQL_PORT:3306}/come_often?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true&useSSL=false
+    username: ${MYSQL_USERNAME:root}
+    password: ${MYSQL_PASSWORD:123456}
+    hikari:
+      minimum-idle: 2
+      maximum-pool-size: 10
+      connection-timeout: 10000
+  redis:
+    host: ${REDIS_HOST:127.0.0.1}
+    port: ${REDIS_PORT:6379}
+    database: 0
+    timeout: 3s
+    lettuce:
+      pool:
+        max-active: 16
+        max-idle: 8
+  rabbitmq:
+    host: ${RABBITMQ_HOST:127.0.0.1}
+    port: ${RABBITMQ_PORT:5672}
+    username: ${RABBITMQ_USERNAME:admin}
+    password: ${RABBITMQ_PASSWORD:123456}
+    virtual-host: ${RABBITMQ_VHOST:/come-often}
+    connection-timeout: 10000
+    requested-heartbeat: 30
+    publisher-confirm-type: correlated
+    publisher-returns: true
+    template:
+      mandatory: true
+    listener:
+      simple:
+        acknowledge-mode: auto
+        prefetch: 1
+        concurrency: 2
+        max-concurrency: 4
+        retry:
+          enabled: true
+          initial-interval: 1000
+          multiplier: 2
+          max-attempts: 3
+          stateless: false               # M3 订单消费者带事务，每次重试创建新事务
+
+comeoften:
+  order:
+    # 待支付超时（秒）；延迟消息到点触发取消并回补库存。验收脚本可临时调小
+    pay-timeout-seconds: ${ORDER_PAY_TIMEOUT_SECONDS:900}
+    # 自动完成：READY 超过该小时数仍无人取餐，由每日 00:05 兜底任务推进到 COMPLETED
+    auto-complete-hours: ${ORDER_AUTO_COMPLETE_HOURS:24}
+    auto-complete-batch-size: ${ORDER_AUTO_COMPLETE_BATCH_SIZE:200}
+  job:
+    # 预约时段按未来 N 天滚动预生成，每日 00:00（早于 00:10 库存键重建），补齐 M7 已知局限
+    reservation-slot-generate-cron: ${JOB_RESERVATION_SLOT_GENERATE_CRON:0 0 0 * * ?}
+    # 三类库存键按 DB 重建（菜品 remain / 券模板 remain / 时段 booked），计划 3.5 的每日 00:10
+    stock-rebuild-cron: ${JOB_STOCK_REBUILD_CRON:0 10 0 * * ?}
+    # 订单自动完成，计划 3.10 的每日 00:05
+    order-auto-complete-cron: ${JOB_ORDER_AUTO_COMPLETE_CRON:0 5 0 * * ?}
+    # 券过期提醒小时级兜底（延迟消息上限 24.8 天）
+    coupon-expire-cron: ${JOB_COUPON_EXPIRE_CRON:0 0 * * * ?}
+  notify:
+    # log：只落 message_record + 日志（默认）；wx-subscribe：订阅消息骨架，当前同样降级落库
+    channel: ${NOTIFY_CHANNEL:log}
+    wx-subscribe-template-id: ${NOTIFY_WX_SUBSCRIBE_TEMPLATE_ID:}
+  mq:
+    # 本地消息表补偿扫描间隔（毫秒），每分钟一次
+    retry-interval-ms: ${MQ_RETRY_INTERVAL_MS:60000}
+    # PENDING 超过该秒数即视为未确认，进入重发
+    pending-timeout-seconds: ${MQ_PENDING_TIMEOUT_SECONDS:60}
+    max-retry: ${MQ_MAX_RETRY:3}
+  minio:
+    endpoint: ${MINIO_ENDPOINT:http://127.0.0.1:9000}
+    access-key: ${MINIO_ACCESS_KEY:admin}
+    secret-key: ${MINIO_SECRET_KEY:12345678}
+    bucket: come-often
+  jwt:
+    issuer: come-often
+    # dev 默认值仅供本地联调，生产必须由环境变量注入三套独立密钥
+    app-secret: ${JWT_APP_SECRET:come-often-dev-app-secret-please-override-2026}
+    merchant-secret: ${JWT_MERCHANT_SECRET:come-often-dev-merchant-secret-please-override-2026}
+    admin-secret: ${JWT_ADMIN_SECRET:come-often-dev-admin-secret-please-override-2026}
+    # 验收静默续登时可用环境变量临时改成 10
+    app-ttl-seconds: ${JWT_APP_TTL_SECONDS:86400}
+    merchant-ttl-seconds: ${JWT_MERCHANT_TTL_SECONDS:86400}
+    admin-ttl-seconds: ${JWT_ADMIN_TTL_SECONDS:7200}
+  wx:
+    appid: ${WX_APPID:touristappid}
+    secret: ${WX_APPSECRET:}
+    # 商家端开发期复用同一测试 AppID；正式上线需独立 AppID 与独立配置
+    merchant-appid: ${WX_MERCHANT_APPID:}
+    merchant-secret: ${WX_MERCHANT_SECRET:}
+    mock-enabled: ${WX_MOCK_ENABLED:true}
+  coupon:
+    # 动态券码 HMAC-SHA256 密钥（计划 3.6），生产必须由环境变量注入，禁止硬编码
+    code-secret: ${COUPON_CODE_SECRET:come-often-dev-coupon-code-secret-please-override-2026}
+    # 券过期提醒提前量（小时）：领券时按 expire_at 减该值投递延迟消息
+    expire-remind-ahead-hours: ${COUPON_EXPIRE_REMIND_AHEAD_HOURS:24}
+    # 券过期提醒小时级兜底的单批条数
+    expire-fallback-batch-size: ${COUPON_EXPIRE_FALLBACK_BATCH_SIZE:200}
+    # 新人券模板：优先按 ID 匹配，留空则按名称匹配「发放中」的同名模板
+    newcomer-template-id: ${COUPON_NEWCOMER_TEMPLATE_ID:}
+    newcomer-template-name: ${COUPON_NEWCOMER_TEMPLATE_NAME:新人无门槛券}
+  points:
+    # 每消费 1 元获得积分；订单完成时按 pay_amount 向下取整发放
+    order-earn-rate: ${POINTS_ORDER_EARN_RATE:1}
+    # 多少积分抵 1 元；抵现后订单至少保留 0.01 元
+    exchange-rate: ${POINTS_EXCHANGE_RATE:100}
+    sign-in-points: ${POINTS_SIGN_IN_POINTS:5}
+    review-points: ${POINTS_REVIEW_POINTS:10}
+    share-points: ${POINTS_SHARE_POINTS:5}
+    profile-points: ${POINTS_PROFILE_POINTS:20}
+    # 积分有效期天数，发放时写入 points_record.expire_at
+    valid-days: ${POINTS_VALID_DAYS:365}
+    # 每日过期批处理（计划 3.10 的 00:05），M11 由 @JobLock 接管
+    expire-cron: ${POINTS_EXPIRE_CRON:0 5 0 * * ?}
+    expire-batch-size: ${POINTS_EXPIRE_BATCH_SIZE:200}
+  reservation:
+    # 可预约未来天数（含当天），时段库存按 天数 × 时段 × 桌型 预生成
+    days-ahead: ${RESERVATION_DAYS_AHEAD:7}
+    # 开放预约的时段，HH:mm；与营业时间 10:00-21:30 对齐
+    time-slots: ${RESERVATION_TIME_SLOTS:11:00,11:30,12:00,12:30,13:00,13:30,17:00,17:30,18:00,18:30,19:00,19:30,20:00}
+    # 开放预约的桌型，必须是 HALL_CARD / PRIVATE_SMALL / PRIVATE_LARGE / WINDOW
+    table-types: ${RESERVATION_TABLE_TYPES:HALL_CARD,PRIVATE_SMALL,PRIVATE_LARGE}
+    # 距预约时间不足该小时数不可取消
+    cancel-limit-hours: ${RESERVATION_CANCEL_LIMIT_HOURS:2}
+    # 预约时间过后多少分钟未签到置为 NO_SHOW
+    no-show-minutes: ${RESERVATION_NO_SHOW_MINUTES:15}
+    # 预约前多少分钟发提醒
+    remind-ahead-minutes: ${RESERVATION_REMIND_AHEAD_MINUTES:60}
+    # 下单后是否自动确认；false 时停在 PENDING 等后台审核
+    auto-confirm: ${RESERVATION_AUTO_CONFIRM:true}
+    # 未到店兜底扫描：只补偿延迟消息丢失，实时事项仍走 MQ
+    no-show-scan-cron: ${RESERVATION_NO_SHOW_SCAN_CRON:0 */5 * * * ?}
+    no-show-scan-batch-size: ${RESERVATION_NO_SHOW_SCAN_BATCH_SIZE:200}
+  merchant:
+    # 商家端「新订单提醒」订阅消息模板；与顾客端分属两套小程序，留空时降级为落 message_record + 日志
+    subscribe-template-id: ${MERCHANT_SUBSCRIBE_TEMPLATE_ID:}
+  stats:
+    # 报表 Excel 单次导出行数上限；超过返回业务码 30056，不产出截断文件
+    export-max-rows: ${STATS_EXPORT_MAX_ROWS:300}
+  pay:
+    # mock 为本地默认；wxpay 需商户号与证书，M4 只写骨架不启用
+    gateway: ${PAY_GATEWAY:mock}
+    wxpay:
+      mch-id: ${WXPAY_MCH_ID:}
+      cert-serial-no: ${WXPAY_CERT_SERIAL_NO:}
+      api-v3-key: ${WXPAY_API_V3_KEY:}
+      private-key-path: ${WXPAY_PRIVATE_KEY_PATH:}

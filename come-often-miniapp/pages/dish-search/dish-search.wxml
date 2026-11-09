@@ -1,0 +1,58 @@
+<scroll-view class="page-scroll" scroll-y enhanced="{{true}}" show-scrollbar="{{false}}" bindscrolltolower="onReachBottom">
+<view class="page">
+  <view class="search-bar">
+    <input
+      class="search-input"
+      value="{{keyword}}"
+      placeholder="搜菜名、标签，如「招牌」「爆炒」"
+      confirm-type="search"
+      maxlength="30"
+      bindinput="onInput"
+      bindconfirm="onSearch"
+    />
+    <view class="search-btn" bindtap="onSearch" hover-class="search-btn--hover">搜索</view>
+  </view>
+
+  <view wx:if="{{empty}}" class="state">没有找到相关菜品，换个关键词试试</view>
+  <view wx:elif="{{!searched && !loading}}" class="state">输入关键词开始搜索</view>
+
+  <view
+    wx:for="{{dishes}}"
+    wx:key="id"
+    class="dish-card"
+    data-id="{{item.id}}"
+    bindtap="onTapDish"
+    hover-class="dish-card--hover"
+  >
+    <view class="dish-image-wrap">
+      <image class="dish-image" src="{{item.imageUrl}}" mode="aspectFill" lazy-load />
+      <text wx:if="{{item.preorder}}" class="badge badge--gold">需提前 1 天预定</text>
+      <text wx:if="{{item.soldOut}}" class="badge badge--soldout">今日已售罄</text>
+    </view>
+    <view class="dish-body">
+      <text class="dish-name">{{item.dishName}}</text>
+      <view class="sub-row">
+        <text class="dish-subtitle">{{item.preorder ? item.craftInfo : item.subtitle}}</text>
+        <text wx:if="{{!item.preorder}}" class="sales">月售 {{item.monthlySales}}</text>
+      </view>
+      <view class="tag-row">
+        <text wx:for="{{item.tags}}" wx:for-item="tag" wx:key="*this" class="tag">{{tag}}</text>
+      </view>
+      <view class="dish-bottom">
+        <view class="price"><text class="price-symbol">¥</text><text class="price-num">{{item.price}}</text></view>
+        <!-- 预定菜要选用餐时间与定金，只能进详情；售罄不带加购入口 -->
+        <view
+          wx:if="{{!item.soldOut && !item.preorder}}"
+          class="add-btn"
+          data-id="{{item.id}}"
+          catchtap="onQuickAdd"
+          hover-class="add-btn--hover"
+        />
+      </view>
+    </view>
+  </view>
+
+  <view wx:if="{{loading}}" class="loading">加载中…</view>
+  <view wx:elif="{{dishes.length > 0 && dishes.length >= total}}" class="loading">共 {{total}} 道菜</view>
+</view>
+</scroll-view>

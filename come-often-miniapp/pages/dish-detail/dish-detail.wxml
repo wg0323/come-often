@@ -1,0 +1,171 @@
+<scroll-view class="page-scroll" scroll-y enhanced="{{true}}" show-scrollbar="{{false}}">
+<view wx:if="{{detail}}" class="page">
+  <view class="gallery-wrap">
+    <swiper class="gallery" circular bindchange="onGalleryChange">
+      <swiper-item wx:for="{{images}}" wx:key="objectKey">
+        <image
+          class="gallery-image"
+          src="{{item.url}}"
+          mode="aspectFill"
+          lazy-load
+          data-url="{{item.url}}"
+          bindtap="onPreviewImage"
+        />
+      </swiper-item>
+    </swiper>
+    <text wx:if="{{detail.preorder}}" class="gallery-badge">{{detail.preorderBadge}}</text>
+    <view class="gallery-dots">
+      <view
+        wx:for="{{images}}"
+        wx:key="objectKey"
+        class="dot {{index === currentImage ? 'dot--active' : ''}}"
+      ></view>
+    </view>
+  </view>
+
+  <view class="detail-card">
+    <view class="title-row">
+      <text class="dish-name">{{detail.dishName}}</text>
+      <text wx:if="{{detail.soldOut}}" class="soldout">今日已售罄</text>
+    </view>
+    <text class="subtitle">{{detail.subtitle}}</text>
+    <view class="price-row">
+      <text class="price-symbol">¥</text>
+      <text class="price-num">{{detail.price}}</text>
+      <text wx:if="{{!detail.preorder}}" class="sales">月售 {{detail.monthlySales}}</text>
+      <text wx:else class="craft">{{detail.craftInfo}}</text>
+    </view>
+    <view wx:if="{{detail.reviewCount > 0}}" class="rating-row">
+      <text class="rating-score">{{detail.ratingAverage}} 分</text>
+      <text class="rating-count">{{detail.reviewCount}} 条评价</text>
+    </view>
+    <view wx:if="{{detail.preorder}}" class="preorder-note">
+      <text class="note-title">{{detail.preorderNote}}</text>
+      <text class="note-sub">定金 ¥{{detail.depositAmount}} 在整单金额内抵扣；仅限到店用餐，不可自提外带</text>
+    </view>
+    <text class="description">{{detail.description}}</text>
+  </view>
+
+  <view wx:for="{{specGroups}}" wx:key="id" wx:for-item="group" class="option-card">
+    <view class="option-head">
+      <text class="option-title">{{group.specName}}</text>
+      <text class="option-hint">{{group.required ? '必选' : '可选'}}</text>
+    </view>
+    <view class="option-row">
+      <view
+        wx:for="{{group.options}}"
+        wx:key="id"
+        wx:for-item="option"
+        class="option-chip {{option.selected ? 'option-chip--active' : ''}}"
+        data-group-id="{{group.id}}"
+        data-option-id="{{option.id}}"
+        bindtap="onTapSpecOption"
+        hover-class="option-chip--hover"
+      >
+        <text>{{option.optionName}}</text>
+        <text wx:if="{{option.priceDelta > 0}}" class="option-delta">+¥{{option.priceDelta}}</text>
+      </view>
+    </view>
+  </view>
+
+  <view wx:if="{{addons.length > 0}}" class="option-card">
+    <view class="option-head">
+      <text class="option-title">加料</text>
+      <text class="option-hint">可多选</text>
+    </view>
+    <view class="option-row">
+      <view
+        wx:for="{{addons}}"
+        wx:key="id"
+        wx:for-item="addon"
+        class="option-chip {{addon.selected ? 'option-chip--active' : ''}}"
+        data-addon-id="{{addon.id}}"
+        bindtap="onTapAddon"
+        hover-class="option-chip--hover"
+      >
+        <text>{{addon.addonName}}</text>
+        <text class="option-delta">+¥{{addon.priceDelta}}</text>
+      </view>
+    </view>
+  </view>
+
+  <view class="info-card">
+    <text class="info-title">食材与过敏原</text>
+    <text class="info-text">{{detail.allergen}}</text>
+    <text wx:if="{{detail.tags.length > 0}}" class="info-title">标签</text>
+    <view class="tag-row">
+      <text wx:for="{{detail.tags}}" wx:for-item="tag" wx:key="*this" class="tag">{{tag}}</text>
+    </view>
+  </view>
+
+  <view class="info-card">
+    <view class="review-head">
+      <text class="info-title">评价（{{detail.reviewCount || 0}}）</text>
+      <text
+        wx:if="{{detail.reviewCount > 0}}"
+        class="review-all"
+        bindtap="onTapAllReviews"
+        hover-class="review-all--hover"
+      >查看全部</text>
+    </view>
+    <text wx:if="{{reviews.length === 0}}" class="info-text">还没有评价，等你来写第一条</text>
+    <view wx:for="{{reviews}}" wx:key="id" wx:for-index="reviewIndex" class="review-item">
+      <view class="review-item-head">
+        <text class="review-nickname">{{item.nickname}}</text>
+        <text class="review-time">{{item.createTime}}</text>
+      </view>
+      <text class="review-stars">{{item.stars}}{{item.emptyStars}}</text>
+      <text wx:if="{{item.content}}" class="review-content">{{item.content}}</text>
+      <view wx:if="{{item.images.length > 0}}" class="review-images">
+        <image
+          wx:for="{{item.images}}"
+          wx:for-item="url"
+          wx:key="*this"
+          class="review-image"
+          src="{{url}}"
+          mode="aspectFill"
+          lazy-load
+          data-url="{{url}}"
+          data-review-index="{{reviewIndex}}"
+          bindtap="onPreviewReviewImage"
+        />
+      </view>
+    </view>
+  </view>
+
+  <view wx:if="{{quote}}" class="quote-card">
+    <text class="info-title">金额明细（服务端计算）</text>
+    <view class="quote-row"><text>基础价</text><text>¥{{quote.basePrice}}</text></view>
+    <view class="quote-row"><text>规格加价</text><text>¥{{quote.specAmount}}</text></view>
+    <view class="quote-row"><text>加料加价</text><text>¥{{quote.addonAmount}}</text></view>
+    <view class="quote-row"><text>单位价 × {{quote.quantity}}</text><text>¥{{quote.totalPrice}}</text></view>
+  </view>
+
+</view>
+<view wx:elif="{{loading}}" class="loading">加载中…</view>
+</scroll-view>
+<block wx:if="{{detail}}">
+  <view class="action-bar">
+    <view class="quantity">
+      <view class="quantity-btn" data-delta="-1" bindtap="onChangeQuantity" hover-class="quantity-btn--hover">－</view>
+      <text class="quantity-value">{{quantity}}</text>
+      <view class="quantity-btn" data-delta="1" bindtap="onChangeQuantity" hover-class="quantity-btn--hover">＋</view>
+    </view>
+    <view class="action-price">
+      <text class="price-symbol">¥</text>
+      <text class="price-num">{{quote ? quote.totalPrice : detail.price}}</text>
+    </view>
+    <view
+      class="primary-btn {{detail.preorder ? 'primary-btn--gold' : ''}} {{(detail.soldOut || submitting) ? 'primary-btn--disabled' : ''}}"
+      bindtap="onTapPrimary"
+      hover-class="primary-btn--hover"
+    >
+      {{detail.soldOut ? '今日已售罄' : (detail.preorder ? '预定用餐' : '加入购物车')}}
+    </view>
+  </view>
+
+  <view class="cart-fab" bindtap="onOpenCart" hover-class="cart-fab--hover">
+    <image class="cart-fab-icon" src="/assets/tabbar/cart.png" mode="aspectFit" />
+  </view>
+  <cart-panel visible="{{cartVisible}}" bind:close="onCloseCart" />
+</block>

@@ -1,0 +1,209 @@
+.page {
+  min-height: 100vh;
+  padding: var(--co-space-gap) var(--co-space-page) var(--co-space-page);
+  box-sizing: border-box;
+}
+
+.search-bar {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  margin-bottom: var(--co-space-gap);
+}
+
+.search-input {
+  flex: 1;
+  height: 80rpx;
+  padding: 0 var(--co-space-card);
+  background-color: var(--co-card);
+  border: 1rpx solid var(--co-divider);
+  border-radius: var(--co-radius-button);
+  color: var(--co-text-primary);
+  font-size: 28rpx;
+  box-sizing: border-box;
+}
+
+.search-btn {
+  height: 80rpx;
+  line-height: 80rpx;
+  padding: 0 32rpx;
+  background-color: var(--co-ink);
+  color: var(--co-card);
+  font-size: 28rpx;
+  font-weight: 600;
+  border-radius: var(--co-radius-button);
+}
+
+.search-btn--hover {
+  opacity: 0.8;
+}
+
+.state {
+  padding: 120rpx 0;
+  color: var(--co-text-tertiary);
+  font-size: 24rpx;
+  text-align: center;
+}
+
+.dish-card {
+  display: flex;
+  gap: var(--co-space-card);
+  margin-bottom: var(--co-space-gap);
+  padding: var(--co-space-card);
+  background-color: var(--co-card);
+  border-radius: var(--co-radius-card);
+}
+
+.dish-card--hover {
+  opacity: 0.86;
+}
+
+/* 4:3，全站列表图统一比例 */
+.dish-image-wrap {
+  position: relative;
+  flex: none;
+  width: 200rpx;
+  height: 150rpx;
+  border-radius: var(--co-radius-tag);
+  overflow: hidden;
+}
+
+.dish-image {
+  width: 100%;
+  height: 100%;
+}
+
+.badge {
+  position: absolute;
+  left: 0;
+  top: 0;
+  padding: 4rpx 10rpx;
+  font-size: 20rpx;
+  border-radius: var(--co-radius-tag);
+}
+
+.badge--gold {
+  background-color: var(--co-gold);
+  color: var(--co-card);
+}
+
+.badge--soldout {
+  background-color: var(--co-danger);
+  color: var(--co-card);
+}
+
+.dish-body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.dish-name {
+  color: var(--co-text-primary);
+  font-size: 32rpx;
+  font-weight: 600;
+  letter-spacing: 1rpx;
+}
+
+.sub-row {
+  display: flex;
+  align-items: baseline;
+  gap: 12rpx;
+  margin-top: 8rpx;
+}
+
+.dish-subtitle {
+  flex: 1;
+  min-width: 0;
+  color: var(--co-text-secondary);
+  font-size: 24rpx;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.tag-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8rpx;
+  margin-top: 10rpx;
+}
+
+.tag {
+  padding: 2rpx 8rpx;
+  color: var(--co-cinnabar);
+  font-size: 20rpx;
+  border: 1rpx solid var(--co-divider);
+  border-radius: var(--co-radius-tag);
+}
+
+.dish-bottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: auto;
+}
+
+.price {
+  color: var(--co-cinnabar);
+  font-variant-numeric: tabular-nums;
+}
+
+.price-symbol {
+  font-size: 24rpx;
+}
+
+.price-num {
+  font-size: 36rpx;
+  font-weight: 700;
+}
+
+.sales {
+  flex: none;
+  color: var(--co-text-tertiary);
+  font-size: 22rpx;
+}
+
+/* 列表快捷加购：默认规格一键入车，改规格仍需进详情 */
+.add-btn {
+  position: relative;
+  flex: none;
+  width: 52rpx;
+  height: 52rpx;
+  background-color: var(--co-cinnabar);
+  border-radius: 50%;
+}
+
+/* 加号用两根横竖条画，不用「＋」文字：全角字形基点偏低约 2~3rpx */
+.add-btn::before,
+.add-btn::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  background-color: var(--co-card);
+  border-radius: 2rpx;
+  transform: translate(-50%, -50%);
+}
+
+.add-btn::before {
+  width: 22rpx;
+  height: 3rpx;
+}
+
+.add-btn::after {
+  width: 3rpx;
+  height: 22rpx;
+}
+
+.add-btn--hover {
+  opacity: 0.82;
+}
+
+.loading {
+  padding: 32rpx 0;
+  color: var(--co-text-tertiary);
+  font-size: 24rpx;
+  text-align: center;
+}

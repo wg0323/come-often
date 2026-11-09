@@ -1,0 +1,32 @@
+.filters {
+  display: flex;
+  gap: var(--mk-space-gap);
+  margin-bottom: var(--mk-space-card);
+}
+
+.filter {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--mk-touch-min);
+  padding: 0 var(--mk-space-card);
+  border-radius: var(--mk-radius-card);
+  background-color: var(--mk-card);
+  color: var(--mk-text);
+  font-size: 26rpx;
+}
+
+.record-card {
+  margin-bottom: var(--mk-space-gap);
+}
+
+.record-name {
+  color: var(--mk-text);
+  font-size: 28rpx;
+  font-weight: 600;
+}
+
+.list-end {
+  margin-top: var(--mk-space-card);
+  text-align: center;
+}

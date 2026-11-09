@@ -1,0 +1,37 @@
+<scroll-view class="page-scroll" scroll-y enhanced="{{true}}" show-scrollbar="{{false}}">
+<view class="page">
+  <view class="brand">
+    <text class="brand-name">come-often</text>
+    <text class="brand-slogan">慢一点，好好吃一顿</text>
+  </view>
+
+  <view class="panel">
+    <text class="panel-title">手机号登录</text>
+    <text class="panel-desc">登录后可查看订单、积分与优惠券；换手机号登录即切换会员</text>
+
+    <button
+      class="primary-button"
+      open-type="getPhoneNumber"
+      bindgetphonenumber="onGetPhoneNumber"
+      loading="{{loading}}"
+      disabled="{{loading}}"
+    >微信手机号快捷登录</button>
+
+    <view wx:if="{{devMode}}" class="dev-block">
+      <view class="divider">
+        <text class="divider-text">开发模式</text>
+      </view>
+      <text class="dev-tip">游客 AppID 无法授权手机号，可手填号码验证换号</text>
+      <input
+        class="dev-input"
+        type="number"
+        maxlength="11"
+        placeholder="11 位手机号"
+        value="{{mockPhone}}"
+        bindinput="onInputPhone"
+      />
+      <button class="dev-button" bindtap="onDevLogin" disabled="{{loading}}">用该手机号登录</button>
+    </view>
+  </view>
+</view>
+</scroll-view>

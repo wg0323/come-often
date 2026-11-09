@@ -1,0 +1,55 @@
+.scan-page {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.scan-tip {
+  margin: 32rpx 0 48rpx;
+  color: var(--mk-text-secondary);
+  font-size: 28rpx;
+  text-align: center;
+}
+
+.scan-button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 420rpx;
+  height: 420rpx;
+  border-radius: var(--mk-radius-card);
+  background-color: var(--mk-text);
+  color: var(--mk-text-inverse);
+}
+
+.scan-icon {
+  font-size: 32rpx;
+  letter-spacing: 4rpx;
+}
+
+.scan-text {
+  margin-top: 16rpx;
+  font-size: 52rpx;
+  font-weight: 700;
+}
+
+.scan-note {
+  margin-top: 48rpx;
+  color: var(--mk-text-secondary);
+  font-size: 24rpx;
+  text-align: center;
+}
+
+.scan-back {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: var(--mk-button-height);
+  margin-top: 48rpx;
+  border-radius: var(--mk-radius-button);
+  background-color: var(--mk-card);
+  color: var(--mk-text);
+  font-size: 30rpx;
+}

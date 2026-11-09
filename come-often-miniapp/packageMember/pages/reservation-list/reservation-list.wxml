@@ -1,0 +1,71 @@
+<scroll-view class="page-scroll" scroll-y enhanced="{{true}}" show-scrollbar="{{false}}" bindscrolltolower="onReachBottom">
+<view class="page">
+  <view class="tabs">
+    <view
+      wx:for="{{tabs}}"
+      wx:key="key"
+      class="tab {{activeTab === item.key ? 'tab--active' : ''}}"
+      data-key="{{item.key}}"
+      bindtap="onTabChange"
+    >{{item.label}}</view>
+  </view>
+
+  <view wx:for="{{records}}" wx:key="reserveNo" class="card">
+    <view class="card-head">
+      <text class="card-date">{{item.reserveDate}} {{item.timeSlot}}</text>
+      <text class="card-status">{{item.statusText}}</text>
+    </view>
+    <text class="card-line">{{item.storeName}} · {{item.tableTypeText}}</text>
+    <text class="card-line">{{item.peopleCount}} 人 · {{item.contactName}} {{item.contactPhone}}</text>
+    <text wx:if="{{item.remark}}" class="card-remark">备注：{{item.remark}}</text>
+    <text class="card-no">预约单号 {{item.reserveNo}}</text>
+
+    <view class="card-actions">
+      <view
+        wx:if="{{item.canCheckin}}"
+        class="action action--primary"
+        data-reserve-no="{{item.reserveNo}}"
+        bindtap="onShowCode"
+      >签到码</view>
+      <view
+        wx:if="{{item.canCancel}}"
+        class="action"
+        data-reserve-no="{{item.reserveNo}}"
+        data-store-id="{{item.storeId}}"
+        bindtap="onReschedule"
+      >改期</view>
+      <view
+        wx:if="{{item.canCancel}}"
+        class="action action--danger"
+        data-reserve-no="{{item.reserveNo}}"
+        bindtap="onCancel"
+      >取消</view>
+    </view>
+  </view>
+
+  <view wx:if="{{loading}}" class="tip">加载中…</view>
+  <view wx:elif="{{loaded && records.length === 0}}" class="empty">
+    <text class="empty-text">还没有预约</text>
+    <view class="empty-action" bindtap="onTapReserve">去预约</view>
+  </view>
+
+</view>
+</scroll-view>
+  <view wx:if="{{codeVisible && codeData}}" class="overlay" bindtap="closeCode">
+    <view class="code-card" catchtap="noop">
+      <text class="code-title">到店签到码</text>
+      <canvas
+        type="2d"
+        id="reservation-qr"
+        class="code-qr"
+      ></canvas>
+      <text wx:if="{{qrError}}" class="code-tip">二维码生成失败，请复制下方签到码</text>
+      <text class="code-value">{{codeData.codeContent}}</text>
+      <text class="code-tip">每 30 秒自动刷新 · 余 {{codeData.secondsRemaining}} 秒</text>
+      <text class="code-meta">{{codeData.reserveAt}} · {{codeData.statusText}}</text>
+      <view class="code-actions">
+        <view class="action" bindtap="onCopyCode">复制签到码</view>
+        <view class="action action--primary" bindtap="closeCode">关闭</view>
+      </view>
+    </view>
+  </view>

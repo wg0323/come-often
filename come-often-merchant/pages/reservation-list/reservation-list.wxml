@@ -1,0 +1,50 @@
+<scroll-view class="page-scroll" scroll-y enhanced="{{true}}" show-scrollbar="{{false}}" refresher-enabled="{{true}}" refresher-triggered="{{refresherTriggered}}" bindrefresherrefresh="onRefresherRefresh" bindscrolltolower="onReachBottom">
+<view class="page">
+  <view class="tabs">
+    <view
+      wx:for="{{tabs}}"
+      wx:key="status"
+      class="tab {{activeStatus === item.status ? 'tab--active' : ''}}"
+      data-status="{{item.status}}"
+      bindtap="onTapTab"
+    >
+      {{item.label}}
+    </view>
+  </view>
+
+  <view class="filters">
+    <picker mode="date" value="{{date}}" bindchange="onDateChange">
+      <view class="filter">{{date || '全部日期'}}</view>
+    </picker>
+    <view wx:if="{{date}}" class="filter" bindtap="onClearDate">清除</view>
+  </view>
+
+  <view wx:for="{{reservations}}" wx:key="key" class="card">
+    <view class="row">
+      <text class="reserve-name">{{item.contactName}}</text>
+      <text class="tag {{item.status === 'PENDING' ? 'tag--pending' : (item.status === 'CONFIRMED' ? 'tag--ready' : 'tag--done')}}">
+        {{item.statusText}}
+      </text>
+    </view>
+    <view class="row">
+      <text class="value">{{item.timeText}}</text>
+      <text class="value">{{item.tableTypeText}} · {{item.peopleText}}</text>
+    </view>
+    <view class="row">
+      <text class="label">{{item.contactPhone}}</text>
+      <text class="label">{{item.reserveNo}}</text>
+    </view>
+    <text wx:if="{{item.remark}}" class="reserve-remark">备注：{{item.remark}}</text>
+    <view wx:if="{{item.canConfirm}}" class="actions">
+      <view class="btn btn--primary" data-reserveno="{{item.reserveNo}}" bindtap="onTapConfirm">确认</view>
+      <view class="btn btn--danger" data-reserveno="{{item.reserveNo}}" bindtap="onTapReject">拒绝</view>
+    </view>
+    <view wx:if="{{item.canCheckin}}" class="actions">
+      <view class="btn btn--primary" data-reserveno="{{item.reserveNo}}" bindtap="onTapCheckin">签到</view>
+    </view>
+  </view>
+
+  <view wx:if="{{!loading && reservations.length === 0}}" class="empty">没有符合条件的预约</view>
+  <view wx:if="{{reservations.length > 0 && !hasMore}}" class="muted list-end">共 {{total}} 条</view>
+</view>
+</scroll-view>

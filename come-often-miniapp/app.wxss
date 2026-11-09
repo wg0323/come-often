@@ -1,0 +1,22 @@
+@import "styles/tokens.wxss";
+
+page {
+  background-color: var(--co-paper);
+  color: var(--co-text-primary);
+  font-size: 28rpx;
+  letter-spacing: 1rpx;
+}
+
+/* 页面统一由 scroll-view 接管滚动；原页面根节点留在内层，样式保持不变 */
+.page-scroll {
+  height: 100vh;
+  box-sizing: border-box;
+}
+
+/* 真机 WebView 下 scroll-view 会露出灰色滚动指示条，全局隐藏 */
+::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  display: none;
+  color: transparent;
+}

@@ -1,0 +1,86 @@
+{
+  "pages": [
+    "pages/index/index",
+    "pages/dish-list/dish-list",
+    "pages/order-list/order-list",
+    "pages/mine/mine",
+    "pages/login/login",
+    "pages/dish-detail/dish-detail",
+    "pages/dish-search/dish-search",
+    "pages/dish-review/dish-review",
+    "pages/cart/cart",
+    "pages/order-confirm/order-confirm",
+    "pages/coupon-center/coupon-center",
+    "pages/queue/queue"
+  ],
+  "subPackages": [
+    {
+      "root": "packageOrder",
+      "pages": [
+        "pages/order-detail/order-detail",
+        "pages/refund-apply/refund-apply",
+        "pages/review/review"
+      ]
+    },
+    {
+      "root": "packageMember",
+      "pages": [
+        "pages/coupon-wallet/coupon-wallet",
+        "pages/coupon-code/coupon-code",
+        "pages/points-record/points-record",
+        "pages/sign-in/sign-in",
+        "pages/member-level/member-level",
+        "pages/reservation-list/reservation-list"
+      ]
+    },
+    {
+      "root": "packageOther",
+      "pages": [
+        "pages/store-list/store-list",
+        "pages/store-detail/store-detail",
+        "pages/table-reserve/table-reserve"
+      ]
+    }
+  ],
+  "tabBar": {
+    "color": "#9a9a9a",
+    "selectedColor": "#a3412e",
+    "backgroundColor": "#ffffff",
+    "borderStyle": "white",
+    "list": [
+      {
+        "pagePath": "pages/index/index",
+        "text": "首页",
+        "iconPath": "assets/tabbar/home.png",
+        "selectedIconPath": "assets/tabbar/home-active.png"
+      },
+      {
+        "pagePath": "pages/dish-list/dish-list",
+        "text": "点餐",
+        "iconPath": "assets/tabbar/menu.png",
+        "selectedIconPath": "assets/tabbar/menu-active.png"
+      },
+      {
+        "pagePath": "pages/coupon-center/coupon-center",
+        "text": "领券",
+        "iconPath": "assets/tabbar/coupon.png",
+        "selectedIconPath": "assets/tabbar/coupon-active.png"
+      },
+      {
+        "pagePath": "pages/mine/mine",
+        "text": "我的",
+        "iconPath": "assets/tabbar/mine.png",
+        "selectedIconPath": "assets/tabbar/mine-active.png"
+      }
+    ]
+  },
+  "window": {
+    "navigationBarBackgroundColor": "#22302a",
+    "navigationBarTextStyle": "white",
+    "navigationBarTitleText": "come-often",
+    "backgroundColor": "#faf7f2",
+    "backgroundTextStyle": "light"
+  },
+  "style": "v2",
+  "lazyCodeLoading": "requiredComponents"
+}

@@ -1,0 +1,38 @@
+<scroll-view class="page-scroll" scroll-y enhanced="{{true}}" show-scrollbar="{{false}}" refresher-enabled="{{true}}" refresher-triggered="{{refresherTriggered}}" bindrefresherrefresh="onRefresherRefresh">
+<view class="page">
+  <view class="note">到店后先取号，叫号后请到门口等候入座</view>
+
+  <view wx:if="{{loading}}" class="state">加载中…</view>
+  <view wx:elif="{{loadError}}" class="state">
+    <text class="state-text">排队信息加载失败</text>
+    <view class="retry-btn" bindtap="onRetry">重新加载</view>
+  </view>
+  <block wx:elif="{{ticket}}">
+    <view class="ticket-card">
+      <text class="ticket-label">我的排队号</text>
+      <text class="ticket-no">{{ticket.ticketNo}}</text>
+      <text class="ticket-status {{ticket.status === 'CALLED' ? 'ticket-status--called' : ''}}">{{ticket.statusText}}</text>
+      <view class="ticket-divider"></view>
+      <text wx:if="{{ticket.status === 'WAITING'}}" class="ticket-wait">前面还有 {{ticket.waitingCount}} 桌</text>
+      <text wx:elif="{{ticket.status === 'CALLED'}}" class="ticket-wait">已叫到您的号，请到门口入座</text>
+      <text class="ticket-meta">{{ticket.partySize}} 位 · {{ticket.bizDate}}</text>
+    </view>
+    <view class="ticket-actions">
+      <view class="secondary-btn" bindtap="onRefresh" hover-class="secondary-btn--hover">刷新进度</view>
+      <view class="danger-btn" bindtap="onCancel" hover-class="danger-btn--hover">取消取号</view>
+    </view>
+  </block>
+  <block wx:else>
+    <view class="take-card">
+      <text class="take-title">选择就餐人数</text>
+      <view class="stepper">
+        <view class="stepper-btn" data-delta="-1" bindtap="onChangeCount">－</view>
+        <text class="stepper-value">{{partySize}} 位</text>
+        <view class="stepper-btn" data-delta="1" bindtap="onChangeCount">＋</view>
+      </view>
+      <view class="primary-btn {{taking ? 'primary-btn--disabled' : ''}}" bindtap="onTake">取号</view>
+      <text class="take-tip">同一天只能有一个有效号，过号或取消后可重新取号</text>
+    </view>
+  </block>
+</view>
+</scroll-view>

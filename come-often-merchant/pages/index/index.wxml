@@ -1,0 +1,50 @@
+<scroll-view class="page-scroll" scroll-y enhanced="{{true}}" show-scrollbar="{{false}}" refresher-enabled="{{true}}" refresher-triggered="{{refresherTriggered}}" bindrefresherrefresh="onRefresherRefresh">
+<view class="page">
+  <view class="card header-card">
+    <view class="header-main">
+      <text class="employee">{{employeeName}}</text>
+      <text class="store">{{storeText}}</text>
+    </view>
+    <text class="role-tag" wx:if="{{roleText}}">{{roleText}}</text>
+  </view>
+
+  <view class="stats">
+    <view
+      wx:for="{{stats}}"
+      wx:key="key"
+      class="stat-card stat-card--{{item.modifier}}"
+      data-status="{{item.key}}"
+      bindtap="onTapStat"
+    >
+      <text class="stat-count {{item.statusClass}}">{{item.count}}</text>
+      <text class="stat-label">{{item.label}}</text>
+    </view>
+  </view>
+
+  <view class="card today-card">
+    <view class="today-item">
+      <text class="today-value">{{todayReservationCount}}</text>
+      <text class="today-label">今日预约</text>
+    </view>
+    <view class="today-split"></view>
+    <view class="today-item">
+      <text class="today-value">¥{{todayRevenueText}}</text>
+      <text class="today-label">今日营收</text>
+    </view>
+  </view>
+
+  <view class="grid-title">常用操作</view>
+  <view class="grid">
+    <view
+      wx:for="{{grids}}"
+      wx:key="key"
+      class="grid-item"
+      data-url="{{item.url}}"
+      bindtap="onTapGrid"
+    >
+      {{item.label}}
+    </view>
+  </view>
+  <view wx:if="{{grids.length === 0}}" class="empty">当前角色暂无可用功能，请联系管理员</view>
+</view>
+</scroll-view>
