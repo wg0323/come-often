@@ -16,9 +16,9 @@
 
 ## 项目简介
 
-按 [docs/development-plan.md](docs/development-plan.md) 分阶段实施，单次交付、每阶段独立验收。M0~M11 全部完成，M12 登录体系、M13 首页改版与排队叫号已交付：骨架与环境、三端认证与权限、门店与菜品、购物车与自提订单（含 MQ 可靠性三件套）、支付与退款（Mock 网关与退款审核）、优惠券（动态券码与核销服务）、积分与等级（积分抵现与年度过期）、预约订座（时段容量与超时释放）、评价/搜索/首页运营、商家端小程序（统一扫码与订阅提醒降级）、数据看板与报表（Excel 导出）、联调与交付（`@JobLock` 兜底任务、死信告警可查、三条端到端脚本、四份交付文档）。M13 未完项（桌码服务端绑定、PC 后台排队页、实时叫号推送等）按 [docs/milestone-m14.md](docs/milestone-m14.md) 分六个批次补齐；B0 已收口 M13 交付欠账，B1 已落地 49 张表、30063~30099 业务码段与金额口径底座。
+按 [docs/development-plan.md](docs/development-plan.md) 分阶段实施，单次交付、每阶段独立验收。M0~M11 全部完成，M12 登录体系、M13 首页改版与排队叫号已交付：骨架与环境、三端认证与权限、门店与菜品、购物车与自提订单（含 MQ 可靠性三件套）、支付与退款（Mock 网关与退款审核）、优惠券（动态券码与核销服务）、积分与等级（积分抵现与年度过期）、预约订座（时段容量与超时释放）、评价/搜索/首页运营、商家端小程序（统一扫码与订阅提醒降级）、数据看板与报表（Excel 导出）、联调与交付（`@JobLock` 兜底任务、死信告警可查、三条端到端脚本、四份交付文档）。M13 未完项（桌码服务端绑定、PC 后台排队页、实时叫号推送等）按 [docs/milestone-m14.md](docs/milestone-m14.md) 分六个批次补齐；B0 已收口 M13 交付欠账，B1 已落地 49 张表、30063~30099 业务码段与金额口径底座，B2 已接通叫号通知与顾客端 10 秒轮询、PC 后台排队页、桌码服务端绑定、营业状态前置校验、门店导航与后端 ZXing 二维码出图。
 
-十二份验收脚本 `deploy/verify-m1.ps1` ~ `verify-m11.ps1`、`deploy/verify-m13.ps1` 串行执行（M11 一次 108 条断言、0 失败），单测 193 个用例全绿。与开发计划的逐条差异见 [deploy/init.md](deploy/init.md)。
+十三份验收脚本 `deploy/verify-m1.ps1` ~ `verify-m11.ps1`、`deploy/verify-m13.ps1`、`deploy/verify-m14-b2.ps1` 串行执行（M11 一次 108 条断言、0 失败），单测 197 个用例全绿。与开发计划的逐条差异见 [deploy/init.md](deploy/init.md)。
 
 ### 核心功能
 
@@ -57,14 +57,14 @@
 - [x] PC 后台经营看板：今日净营收 / 订单数 / 客单价、实时预约看板、今日热销 Top 5（M10）
 - [x] 数据报表：营收与订单趋势（按日 / 周 / 月）、热销排行、券 ROI、复购率与次日留存、高价值用户（M10）
 - [x] 四类报表 Excel 导出（EasyExcel 4.0.3，行数上限 300，超限返回 30056）（M10）
-- [x] `@JobLock` 注解 + AOP 切面接管 7 个兜底任务，抢不到锁直接跳过（M11）
+- [x] `@JobLock` 注解 + AOP 切面接管 8 个兜底任务，抢不到锁直接跳过（M11；M14 B2 新增排队过号兜底）
 - [x] 补齐库存键按 DB 重建（每日 00:10）、订单自动完成、券过期小时级兜底（M11）
 - [x] 通知与告警收口到 `NotifySender` 接口，死信与投递失败告警可经接口分页查询（M11）
 - [x] 三条端到端脚本、RabbitMQ 停机恢复不丢消息、重投不重复发积分（M11）
 - [x] 交付文档四件：README、部署说明、接口清单、Mock 能力替换清单（M11）
 - [x] 首页改版：按星期营业时间、取号 / 预约入口、团餐券板块、领券中心、最近吃过（M13）
-- [x] tabBar 改为首页 / 点餐 / 领券 / 我的；自提预约时间、购物车改为从下弹出的面板（M13）。堂食扫码只把桌码暂存在本地，服务端绑定与营业状态联动见 M14 B2
-- [x] 排队叫号：顾客取号 / 查号 / 取消、商家端叫号 / 入座（M13）。PC 后台 3 个排队接口已提供但页面未接入，见 M14 B2
+- [x] tabBar 改为首页 / 点餐 / 领券 / 我的；自提预约时间、购物车改为从下弹出的面板（M13）。堂食桌码经 `POST /api/app/store/table/bind` 服务端校验，下单携带 `tableId` 落 `trade_order.table_id`，下单成功后清空绑定（M14 B2）
+- [x] 排队叫号：顾客取号 / 查号 / 取消、商家端叫号 / 入座（M13）。PC 后台 `/queue` 排队页已接入，叫号经 `NotifySender` 落 `message_record(QUEUE_CALL)`，顾客端前台每 10 秒轮询、离页停止，昨天的等待号由 `queue-expire` 过号任务收口（M14 B2）
 
 ## 技术栈
 
@@ -106,7 +106,7 @@ d:\MyProducts\come-often\
 │       │   ├── config/       # MyBatis-Plus / Redis / RabbitMQ / MinIO / 通知通道 / Knife4j / 拦截器注册
 │       │   ├── integration/  # 支付网关、微信 code2session、文件存储、通知通道（LOG + 订阅消息骨架）
 │       │   ├── mq/           # 拓扑常量、生产者、发布确认、监听器、本地消息表、死信与告警
-│       │   ├── job/          # 7 个兜底任务（MQ 重发 / 积分过期 / 预约未到店 / 时段滚动生成 / 库存重建 / 订单自动完成 / 券过期兜底）+ cron 接线 + 统一触发入口
+│       │   ├── job/          # 8 个兜底任务（MQ 重发 / 积分过期 / 预约未到店 / 时段滚动生成 / 库存重建 / 订单自动完成 / 券过期兜底 / 排队过号）+ cron 接线 + 统一触发入口
 │       │   ├── security/     # 三端 JWT、认证/权限拦截器、登录上下文
 │       │   ├── module/       # auth / system / store / dish / home / cart / order / payment / coupon / points / reservation / review / stats / merchant / ops，域内按端拆 Controller
 │       │   └── service/      # 跨域公共服务（库存等）
@@ -311,7 +311,7 @@ powershell -ExecutionPolicy Bypass -File .\deploy\verify-m11.ps1 -SkipWindowWait
 7. **死信告警**：往 `comeoften.order.notify.queue` 投一条无法反序列化的报文，重试耗尽后进死信，`message_record(MQ_ALARM)` 落一条，`GET /api/admin/mq/message/alarm` 能分页查到（类型 `MQ_ALARM`、通道 `LOG`）。
 8. **兜底任务**：库存键重建、`READY` 超 24 小时自动完成并触发积分、券过期兜底首次提醒且重跑不重复、预约未到店扫描、积分过期补跑（与 M6 端点共用一把锁）。
 
-造数可重复：合成的 `M11AUTO001` 订单、过期预约、未使用券在插入前先删除，真实订单用每轮新的 `mockKey`。全部通过输出 `M11 VERIFY PASSED`，退出码 0（本次 108 条断言、0 失败）。十二份脚本串行执行（含 `verify-m13.ps1`）；M11 的新增差异见 [deploy/init.md](deploy/init.md) 第 152 条起，M14 B0 的收口差异见第 172 条起。
+造数可重复：合成的 `M11AUTO001` 订单、过期预约、未使用券在插入前先删除，真实订单用每轮新的 `mockKey`。全部通过输出 `M11 VERIFY PASSED`，退出码 0（本次 108 条断言、0 失败）。十三份脚本串行执行（含 `verify-m13.ps1` 与 `verify-m14-b2.ps1`）；M11 的新增差异见 [deploy/init.md](deploy/init.md) 第 152 条起，M14 B0 的收口差异见第 172 条起。
 
 ### M13 首页改版与 M14 B0 收口验收
 
@@ -325,19 +325,31 @@ powershell -ExecutionPolicy Bypass -File .\deploy\verify-m13.ps1
 
 造数日期取后端返回的 `bizDate`，软删与恢复按本轮票的主键定位，所有失败路径与 `finally` 都按 `member_id + biz_date` 清理，脚本可重复跑。全部通过输出 `M13 VERIFY PASSED`，退出码 0。
 
+### M14 B2 实时性与桌码验收
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\deploy\verify-m14-b2.ps1
+# 8080 被日常实例占用时，可对独立实例指定端口：
+powershell -ExecutionPolicy Bypass -File .\deploy\verify-m14-b2.ps1 -Base 'http://127.0.0.1:18081'
+```
+
+脚本用两个不同 `phoneCode` 的全新会员，验六组：桌码绑定（`A01` 回真实桌台、未知桌码 30091、格式非法 10001、无 token 401）；营业状态前置校验（临时把 `store.business_status` 置 0，取号与领券都返回 30093，`finally` 恢复）；叫号链路（取号 → 后台叫号 → `message_record` 恰好一条 `QUEUE_CALL` → 商家端入座）；`queue-expire` 兜底（注入一条昨天的 `WAITING` 票 → 手动补跑后 `EXPIRED`、第二次补跑 `count=0`）；券码二维码（`/code` 同时回 16 位动态码与 PNG base64）；契约与接线（`/v3/api-docs` 出现新路径与 `tableId` / `qrImageBase64` 字段、后台菜单含 `/queue`、PC 页面与小程序轮询 / 绑码 / 导航 / 二维码渲染的源码断言）。全部通过输出 `M14 B2 VERIFY PASSED`，退出码 0。
+
+真机「顾客亮码 → 店员扫码」需人工在微信开发者工具或真机走一遍：券码在卡包券详情页、取餐码在订单详情页，商家端统一扫码页扫同一张二维码即可分流核销。自动化脚本只覆盖出图与码串，不覆盖相机链路。
+
 ### 交付文档
 
 | 文档 | 内容 |
 | --- | --- |
 | [README.md](README.md) | 项目全貌、验收方式、配置项、常见问题 |
 | [docs/deployment.md](docs/deployment.md) | 部署说明：中间件准备、构建启动、配置与凭据、日常运维、升级回滚、故障排查 |
-| [docs/api-list.md](docs/api-list.md) | 接口清单：163 个接口按端与分组列出，附权限点对照与业务码分段（M13 新增 10 个见文末；M14 B1 只扩错误码段，未新增接口） |
+| [docs/api-list.md](docs/api-list.md) | 接口清单：`/v3/api-docs` 149 个路径 / 166 个操作按端与分组列出，附权限点对照与业务码分段（M13 新增 10 个、M14 B2 新增 2 个见文末；M14 B1 只扩错误码段，未新增接口） |
 | [docs/mock-replacement.md](docs/mock-replacement.md) | Mock 能力替换清单：支付网关、微信登录、订阅消息、短信、上传，逐项写替换点与要改的配置 |
 | [docs/milestone-m14.md](docs/milestone-m14.md) | M14 里程碑：2.md 未实现项与 M13 交付欠账，六批次范围、DDL 清单、验收口径与状态跟踪 |
 
 ### 显式运行测试
 
-`pom.xml` 默认跳过测试编译与执行以加快打包，需要验证时显式开启（当前 193 个用例）：
+`pom.xml` 默认跳过测试编译与执行以加快打包，需要验证时显式开启（当前 197 个用例）：
 
 ```powershell
 cd come-often-server
