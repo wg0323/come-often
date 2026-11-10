@@ -31,6 +31,7 @@
         <view class="dish-image-wrap">
           <image class="dish-image" src="{{item.imageUrl}}" mode="aspectFill" lazy-load />
           <text wx:if="{{item.preorder}}" class="badge badge--gold">需提前 1 天预定</text>
+          <text wx:elif="{{item.presale}}" class="badge badge--gold">{{item.presaleText}}</text>
           <text wx:if="{{item.soldOut}}" class="badge badge--soldout">今日已售罄</text>
         </view>
         <view class="dish-body">
@@ -50,7 +51,7 @@
             </view>
             <!-- 预定菜要选用餐时间与定金，只能进详情；售罄不带加购入口 -->
             <view
-              wx:if="{{!item.soldOut && !item.preorder}}"
+              wx:if="{{!item.soldOut && !item.preorder && item.presaleStatus !== 'NOT_STARTED' && item.presaleStatus !== 'ENDED'}}"
               class="add-btn"
               data-id="{{item.id}}"
               catchtap="onQuickAdd"

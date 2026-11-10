@@ -55,13 +55,13 @@ public class OrderAppController {
                 storeService.defaultStoreId(), dto));
     }
 
-    @Operation(summary = "我的订单列表", description = "按状态过滤，按下单时间倒序")
+    @Operation(summary = "我的订单列表", description = "按状态过滤（支持逗号分隔多状态，供顾客端 Tab 分组），按下单时间倒序分页")
     @ApiResponse(responseCode = "200", description = "返回分页结果")
     @GetMapping
     public Result<PageResult<OrderSummaryVO>> page(
             @Parameter(description = "当前页，从 1 开始") @RequestParam(defaultValue = "1") Long current,
             @Parameter(description = "每页条数") @RequestParam(defaultValue = "10") Long size,
-            @Parameter(description = "状态过滤") @RequestParam(required = false) String status) {
+            @Parameter(description = "状态过滤，多个状态用逗号分隔") @RequestParam(required = false) String status) {
         return Result.ok(orderService.pageForApp(LoginUserHolder.getRequired().getUserId(),
                 storeService.defaultStoreId(), current, size, status));
     }

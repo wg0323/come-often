@@ -7,6 +7,7 @@ import {
   createReservation,
   getReservationDetail,
   getReservationMeta,
+  getReservationRooms,
   getReservationSlots,
   rescheduleReservation,
 } from '../../../api/reservationApi';
@@ -30,6 +31,8 @@ Page({
     allSlots: [],
     slotsEmpty: false,
     selectedTimeSlot: '',
+    rooms: [],
+    selectedTableId: '',
     form: {
       contactName: '',
       contactPhone: '',
@@ -154,12 +157,39 @@ Page({
     });
   },
 
+  /** 只在创建模式、选定包间桌型与时段后拉可选包间；改期模式不提供换包间 */
+  async loadRooms() {
+    const { mode, selectedDate, selectedTimeSlot, selectedType, peopleCount } = this.data;
+    const isPrivate = selectedType === 'PRIVATE_SMALL' || selectedType === 'PRIVATE_LARGE';
+    if (mode !== 'create' || !selectedDate || !selectedTimeSlot || !isPrivate) {
+      this.setData({ rooms: [], selectedTableId: '' });
+      return;
+    }
+    try {
+      const rooms = await getReservationRooms({
+        date: selectedDate,
+        timeSlot: selectedTimeSlot,
+        peopleCount,
+      });
+      this.setData({ rooms: rooms ?? [], selectedTableId: '' });
+    } catch (error) {
+      this.setData({ rooms: [], selectedTableId: '' });
+    }
+  },
+
+  onTapRoom(event) {
+    const { tableId } = event.currentTarget.dataset;
+    this.setData({
+      selectedTableId: this.data.selectedTableId === tableId ? '' : tableId,
+    });
+  },
+
   onSelectDate(event) {
     const { date } = event.currentTarget.dataset;
     if (date === this.data.selectedDate) {
       return;
     }
-    this.setData({ selectedDate: date, selectedTimeSlot: '' }, () => {
+    this.setData({ selectedDate: date, selectedTimeSlot: '', rooms: [], selectedTableId: '' }, () => {
       this.loadSlots();
     });
   },
@@ -193,7 +223,7 @@ Page({
       wx.showToast({ title: '当前人数与桌型不匹配', icon: 'none' });
       return;
     }
-    this.setData({ selectedType: code, selectedTimeSlot: '' }, () => {
+    this.setData({ selectedType: code, selectedTimeSlot: '', rooms: [], selectedTableId: '' }, () => {
       this.buildTimeSlots();
     });
   },
@@ -203,7 +233,9 @@ Page({
     if (full) {
       return;
     }
-    this.setData({ selectedTimeSlot: slot });
+    this.setData({ selectedTimeSlot: slot, rooms: [], selectedTableId: '' }, () => {
+      this.loadRooms();
+    });
   },
 
   onInputContact(event) {
@@ -212,7 +244,7 @@ Page({
   },
 
   async onSubmit() {
-    const { selectedDate, selectedType, selectedTimeSlot, peopleCount, form } = this.data;
+    const { selectedDate, selectedType, selectedTimeSlot, peopleCount, form, selectedTableId } = this.data;
     if (!selectedDate) {
       wx.showToast({ title: '请选择预约日期', icon: 'none' });
       return;
@@ -250,6 +282,7 @@ Page({
           contactName: form.contactName.trim(),
           contactPhone: form.contactPhone.trim(),
           remark: form.remark.trim(),
+          ...(selectedTableId ? { roomType: selectedType, tableId: selectedTableId } : {}),
         });
       }
       wx.showToast({ title: this.data.mode === 'reschedule' ? '改期成功' : '预约成功', icon: 'success' });

@@ -45,6 +45,10 @@
       <text class="section-title">预约</text>
       <text class="section-desc">订座 / 包厢，按时段来</text>
     </view>
+    <view class="section section--ink" bindtap="onTapBundle" hover-class="section--hover">
+      <text class="section-title">套餐</text>
+      <text class="section-desc">团购套餐按份下单</text>
+    </view>
   </view>
 
   <view wx:if="{{signatureDishes.length > 0}}" class="signature">

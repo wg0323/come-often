@@ -1,5 +1,15 @@
-<scroll-view class="page-scroll" scroll-y enhanced="{{true}}" show-scrollbar="{{false}}">
+<scroll-view class="page-scroll" scroll-y enhanced="{{true}}" show-scrollbar="{{false}}" bindscrolltolower="onReachBottom">
 <view class="page">
+  <view class="tabs">
+    <view
+      wx:for="{{tabs}}"
+      wx:key="key"
+      class="tab {{activeTab === item.key ? 'tab--active' : ''}}"
+      data-key="{{item.key}}"
+      bindtap="onTabChange"
+    >{{item.label}}</view>
+  </view>
+
   <view wx:if="{{orders.length > 0}}" class="list">
     <view
       wx:for="{{orders}}"
@@ -31,9 +41,12 @@
     </view>
   </view>
 
-  <view wx:elif="{{!loading}}" class="empty">
-    <text class="empty-text">还没有订单</text>
+  <view wx:elif="{{loaded && !loading}}" class="empty">
+    <text class="empty-text">这个分类下还没有订单</text>
     <view class="empty-btn" bindtap="onGoDish" hover-class="empty-btn--hover">去点菜</view>
   </view>
+
+  <view wx:if="{{loading}}" class="list-tip">加载中…</view>
+  <view wx:elif="{{!hasMore && orders.length > 0}}" class="list-tip">没有更多了</view>
 </view>
 </scroll-view>

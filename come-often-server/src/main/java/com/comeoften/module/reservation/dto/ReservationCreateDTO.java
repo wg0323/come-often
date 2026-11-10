@@ -54,4 +54,10 @@ public class ReservationCreateDTO implements Serializable {
     @Size(max = 255, message = "备注不超过 255 字")
     @Schema(description = "备注：生日布置 / 儿童座椅 / 忌口")
     private String remark;
+
+    @Schema(description = "包间类型筛选：HALL / PRIVATE_SMALL / PRIVATE_LARGE，不指定具体包间时可空")
+    private String roomType;
+
+    @Schema(description = "指定具体包间的桌台 ID；为空表示只按桌型容量桶占座")
+    private Long tableId;
 }

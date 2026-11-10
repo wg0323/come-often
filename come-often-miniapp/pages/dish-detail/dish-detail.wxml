@@ -44,6 +44,10 @@
       <text class="note-title">{{detail.preorderNote}}</text>
       <text class="note-sub">定金 ¥{{detail.depositAmount}} 在整单金额内抵扣；仅限到店用餐，不可自提外带</text>
     </view>
+    <view wx:elif="{{detail.presale}}" class="preorder-note">
+      <text class="note-title">{{detail.presaleText}}</text>
+      <text class="note-sub">预售商品按开售时间售卖，库存有限；与「需提前预定」不是同一功能</text>
+    </view>
     <text class="description">{{detail.description}}</text>
   </view>
 

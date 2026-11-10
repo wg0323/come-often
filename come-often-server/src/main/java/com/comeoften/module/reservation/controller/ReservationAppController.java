@@ -7,6 +7,7 @@ import com.comeoften.module.reservation.dto.ReservationRescheduleDTO;
 import com.comeoften.module.reservation.service.ReservationService;
 import com.comeoften.module.reservation.vo.ReservationCodeVO;
 import com.comeoften.module.reservation.vo.ReservationMetaVO;
+import com.comeoften.module.reservation.vo.ReservationRoomVO;
 import com.comeoften.module.reservation.vo.ReservationSlotVO;
 import com.comeoften.module.reservation.vo.ReservationVO;
 import com.comeoften.module.store.service.StoreService;
@@ -59,7 +60,21 @@ public class ReservationAppController {
         return Result.ok(reservationService.slots(storeService.defaultStoreId(), date, false));
     }
 
-    @Operation(summary = "创建预约", description = "时段已满返回 30041，人数与桌型不匹配返回 30044")
+    @Operation(summary = "可选包间", description = "按日期时段列出仍可锁定的包间；只有标了 room_type 的桌台会出现")
+    @ApiResponse(responseCode = "200", description = "返回包间列表")
+    @GetMapping("/rooms")
+    public Result<List<ReservationRoomVO>> rooms(
+            @Parameter(description = "预约日期，yyyy-MM-dd，缺省为当天")
+            @RequestParam(required = false)
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
+            @Parameter(description = "时段，HH:mm", required = true) @RequestParam String timeSlot,
+            @Parameter(description = "就餐人数，用于按容量过滤") @RequestParam(required = false)
+            Integer peopleCount) {
+        return Result.ok(reservationService.rooms(storeService.defaultStoreId(), date, timeSlot, peopleCount));
+    }
+
+    @Operation(summary = "创建预约", description = "时段已满返回 30041，人数与桌型不匹配返回 30044；"
+            + "传 tableId 时锁具体包间，包间已占用返回 30041")
     @ApiResponse(responseCode = "200", description = "返回预约单")
     @PostMapping
     public Result<ReservationVO> create(@Valid @RequestBody ReservationCreateDTO dto) {

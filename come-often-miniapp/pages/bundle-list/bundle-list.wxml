@@ -1,0 +1,47 @@
+<scroll-view
+  class="page-scroll"
+  scroll-y
+  enhanced="{{true}}"
+  show-scrollbar="{{false}}"
+  refresher-enabled="{{true}}"
+  bindrefresherrefresh="onRefresh"
+>
+  <view class="page">
+    <view class="intro">
+      <text class="intro-title">团购套餐</text>
+      <text class="intro-desc">套餐是独立商品，按套餐价结算，不与菜品券叠加</text>
+    </view>
+
+    <view wx:for="{{bundles}}" wx:key="id" class="bundle-card">
+      <view class="head-row">
+        <text class="bundle-name">{{item.bundleName}}</text>
+        <text class="bundle-stock">剩余 {{item.remainStock}} 份</text>
+      </view>
+      <text wx:if="{{item.description}}" class="bundle-desc">{{item.description}}</text>
+      <view class="item-list">
+        <text wx:for="{{item.items}}" wx:for-item="row" wx:key="dishId" class="bundle-item">
+          {{row.dishName}} × {{row.quantity}}
+        </text>
+      </view>
+      <view class="foot-row">
+        <view class="price-wrap">
+          <text class="price-symbol">¥</text>
+          <text class="price-num">{{item.bundlePrice}}</text>
+          <text wx:if="{{item.originalPrice > 0}}" class="origin-price">¥{{item.originalPrice}}</text>
+        </view>
+        <view
+          class="buy-btn"
+          data-id="{{item.id}}"
+          data-name="{{item.bundleName}}"
+          catchtap="onTapBuy"
+          hover-class="buy-btn--hover"
+        >立即购买</view>
+      </view>
+    </view>
+
+    <view wx:if="{{loaded && !loading && bundles.length === 0}}" class="empty">
+      <text class="empty-text">暂时没有在售套餐</text>
+    </view>
+    <view wx:if="{{loading}}" class="tip">加载中…</view>
+  </view>
+</scroll-view>

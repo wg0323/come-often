@@ -135,6 +135,10 @@ Page({
     wx.switchTab({ url: '/pages/coupon-center/coupon-center' });
   },
 
+  onTapBundle() {
+    wx.navigateTo({ url: '/pages/bundle-list/bundle-list' });
+  },
+
   async onReceiveCoupon(event) {
     const { templateId, canReceive } = event.currentTarget.dataset;
     if (!canReceive) {

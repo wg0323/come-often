@@ -24,6 +24,9 @@ interface FormState {
   craftInfo: string;
   monthlySales: number;
   preorder: boolean;
+  presaleStartTime: string;
+  presaleEndTime: string;
+  presaleStock: number | null;
   status: number;
   sort: number;
   stockTotal: number;
@@ -57,6 +60,9 @@ const emptyForm = (): FormState => ({
   craftInfo: '',
   monthlySales: 0,
   preorder: false,
+  presaleStartTime: '',
+  presaleEndTime: '',
+  presaleStock: null,
   status: 1,
   sort: 0,
   stockTotal: 50,
@@ -90,6 +96,9 @@ const loadDetail = async (dishId: string): Promise<void> => {
       craftInfo: detail.craftInfo ?? '',
       monthlySales: detail.monthlySales ?? 0,
       preorder: detail.preorder ?? false,
+      presaleStartTime: detail.presaleStartTime ?? '',
+      presaleEndTime: detail.presaleEndTime ?? '',
+      presaleStock: detail.presaleStock ?? null,
       status: detail.status ?? 1,
       sort: detail.sort ?? 0,
       specGroups: detail.specGroups ?? [],
@@ -176,6 +185,9 @@ const submit = async (): Promise<void> => {
       craftInfo: form.craftInfo,
       monthlySales: form.monthlySales,
       preorder: form.preorder,
+      presaleStartTime: form.presaleStartTime || null,
+      presaleEndTime: form.presaleEndTime || null,
+      presaleStock: form.presaleStock,
       status: form.status,
       sort: form.sort,
       specGroups: form.specGroups,
@@ -252,6 +264,27 @@ const submit = async (): Promise<void> => {
         </el-form-item>
         <el-form-item label="需提前预定">
           <el-switch v-model="form.preorder" />
+        </el-form-item>
+        <el-form-item label="预售开售时间">
+          <el-date-picker
+            v-model="form.presaleStartTime"
+            type="datetime"
+            value-format="YYYY-MM-DD HH:mm:ss"
+            placeholder="留空表示非预售商品"
+            style="width: 100%"
+          />
+        </el-form-item>
+        <el-form-item label="预售结束时间">
+          <el-date-picker
+            v-model="form.presaleEndTime"
+            type="datetime"
+            value-format="YYYY-MM-DD HH:mm:ss"
+            placeholder="留空表示开售后不限时"
+            style="width: 100%"
+          />
+        </el-form-item>
+        <el-form-item label="预售库存（留空不限）">
+          <el-input-number v-model="form.presaleStock" :min="0" />
         </el-form-item>
         <el-form-item v-if="!dishId" label="当日备货">
           <el-input-number v-model="form.stockTotal" :min="0" />

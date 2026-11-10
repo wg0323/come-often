@@ -1,5 +1,6 @@
 package com.comeoften.module.review.converter;
 
+import com.comeoften.module.review.constant.ReviewStatus;
 import com.comeoften.module.review.entity.Review;
 import com.comeoften.module.review.entity.ReviewImage;
 import com.comeoften.module.review.vo.ReviewVO;
@@ -34,6 +35,11 @@ public final class ReviewConverter {
         vo.setImageObjectKeys(images == null ? Collections.emptyList()
                 : images.stream().map(ReviewImage::getObjectKey).collect(Collectors.toList()));
         vo.setCreateTime(review.getCreateTime());
+        String status = review.getStatus() == null ? ReviewStatus.APPROVED.name() : review.getStatus();
+        vo.setStatus(status);
+        vo.setStatusText(ReviewStatus.describe(status));
+        vo.setAuditUserId(review.getAuditUserId());
+        vo.setAuditTime(review.getAuditTime());
         return vo;
     }
 

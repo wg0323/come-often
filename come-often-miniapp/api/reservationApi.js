@@ -9,6 +9,9 @@ export const getReservationMeta = () => request('/reservation/meta');
 
 export const getReservationSlots = (date) => request('/reservation/slot', { data: { date } });
 
+/** M14 B4：指定日期时段仍可锁定的具体包间 */
+export const getReservationRooms = (params = {}) => request('/reservation/rooms', { data: params });
+
 export const createReservation = (data) => request('/reservation', { method: 'POST', data });
 
 export const getMyReservations = (params = {}) => request('/reservation/page', { data: params });

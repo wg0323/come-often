@@ -1,6 +1,7 @@
 package com.comeoften.module.order.service;
 
 import com.comeoften.common.PageResult;
+import com.comeoften.module.bundle.dto.BundlePurchaseDTO;
 import com.comeoften.module.order.constant.OperatorType;
 import com.comeoften.module.order.dto.OrderCreateDTO;
 import com.comeoften.module.order.dto.OrderPayDTO;
@@ -24,6 +25,12 @@ public interface OrderService {
      * 下单即 PAID（无支付流水）。取消时退回积分，退款不支持（没有已收现金可退）。
      */
     OrderVO exchange(Long memberId, Long storeId, PointsExchangeDTO dto);
+
+    /**
+     * 团购套餐下单（M14 B4）：按套餐价生成一张独立订单，不走购物车、不参与券 / 积分 / 会员折扣 /
+     * 余额抵扣，明细只写一行汇总快照。取消 / 超时回补套餐库存，完成时核销审计用 #BUNDLE 幂等键。
+     */
+    OrderVO purchaseBundle(Long memberId, Long storeId, Long bundleId, BundlePurchaseDTO dto);
 
     OrderVO detailForApp(Long memberId, Long storeId, String orderNo);
 

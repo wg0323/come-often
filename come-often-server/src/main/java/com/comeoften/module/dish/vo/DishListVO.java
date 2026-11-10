@@ -1,5 +1,6 @@
 package com.comeoften.module.dish.vo;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -7,6 +8,7 @@ import lombok.Data;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -55,6 +57,26 @@ public class DishListVO implements Serializable {
 
     @Schema(description = "是否需提前预定")
     private Boolean preorder;
+
+    @Schema(description = "是否预售商品（与需提前预定不是同一功能）")
+    private Boolean presale;
+
+    @Schema(description = "预售状态：NOT_STARTED/SELLING/ENDED，非预售商品为空")
+    private String presaleStatus;
+
+    @Schema(description = "预售展示文案")
+    private String presaleText;
+
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    @Schema(description = "预售开售时间")
+    private LocalDateTime presaleStartTime;
+
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    @Schema(description = "预售结束时间")
+    private LocalDateTime presaleEndTime;
+
+    @Schema(description = "预售剩余库存，为空表示不限量")
+    private Integer presaleStock;
 
     @Schema(description = "是否今日售罄")
     private Boolean soldOut;

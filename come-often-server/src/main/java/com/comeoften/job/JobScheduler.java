@@ -99,6 +99,14 @@ public class JobScheduler {
         trigger(CouponRuleJob.JOB_NAME);
     }
 
+    /**
+     * 预售定时开售 / 结束下架，默认每分钟；只改配了预售时间窗的菜品。
+     */
+    @Scheduled(cron = "${comeoften.job.presale-shelf-cron:0 * * * * ?}")
+    public void presaleShelf() {
+        trigger(PresaleShelfJob.JOB_NAME);
+    }
+
     private void trigger(String jobName) {
         try {
             JobResult result = jobTriggerService.run(jobName);

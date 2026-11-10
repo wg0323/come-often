@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import BalanceView from '@/views/BalanceView.vue';
+import BundleView from '@/views/BundleView.vue';
 import CouponView from '@/views/CouponView.vue';
 import DashboardView from '@/views/DashboardView.vue';
 import DishView from '@/views/DishView.vue';
@@ -8,6 +9,7 @@ import MemberView from '@/views/MemberView.vue';
 import OrderView from '@/views/OrderView.vue';
 import QueueView from '@/views/QueueView.vue';
 import ReservationView from '@/views/ReservationView.vue';
+import ReviewView from '@/views/ReviewView.vue';
 import StatsView from '@/views/StatsView.vue';
 import StoreView from '@/views/StoreView.vue';
 import { clearToken, getToken } from '@/api/request';
@@ -63,6 +65,18 @@ const router = createRouter({
       name: 'balance',
       component: BalanceView,
       meta: { title: '储值管理', requiresAuth: true },
+    },
+    {
+      path: '/bundle',
+      name: 'bundle',
+      component: BundleView,
+      meta: { title: '套餐管理', requiresAuth: true },
+    },
+    {
+      path: '/review',
+      name: 'review',
+      component: ReviewView,
+      meta: { title: '评价审核', requiresAuth: true },
     },
     {
       path: '/stats',

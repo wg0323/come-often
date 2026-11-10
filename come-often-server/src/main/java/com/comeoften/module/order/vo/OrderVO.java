@@ -76,6 +76,10 @@ public class OrderVO implements Serializable {
     @Schema(description = "是否被服务端强制为 DINE_IN")
     private Boolean forcedDineIn;
 
+    @JsonSerialize(using = ToStringSerializer.class)
+    @Schema(description = "团购套餐 ID，普通订单为空")
+    private Long bundleId;
+
     @Schema(description = "取餐码；DINE_IN 单为到店核销码")
     private String pickupCode;
 

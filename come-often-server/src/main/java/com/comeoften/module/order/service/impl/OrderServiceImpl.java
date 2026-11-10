@@ -11,6 +11,10 @@ import com.comeoften.common.PageResult;
 import com.comeoften.common.StockKeys;
 import com.comeoften.common.util.QrCodeUtils;
 import com.comeoften.module.balance.service.BalanceService;
+import com.comeoften.module.bundle.dto.BundlePurchaseDTO;
+import com.comeoften.module.bundle.service.GroupBundleService;
+import com.comeoften.module.bundle.vo.BundleItemVO;
+import com.comeoften.module.bundle.vo.BundleVO;
 import com.comeoften.module.cart.entity.CartItem;
 import com.comeoften.module.cart.mapper.CartItemMapper;
 import com.comeoften.module.cart.util.CartSkuKeys;
@@ -30,6 +34,7 @@ import com.comeoften.module.dish.mapper.DishSpecOptionMapper;
 import com.comeoften.module.dish.mapper.DishStockMapper;
 import com.comeoften.module.dish.service.DishOrderService;
 import com.comeoften.module.dish.util.DishConstants;
+import com.comeoften.module.dish.util.PresaleStatusResolver;
 import com.comeoften.module.dish.vo.OrderCheckVO;
 import com.comeoften.module.order.constant.OperatorType;
 import com.comeoften.module.order.constant.OrderStatus;
@@ -45,6 +50,7 @@ import com.comeoften.module.order.mapper.OrderItemMapper;
 import com.comeoften.module.order.mapper.OrderStatusLogMapper;
 import com.comeoften.module.order.mapper.TradeOrderMapper;
 import com.comeoften.module.order.service.OrderService;
+import com.comeoften.module.order.service.OrderVerifyService;
 import com.comeoften.module.order.util.OrderAmountCalculator;
 import com.comeoften.module.order.util.PickupCodeGenerator;
 import com.comeoften.module.order.vo.OrderPreviewVO;
@@ -77,10 +83,12 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
 import org.springframework.util.StringUtils;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -132,6 +140,16 @@ public class OrderServiceImpl implements OrderService {
      */
     private static final BigDecimal MIN_ONLINE_PAY_AMOUNT = new BigDecimal("0.01");
 
+    private static final int DEFAULT_BUNDLE_QUANTITY = 1;
+
+    private static final int MAX_DISH_NAME_LENGTH = 128;
+
+    private static final int MAX_SPEC_DESC_LENGTH = 255;
+
+    private static final long DEFAULT_APP_PAGE_SIZE = 10L;
+
+    private static final long MAX_APP_PAGE_SIZE = 50L;
+
     private final TradeOrderMapper tradeOrderMapper;
 
     private final OrderItemMapper orderItemMapper;
@@ -167,6 +185,10 @@ public class OrderServiceImpl implements OrderService {
     private final PointsLevelService pointsLevelService;
 
     private final BalanceService balanceService;
+
+    private final GroupBundleService groupBundleService;
+
+    private final OrderVerifyService orderVerifyService;
 
     private final StringRedisTemplate stringRedisTemplate;
 
@@ -218,6 +240,8 @@ public class OrderServiceImpl implements OrderService {
                 throw new BizException(ErrorCode.STOCK_NOT_ENOUGH, "并发下库存不足，请调整份数后重试");
             }
         }
+        // 预售限量独立于 dish_stock：时间窗已在 DishOrderService 拦过，这里做 DB 条件扣减兜底
+        deductPresaleStock(selection.quantityByDish);
         LocalDate bizDate = LocalDate.now();
         String code = generateCode(storeId, bizDate, selection.orderType);
         TradeOrder order = new TradeOrder();
@@ -297,6 +321,10 @@ public class OrderServiceImpl implements OrderService {
         if (DishConverter.isPreorder(dish)) {
             throw new BizException(ErrorCode.PARAM_INVALID, "预定菜暂不支持积分兑换");
         }
+        if (dish.getPresaleStartTime() != null) {
+            // 预售库存扣减只在主下单链路，兑换单不能绕过限量
+            throw new BizException(ErrorCode.PARAM_INVALID, "预售菜品暂不支持积分兑换");
+        }
         BigDecimal amount = check.getTotalAmount();
         if (amount.signum() <= 0) {
             throw new BizException(ErrorCode.PARAM_INVALID, "兑换金额必须大于 0");
@@ -347,6 +375,86 @@ public class OrderServiceImpl implements OrderService {
         return toVO(order);
     }
 
+    /**
+     * 团购套餐下单。套餐是独立商品：金额只认 bundle_price × 份数，不把明细菜品拿去二次计价，
+     * 也不参与券 / 积分 / 会员折扣 / 余额抵扣。订单明细写一行汇总快照，取消时只回补套餐库存。
+     */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public OrderVO purchaseBundle(Long memberId, Long storeId, Long bundleId, BundlePurchaseDTO dto) {
+        storeService.requireOpen(storeId);
+        int quantity = dto == null || dto.getQuantity() == null
+                ? DEFAULT_BUNDLE_QUANTITY : dto.getQuantity();
+        BundleVO bundle = groupBundleService.requireAndDeduct(storeId, bundleId, quantity);
+        BigDecimal total = bundle.getBundlePrice().multiply(BigDecimal.valueOf(quantity))
+                .setScale(2, RoundingMode.HALF_UP);
+        LocalDate bizDate = LocalDate.now();
+        String code = generateCode(storeId, bizDate, OrderType.PICKUP);
+        TradeOrder order = new TradeOrder();
+        order.setOrderNo(generateOrderNo());
+        order.setStoreId(storeId);
+        order.setMemberId(memberId);
+        order.setOrderType(OrderType.PICKUP.name());
+        order.setStatus(OrderStatus.CREATED.name());
+        order.setTotalAmount(total);
+        order.setDiscountAmount(BigDecimal.ZERO.setScale(2));
+        order.setPointsAmount(BigDecimal.ZERO.setScale(2));
+        order.setMemberDiscount(BigDecimal.ZERO.setScale(2));
+        order.setBalanceAmount(BigDecimal.ZERO.setScale(2));
+        order.setDepositAmount(BigDecimal.ZERO.setScale(2));
+        order.setPayAmount(total);
+        order.setPointsUsed(0);
+        order.setBundleId(bundleId);
+        order.setPickupCode(code);
+        order.setBizDate(bizDate);
+        order.setRemark(truncate("团购套餐：" + bundle.getBundleName(), MAX_SPEC_DESC_LENGTH));
+        try {
+            tradeOrderMapper.insert(order);
+        } catch (DuplicateKeyException e) {
+            throw new BizException(ErrorCode.SYSTEM_ERROR, "取餐码冲突，请重试下单");
+        }
+        insertBundleItem(order, bundle, quantity, total);
+        writeLog(order, null, OrderStatus.CREATED, OperatorType.MEMBER, memberId, "团购套餐下单");
+        publishStatus(order, null, OrderStatus.CREATED);
+        publishTimeout(order, TimeUnit.SECONDS.toMillis(payTimeoutSeconds));
+        log.info("团购套餐订单已创建: orderNo={}, bundleId={}, quantity={}, totalAmount={}",
+                order.getOrderNo(), bundleId, quantity, total);
+        return toVO(order);
+    }
+
+    /**
+     * 套餐订单只写一行汇总明细。dish_id 用套餐第一道菜（列 NOT NULL），
+     * 菜名与规格文案是展示快照，金额以套餐价为准，绝不由明细反推。
+     */
+    private void insertBundleItem(TradeOrder order, BundleVO bundle, int quantity, BigDecimal total) {
+        List<BundleItemVO> items = bundle.getItems();
+        OrderItem item = new OrderItem();
+        item.setOrderId(order.getId());
+        item.setDishId(items.get(0).getDishId());
+        item.setDishName(truncate("团购套餐·" + bundle.getBundleName(), MAX_DISH_NAME_LENGTH));
+        item.setSpecDesc(bundleItemSummary(items));
+        item.setAddonDesc("");
+        item.setPrice(bundle.getBundlePrice());
+        item.setQuantity(quantity);
+        item.setAmount(total);
+        item.setObjectKey("");
+        orderItemMapper.insert(item);
+    }
+
+    private static String bundleItemSummary(List<BundleItemVO> items) {
+        String text = items.stream()
+                .map(row -> row.getDishName() + "×" + row.getQuantity())
+                .collect(Collectors.joining("、"));
+        return truncate(text, MAX_SPEC_DESC_LENGTH);
+    }
+
+    private static String truncate(String text, int maxLength) {
+        if (text == null) {
+            return "";
+        }
+        return text.length() <= maxLength ? text : text.substring(0, maxLength);
+    }
+
     @Override
     public OrderVO detailForApp(Long memberId, Long storeId, String orderNo) {
         TradeOrder order = requireOwned(memberId, storeId, orderNo);
@@ -383,13 +491,38 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public PageResult<OrderSummaryVO> pageForApp(Long memberId, Long storeId,
                                                  Long current, Long size, String status) {
-        IPage<TradeOrder> page = tradeOrderMapper.selectPage(new Page<>(current, size),
+        // 顾客端状态 Tab 是业务分组（待上菜 = PAID + ACCEPTED），允许逗号分隔多状态；
+        // 单状态仍走原来的 eq，后台看板的调用方式完全不变。
+        List<String> statuses = parseStatuses(status);
+        long pageNo = current == null || current < 1 ? 1L : current;
+        long pageSize = size == null || size < 1 ? DEFAULT_APP_PAGE_SIZE : Math.min(size, MAX_APP_PAGE_SIZE);
+        IPage<TradeOrder> page = tradeOrderMapper.selectPage(new Page<>(pageNo, pageSize),
                 new LambdaQueryWrapper<TradeOrder>()
                         .eq(TradeOrder::getMemberId, memberId)
                         .eq(TradeOrder::getStoreId, storeId)
-                        .eq(StringUtils.hasText(status), TradeOrder::getStatus, status)
+                        .in(!statuses.isEmpty() && statuses.size() > 1, TradeOrder::getStatus, statuses)
+                        .eq(statuses.size() == 1, TradeOrder::getStatus,
+                                statuses.isEmpty() ? null : statuses.get(0))
                         .orderByDesc(TradeOrder::getCreateTime));
         return toPageResult(page, memberId);
+    }
+
+    private static List<String> parseStatuses(String status) {
+        if (!StringUtils.hasText(status)) {
+            return Collections.emptyList();
+        }
+        List<String> result = new ArrayList<>();
+        for (String raw : status.split(",")) {
+            String value = raw.trim().toUpperCase(Locale.ROOT);
+            if (!StringUtils.hasText(value)) {
+                continue;
+            }
+            if (OrderStatus.of(value) == null) {
+                throw new BizException(ErrorCode.PARAM_INVALID, "订单状态不合法：" + value);
+            }
+            result.add(value);
+        }
+        return result;
     }
 
     @Override
@@ -442,6 +575,8 @@ public class OrderServiceImpl implements OrderService {
                 StringUtils.hasText(remark) ? remark : "状态推进");
         publishStatus(order, from, to);
         if (to == OrderStatus.COMPLETED) {
+            // 核销审计与状态推进同事务：幂等键唯一，重复扫码 / 重复推进不会落第二条
+            orderVerifyService.record(order, operatorType, operatorId);
             // 订单完成单独发一条事件：积分入账与等级升级都需要「完成」语义，
             // 用 STATUS_CHANGED 让消费者按 toStatus 过滤会把两件事混进通知链路
             publishCompleted(order);
@@ -519,6 +654,8 @@ public class OrderServiceImpl implements OrderService {
         selection.check = check;
         selection.imageMap = loadImages(cartItems);
         selection.quantityByDish = aggregate(cartItems);
+        // 预售时间窗只在下单 / 预览链路拦，购物车仍允许提前加购；库存的原子扣减在 create 事务内
+        assertPresaleWindow(dishMap, selection.quantityByDish);
         selection.containsPreorder = containsPreorder;
         selection.preorderLeadHours = leadHours;
         resolveOrderRules(selection, dto);
@@ -542,6 +679,30 @@ public class OrderServiceImpl implements OrderService {
         selection.balanceDeductAmount = resolveBalanceDeduct(memberId, dto.getUseBalance(),
                 afterDiscount.subtract(selection.pointsAmount));
         return selection;
+    }
+
+    /**
+     * 预售时间窗前置判定。与 is_preorder 的「提前 1 天预定」互不相干：只有配了 presale_start_time
+     * 的菜品才走这里；库存的原子扣减在 create 事务内用 DB 条件更新兜底。
+     */
+    private static void assertPresaleWindow(Map<Long, Dish> dishMap, Map<Long, Integer> quantityByDish) {
+        for (Map.Entry<Long, Integer> entry : quantityByDish.entrySet()) {
+            Dish dish = dishMap.get(entry.getKey());
+            if (dish == null || dish.getPresaleStartTime() == null) {
+                continue;
+            }
+            String status = PresaleStatusResolver.resolve(dish.getPresaleStartTime(),
+                    dish.getPresaleEndTime(), LocalDateTime.now());
+            if (PresaleStatusResolver.NOT_STARTED.equals(status)) {
+                throw new BizException(ErrorCode.PRESALE_NOT_STARTED);
+            }
+            if (PresaleStatusResolver.ENDED.equals(status)) {
+                throw new BizException(ErrorCode.PRESALE_ENDED);
+            }
+            if (dish.getPresaleStock() != null && dish.getPresaleStock() < entry.getValue()) {
+                throw new BizException(ErrorCode.PRESALE_STOCK_NOT_ENOUGH);
+            }
+        }
     }
 
     /**
@@ -862,8 +1023,13 @@ public class OrderServiceImpl implements OrderService {
             return false;
         }
         writeLog(order, from, OrderStatus.CANCELLED, operatorType, operatorId, remark);
-        List<Restore> restores = restoreDbStock(order);
-        scheduleRedisRestore(restores);
+        if (order.getBundleId() != null) {
+            // 套餐订单没扣菜品库存，汇总明细的 dish_id 不能拿去回补 dish_stock；只回补套餐余量
+            groupBundleService.restoreStock(order.getBundleId(), bundleQuantityOf(order));
+        } else {
+            List<Restore> restores = restoreDbStock(order);
+            scheduleRedisRestore(restores);
+        }
         // 取消即退回券：只退回被本订单锁定的那张，已核销的券不会被误退
         userCouponService.releaseForOrder(order.getCouponId(), order.getId());
         // 积分抵现同样要退回：只回滚仍处于冻结状态的流水，已转实扣的订单不可取消
@@ -916,12 +1082,44 @@ public class OrderServiceImpl implements OrderService {
         LocalDate date = order.getBizDate() == null ? LocalDate.now() : order.getBizDate();
         List<Restore> result = new ArrayList<>();
         for (Map.Entry<Long, Integer> entry : quantityByDish.entrySet()) {
+            Dish dish = dishMapper.selectById(entry.getKey());
+            if (dish != null && dish.getPresaleStartTime() != null && dish.getPresaleStock() != null) {
+                // 预售限量与当日备货是两套独立库存，取消时两边都要回补；
+                // 回补判据与扣减一致，避免非预售菜被凭空加量
+                dishMapper.restorePresaleStock(entry.getKey(), entry.getValue());
+            }
             if (dishStockMapper.restore(order.getStoreId(), entry.getKey(), date, entry.getValue()) > 0) {
                 result.add(new Restore(StockKeys.dish(order.getStoreId(), entry.getKey(), date),
                         order.getStoreId(), entry.getKey(), date, entry.getValue()));
             }
         }
         return result;
+    }
+
+    /**
+     * 预售库存 CAS 扣减。presale_stock 为空表示不限量，不进入这条链路。
+     */
+    private void deductPresaleStock(Map<Long, Integer> quantityByDish) {
+        for (Map.Entry<Long, Integer> entry : quantityByDish.entrySet()) {
+            Dish dish = dishMapper.selectById(entry.getKey());
+            if (dish == null || dish.getPresaleStartTime() == null || dish.getPresaleStock() == null) {
+                continue;
+            }
+            if (dishMapper.deductPresaleStock(entry.getKey(), entry.getValue()) == 0) {
+                throw new BizException(ErrorCode.PRESALE_STOCK_NOT_ENOUGH);
+            }
+        }
+    }
+
+    /**
+     * 套餐订单只有一行汇总明细，quantity 就是购买份数；明细缺失时按 1 份兜底。
+     */
+    private int bundleQuantityOf(TradeOrder order) {
+        List<OrderItem> items = loadItems(order.getId());
+        if (items.isEmpty() || items.get(0).getQuantity() == null) {
+            return DEFAULT_BUNDLE_QUANTITY;
+        }
+        return items.get(0).getQuantity();
     }
 
     /**

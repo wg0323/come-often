@@ -1,5 +1,6 @@
 package com.comeoften.module.dish.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
@@ -11,6 +12,7 @@ import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import java.io.Serializable;
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -64,6 +66,19 @@ public class DishSaveDTO implements Serializable {
 
     @Schema(description = "是否为需提前预定的菜品", example = "false")
     private Boolean preorder;
+
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    @Schema(description = "预售开售时间；为空表示非预售商品，与 preorder 不是同一功能",
+            example = "2026-11-12 10:00:00")
+    private LocalDateTime presaleStartTime;
+
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    @Schema(description = "预售结束时间；为空表示开售后不限时", example = "2026-11-20 22:00:00")
+    private LocalDateTime presaleEndTime;
+
+    @Min(value = 0, message = "预售库存不能为负数")
+    @Schema(description = "预售剩余库存；为空表示不限量", example = "30")
+    private Integer presaleStock;
 
     @Min(value = 0, message = "状态只允许 0 或 1")
     @Max(value = 1, message = "状态只允许 0 或 1")

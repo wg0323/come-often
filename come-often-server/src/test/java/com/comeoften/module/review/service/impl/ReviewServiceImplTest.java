@@ -15,6 +15,7 @@ import com.comeoften.module.order.mapper.OrderItemMapper;
 import com.comeoften.module.order.mapper.TradeOrderMapper;
 import com.comeoften.module.points.constant.PointsBizType;
 import com.comeoften.module.points.service.PointsAccountService;
+import com.comeoften.module.review.constant.ReviewStatus;
 import com.comeoften.module.review.dto.ReviewCreateDTO;
 import com.comeoften.module.review.entity.Review;
 import com.comeoften.module.review.entity.ReviewImage;
@@ -39,6 +40,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -107,7 +109,8 @@ class ReviewServiceImplTest {
         dto.setOrderNo(ORDER_NO);
         dto.setRating(5);
         dto.setContent("分量足");
-        when(tradeOrderMapper.selectOne(any())).thenReturn(order);
+        // 审核分支不走订单详情查询，lenient 避免严格模式下把公共 stub 判成多余
+        lenient().when(tradeOrderMapper.selectOne(any())).thenReturn(order);
     }
 
     @Test
@@ -234,7 +237,64 @@ class ReviewServiceImplTest {
         assertThat(vo.getImageObjectKeys()).containsExactly("review/a.webp", "review/b.webp");
     }
 
-    private static OrderItem item(Long dishId) {
+    @Test
+  void should_reject_audit_when_target_status_invalid() {
+    BizException ex = catchThrowableOfType(
+        () -> reviewService.audit(STORE_ID, 555L, "UNKNOWN", 9L, ""), BizException.class);
+
+    assertThat(ex.getErrorCode()).isEqualTo(ErrorCode.REVIEW_STATUS_INVALID);
+    verify(reviewMapper, never()).audit(any(), any(), anyString(), any());
+  }
+
+  @Test
+  void should_reject_audit_when_review_not_found() {
+    when(reviewMapper.selectById(555L)).thenReturn(null);
+
+    BizException ex = catchThrowableOfType(
+        () -> reviewService.audit(STORE_ID, 555L, "APPROVED", 9L, ""), BizException.class);
+
+    assertThat(ex.getErrorCode()).isEqualTo(ErrorCode.REVIEW_NOT_FOUND);
+  }
+
+  @Test
+  void should_reject_audit_when_status_unchanged() {
+    when(reviewMapper.selectById(555L)).thenReturn(review(ReviewStatus.APPROVED));
+
+    BizException ex = catchThrowableOfType(
+        () -> reviewService.audit(STORE_ID, 555L, "APPROVED", 9L, ""), BizException.class);
+
+    assertThat(ex.getErrorCode()).isEqualTo(ErrorCode.REVIEW_ALREADY_AUDITED);
+    verify(reviewMapper, never()).audit(any(), any(), anyString(), any());
+  }
+
+  @Test
+  void should_audit_review_when_status_changes() {
+    when(reviewMapper.selectById(555L)).thenReturn(review(ReviewStatus.PENDING));
+    when(reviewMapper.audit(any(), any(), anyString(), any())).thenReturn(1);
+    when(reviewImageMapper.selectList(any())).thenReturn(Collections.emptyList());
+    when(memberMapper.selectBatchIds(any())).thenReturn(Collections.emptyList());
+    when(tradeOrderMapper.selectBatchIds(any())).thenReturn(Collections.emptyList());
+
+    ReviewVO vo = reviewService.audit(STORE_ID, 555L, "APPROVED", 9L, "");
+
+    assertThat(vo.getStatus()).isEqualTo("APPROVED");
+    assertThat(vo.getStatusText()).isEqualTo("已通过");
+    assertThat(vo.getAuditUserId()).isEqualTo(9L);
+  }
+
+  private static Review review(ReviewStatus status) {
+    Review review = new Review();
+    review.setId(555L);
+    review.setStoreId(STORE_ID);
+    review.setMemberId(MEMBER_ID);
+    review.setOrderId(ORDER_ID);
+    review.setRating(5);
+    review.setContent("分量足");
+    review.setStatus(status.name());
+    return review;
+  }
+
+  private static OrderItem item(Long dishId) {
         OrderItem item = new OrderItem();
         item.setOrderId(ORDER_ID);
         item.setDishId(dishId);

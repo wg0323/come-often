@@ -54,6 +54,7 @@ public final class OrderConverter {
         vo.setCreateTime(order.getCreateTime());
         vo.setDepositNote(containsPreorder
                 ? "定金已包含在整单金额内，不退；到店付尾款，不可自提外带" : "");
+        vo.setBundleId(order.getBundleId());
         // 评价入口默认关闭，由 OrderServiceImpl 在顾客端按「已完成且未评价」回填
         vo.setCanReview(Boolean.FALSE);
         vo.setReviewed(Boolean.FALSE);

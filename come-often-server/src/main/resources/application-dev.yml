@@ -72,6 +72,8 @@ comeoften:
     order-auto-complete-cron: ${JOB_ORDER_AUTO_COMPLETE_CRON:0 5 0 * * ?}
     # 券过期提醒小时级兜底（延迟消息上限 24.8 天）
     coupon-expire-cron: ${JOB_COUPON_EXPIRE_CRON:0 0 * * * ?}
+    # 预售定时开售 / 结束下架，每分钟扫一次带预售时间窗的菜品
+    presale-shelf-cron: ${JOB_PRESALE_SHELF_CRON:0 * * * * ?}
   notify:
     # log：只落 message_record + 日志（默认）；wx-subscribe：订阅消息骨架，当前同样降级落库
     channel: ${NOTIFY_CHANNEL:log}

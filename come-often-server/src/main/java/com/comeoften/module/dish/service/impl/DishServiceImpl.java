@@ -137,6 +137,14 @@ public class DishServiceImpl implements DishService {
         dish.setMemberOnly(dto.getMemberOnly() == null
                 ? (current == null ? DishConstants.NO : current.getMemberOnly())
                 : (dto.getMemberOnly() ? DishConstants.YES : DishConstants.NO));
+        // 预售三列与 is_preorder 无关；编辑时未提交保持原值，避免静默清掉开售时间
+        dish.setPresaleStartTime(dto.getPresaleStartTime() == null
+                ? (current == null ? null : current.getPresaleStartTime()) : dto.getPresaleStartTime());
+        dish.setPresaleEndTime(dto.getPresaleEndTime() == null
+                ? (current == null ? null : current.getPresaleEndTime()) : dto.getPresaleEndTime());
+        dish.setPresaleStock(dto.getPresaleStock() == null
+                ? (current == null ? null : current.getPresaleStock()) : dto.getPresaleStock());
+        assertPresaleConfig(dish);
         dish.setSubtitle(valueOrFallback(dto.getSubtitle(), current == null ? "" : current.getSubtitle()));
         dish.setDescription(valueOrFallback(dto.getDescription(), current == null ? "" : current.getDescription()));
         dish.setAllergen(valueOrFallback(dto.getAllergen(), current == null ? "" : current.getAllergen()));
@@ -183,6 +191,29 @@ public class DishServiceImpl implements DishService {
         dishTagRelMapper.delete(new LambdaQueryWrapper<DishTagRel>().eq(DishTagRel::getDishId, dishId));
         dishStockMapper.delete(new LambdaQueryWrapper<DishStock>().eq(DishStock::getDishId, dishId));
         dishMapper.deleteById(dishId);
+    }
+
+    /**
+     * 预售配置合法性。开售时间是「是否预售商品」的唯一判据，只有结束时间属于配置残缺。
+     */
+    private void assertPresaleConfig(Dish dish) {
+        if (dish.getPresaleStartTime() == null) {
+            if (dish.getPresaleEndTime() != null) {
+                throw new BizException(ErrorCode.PRESALE_TIME_INVALID, "只配结束时间不能开预售，请先设置开售时间");
+            }
+            if (dish.getPresaleStock() != null) {
+                // 「只有限量、没有开售时间」的菜不是预售商品，取消回补会凭空刷大配额
+                throw new BizException(ErrorCode.PRESALE_TIME_INVALID, "预售库存必须配套售开售时间");
+            }
+            return;
+        }
+        if (dish.getPresaleEndTime() != null
+                && !dish.getPresaleEndTime().isAfter(dish.getPresaleStartTime())) {
+            throw new BizException(ErrorCode.PRESALE_TIME_INVALID, "预售结束时间必须晚于开售时间");
+        }
+        if (dish.getPresaleStock() != null && dish.getPresaleStock() < 0) {
+            throw new BizException(ErrorCode.PRESALE_TIME_INVALID, "预售库存不能为负数");
+        }
     }
 
     @Override

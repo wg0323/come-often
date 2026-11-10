@@ -10,7 +10,8 @@
     "pages/dish-review/dish-review",
     "pages/order-confirm/order-confirm",
     "pages/coupon-center/coupon-center",
-    "pages/queue/queue"
+    "pages/queue/queue",
+    "pages/bundle-list/bundle-list"
   ],
   "subPackages": [
     {
@@ -31,7 +32,8 @@
         "pages/balance/balance",
         "pages/sign-in/sign-in",
         "pages/member-level/member-level",
-        "pages/reservation-list/reservation-list"
+        "pages/reservation-list/reservation-list",
+        "pages/verify-record/verify-record"
       ]
     },
     {

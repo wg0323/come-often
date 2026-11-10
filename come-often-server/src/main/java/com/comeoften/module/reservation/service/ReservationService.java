@@ -7,6 +7,7 @@ import com.comeoften.module.reservation.dto.ReservationRescheduleDTO;
 import com.comeoften.module.reservation.vo.ReservationCalendarDayVO;
 import com.comeoften.module.reservation.vo.ReservationCodeVO;
 import com.comeoften.module.reservation.vo.ReservationMetaVO;
+import com.comeoften.module.reservation.vo.ReservationRoomVO;
 import com.comeoften.module.reservation.vo.ReservationSlotVO;
 import com.comeoften.module.reservation.vo.ReservationTableBoardVO;
 import com.comeoften.module.reservation.vo.ReservationVO;
@@ -33,7 +34,13 @@ public interface ReservationService {
     List<ReservationSlotVO> slots(Long storeId, LocalDate reserveDate, boolean includePast);
 
     /**
-     * 创建预约。时段已满抛 30041，时段未开放抛 30042，人数与桌型不匹配抛 30044。
+     * 指定日期时段仍可锁定的包间。只返回标了 room_type 的桌台，已占用的自动排除。
+     */
+    List<ReservationRoomVO> rooms(Long storeId, LocalDate reserveDate, String timeSlot, Integer peopleCount);
+
+    /**
+     * 创建预约。时段已满抛 30041，时段未开放抛 30042，人数与桌型不匹配抛 30044；
+     * 传 tableId 时锁具体包间，包间类型不合法抛 30098。
      */
     ReservationVO create(Long memberId, Long storeId, ReservationCreateDTO dto);
 

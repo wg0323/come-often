@@ -1,0 +1,56 @@
+.page {
+  min-height: 100vh;
+  padding: var(--co-space-page);
+  box-sizing: border-box;
+}
+
+.record-card {
+  margin-bottom: var(--co-space-gap);
+  padding: var(--co-space-card);
+  border-radius: var(--co-radius-card);
+  background-color: var(--co-card);
+}
+
+.head-row,
+.foot-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.order-no {
+  color: var(--co-text-primary);
+  font-size: 26rpx;
+  font-variant-numeric: tabular-nums;
+}
+
+.channel {
+  color: var(--co-cinnabar);
+  font-size: 24rpx;
+}
+
+.code {
+  display: block;
+  margin-top: 16rpx;
+  color: var(--co-gold);
+  font-size: 28rpx;
+  font-variant-numeric: tabular-nums;
+}
+
+.foot-row {
+  margin-top: 16rpx;
+}
+
+.time,
+.remark {
+  color: var(--co-text-tertiary);
+  font-size: 22rpx;
+}
+
+.empty,
+.tip {
+  padding: 80rpx 0;
+  color: var(--co-text-tertiary);
+  font-size: 26rpx;
+  text-align: center;
+}

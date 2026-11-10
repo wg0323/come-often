@@ -27,6 +27,18 @@ const MENU_ITEMS = [
     url: '/packageMember/pages/coupon-wallet/coupon-wallet',
   },
   {
+    key: 'bundle',
+    label: '团购套餐',
+    desc: '在售套餐与下单',
+    url: '/pages/bundle-list/bundle-list',
+  },
+  {
+    key: 'verify',
+    label: '核销记录',
+    desc: '取餐码与套餐核销流水',
+    url: '/packageMember/pages/verify-record/verify-record',
+  },
+  {
     key: 'points',
     label: '我的积分',
     desc: '余额、签到与流水',

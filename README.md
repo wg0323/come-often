@@ -16,9 +16,9 @@
 
 ## 项目简介
 
-按 [docs/development-plan.md](docs/development-plan.md) 分阶段实施，单次交付、每阶段独立验收。M0~M11 全部完成，M12 登录体系、M13 首页改版与排队叫号已交付：骨架与环境、三端认证与权限、门店与菜品、购物车与自提订单（含 MQ 可靠性三件套）、支付与退款（Mock 网关与退款审核）、优惠券（动态券码与核销服务）、积分与等级（积分抵现与年度过期）、预约订座（时段容量与超时释放）、评价/搜索/首页运营、商家端小程序（统一扫码与订阅提醒降级）、数据看板与报表（Excel 导出）、联调与交付（`@JobLock` 兜底任务、死信告警可查、三条端到端脚本、四份交付文档）。M13 未完项（桌码服务端绑定、PC 后台排队页、实时叫号推送等）按 [docs/milestone-m14.md](docs/milestone-m14.md) 分六个批次补齐；B0 已收口 M13 交付欠账，B1 已落地 49 张表、30063~30099 业务码段与金额口径底座，B2 已接通叫号通知与顾客端 10 秒轮询、PC 后台排队页、桌码服务端绑定、营业状态前置校验、门店导航与后端 ZXing 二维码出图，B3 已落地储值充值与余额组合支付、会员价与等级折扣、券发放规则（新客 / 生日 / 复购 / 沉睡唤醒）与沉睡标签、积分兑换菜品。
+按 [docs/development-plan.md](docs/development-plan.md) 分阶段实施，单次交付、每阶段独立验收。M0~M11 全部完成，M12 登录体系、M13 首页改版与排队叫号已交付：骨架与环境、三端认证与权限、门店与菜品、购物车与自提订单（含 MQ 可靠性三件套）、支付与退款（Mock 网关与退款审核）、优惠券（动态券码与核销服务）、积分与等级（积分抵现与年度过期）、预约订座（时段容量与超时释放）、评价/搜索/首页运营、商家端小程序（统一扫码与订阅提醒降级）、数据看板与报表（Excel 导出）、联调与交付（`@JobLock` 兜底任务、死信告警可查、三条端到端脚本、四份交付文档）。M13 未完项（桌码服务端绑定、PC 后台排队页、实时叫号推送等）按 [docs/milestone-m14.md](docs/milestone-m14.md) 分六个批次补齐；B0 已收口 M13 交付欠账，B1 已落地 49 张表、30063~30099 业务码段与金额口径底座，B2 已接通叫号通知与顾客端 10 秒轮询、PC 后台排队页、桌码服务端绑定、营业状态前置校验、门店导航与后端 ZXing 二维码出图，B3 已落地储值充值与余额组合支付、会员价与等级折扣、券发放规则（新客 / 生日 / 复购 / 沉睡唤醒）与沉睡标签、积分兑换菜品，B4 已落地团购套餐、预售定时开售、指定包间、订单核销记录与评价审核。
 
-十四份验收脚本 `deploy/verify-m1.ps1` ~ `verify-m11.ps1`、`deploy/verify-m13.ps1`、`deploy/verify-m14-b2.ps1`、`deploy/verify-m14-b3.ps1` 串行执行（M11 一次 108 条断言、0 失败），单测 209 个用例全绿。与开发计划的逐条差异见 [deploy/init.md](deploy/init.md)。
+十五份验收脚本 `deploy/verify-m1.ps1` ~ `verify-m11.ps1`、`deploy/verify-m13.ps1`、`deploy/verify-m14-b2.ps1` ~ `verify-m14-b4.ps1` 串行执行（B4 一次 109 条断言、0 失败），单测 227 个用例全绿。与开发计划的逐条差异见 [deploy/init.md](deploy/init.md)。
 
 ### 核心功能
 
@@ -57,7 +57,7 @@
 - [x] PC 后台经营看板：今日净营收 / 订单数 / 客单价、实时预约看板、今日热销 Top 5（M10）
 - [x] 数据报表：营收与订单趋势（按日 / 周 / 月）、热销排行、券 ROI、复购率与次日留存、高价值用户（M10）
 - [x] 四类报表 Excel 导出（EasyExcel 4.0.3，行数上限 300，超限返回 30056）（M10）
-- [x] `@JobLock` 注解 + AOP 切面接管 8 个兜底任务，抢不到锁直接跳过（M11；M14 B2 新增排队过号兜底）
+- [x] `@JobLock` 注解 + AOP 切面接管 11 个兜底任务，抢不到锁直接跳过（M11 起 7 个；M14 B2 过号、B3 沉睡打标 / 券规则、B4 预售上下架）
 - [x] 补齐库存键按 DB 重建（每日 00:10）、订单自动完成、券过期小时级兜底（M11）
 - [x] 通知与告警收口到 `NotifySender` 接口，死信与投递失败告警可经接口分页查询（M11）
 - [x] 三条端到端脚本、RabbitMQ 停机恢复不丢消息、重投不重复发积分（M11）
@@ -69,6 +69,11 @@
 - [x] 会员价菜品与等级折扣：会员价替换计价基数，折扣独立落 `trade_order.member_discount`，与不可叠加券同单时「券优先」（M14 B3）
 - [x] 券发放规则（新客 / 生日 / 复购 / 沉睡唤醒）与 `user_coupon.grant_biz_id` 幂等键，沉睡标签每日刷新并支持后台按标签筛选（M14 B3）
 - [x] 积分兑换菜品：整单用积分结算、下单即已支付，取消走 `#EXCHANGE_ROLLBACK` 退回积分（M14 B3）
+- [x] 团购套餐：`group_bundle` + 明细独立商品，小程序展示 / 下单 / 商家扫码核销，PC 后台套餐管理；M13 三张团餐券保留为营销券（M14 B4）
+- [x] 预售定时开售：开售 / 结束时间、独立预售库存、未开售 30081 / 已结束 30082 拦截、`presale-shelf` 每分钟自动上下架；与「提前 1 天预定的预定菜」互不相干（M14 B4）
+- [x] 指定包间：`store_table.room_type` 三值，预约创建即锁 `reservation.table_id`，PC / 小程序可选具体包间（M14 B4）
+- [x] 订单核销记录：`order_verify_record` 落核销人、渠道、码串、时间与 `#PICKUP` / `#BUNDLE` 幂等键，顾客端核销记录页；订单列表补四组状态 Tab 与触底分页（M14 B4）
+- [x] 评价审核：`review.status` 三态 + PC 后台审核页，评分聚合只统计通过评价；先发后审默认通过，被拒绝的评价仍占「一单一评」（M14 B4）
 
 ## 技术栈
 
@@ -101,7 +106,7 @@ d:\MyProducts\come-often\
 │   │   ├── seed-m1.sql       # M1 账号、角色、菜单、权限点种子数据
 │   │   ├── seed-m2.sql       # M2 分类、菜品、图片、库存、运营位、桌台种子数据
 │   │   ├── migration-m13.sql # M13 增量迁移（排队号表 + 团餐券种子）
-│   │   └── migration-m14.sql # M14 B1 增量迁移（6 张新表 + 加列 + 菜单权限点）
+│   │   └── migration-m14.sql # M14 增量迁移（B1 的 6 张新表 + 加列 + 菜单权限点，末尾追加 B4 的 trade_order.bundle_id）
 │   └── 菜品/                 # 菜品主数据 Excel 与图片素材
 ├── come-often-server/        # Spring Boot 后端（单 Maven 模块）
 │   └── src/
@@ -110,9 +115,9 @@ d:\MyProducts\come-often\
 │       │   ├── config/       # MyBatis-Plus / Redis / RabbitMQ / MinIO / 通知通道 / Knife4j / 拦截器注册
 │       │   ├── integration/  # 支付网关、微信 code2session、文件存储、通知通道（LOG + 订阅消息骨架）
 │       │   ├── mq/           # 拓扑常量、生产者、发布确认、监听器、本地消息表、死信与告警
-│       │   ├── job/          # 8 个兜底任务（MQ 重发 / 积分过期 / 预约未到店 / 时段滚动生成 / 库存重建 / 订单自动完成 / 券过期兜底 / 排队过号）+ cron 接线 + 统一触发入口
+│       │   ├── job/          # 11 个兜底任务（MQ 重发 / 积分过期 / 预约未到店 / 时段滚动生成 / 库存重建 / 订单自动完成 / 券过期兜底 / 排队过号 / 沉睡打标 / 券发放规则 / 预售上下架）+ cron 接线 + 统一触发入口
 │       │   ├── security/     # 三端 JWT、认证/权限拦截器、登录上下文
-│       │   ├── module/       # auth / system / store / dish / home / cart / order / payment / coupon / points / reservation / review / stats / merchant / ops，域内按端拆 Controller
+│       │   ├── module/       # auth / system / store / dish / home / cart / order / payment / coupon / points / reservation / review / stats / merchant / ops / balance / member / queue / bundle，域内按端拆 Controller
 │       │   └── service/      # 跨域公共服务（库存等）
 │       ├── main/resources/   # application*.yml、logback-spring.xml、lua/
 │       └── test/             # 库存并发集成测试，状态机/金额/取餐码/SKU/券码/积分换算与等级判定纯逻辑测试
@@ -352,13 +357,25 @@ powershell -ExecutionPolicy Bypass -File .\deploy\verify-m14-b3.ps1
 
 回归：本批改动后 `verify-m3 / m5 / m6 / m7 / m10` 全部重新跑过。其中 `verify-m3 / m6 / m7 / m10` 的会员登录补了每轮唯一的 `phoneCode`（M12 按手机号唯一，缺省会落到同一老会员，等级折扣与签到状态会污染断言），`verify-m6` 的实付断言改为「总额 − 积分 − 会员折扣」，`verify-m10` 的「有退款时净额严格小于毛额」改为仅在当天确有退款时断言。
 
+### M14 B4 商品交易与内容验收
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\deploy\verify-m14-b4.ps1
+# 8080 被日常实例占用时同样支持 -Base
+powershell -ExecutionPolicy Bypass -File .\deploy\verify-m14-b4.ps1 -Base 'http://127.0.0.1:18081'
+```
+
+脚本用两个不同 `phoneCode` 的全新会员，验八组：套餐后台 CRUD / 上下架 / 售罄（30077 / 30078 / 30079 / 30080）；套餐下单落 `trade_order.bundle_id` 与套餐价、取消回补库存、支付 → 后台推进 → 商家扫码完成写一条 `#BUNDLE` 核销记录；顾客端核销记录分页 / 详情 / 越权 30090；订单四组状态 Tab 与分页；评价新建 `APPROVED` → 拒绝后评分聚合减 1 且 `reviewed` 仍为真、30085 / 30086 / 30087；预售 30081 / 30082、库存扣减与取消回补、`presale-shelf` 自动上下架且重跑 `count=0`；可选包间列表 / 创建锁 `table_id` / 冲突 30041 / 类型非法 30098 / 锁包间拒绝改期；契约（`/v3/api-docs` 14 个新路径）、任务清单 11 项、后台菜单 `/bundle` 与 `/review`、两库 `bundle_id` 列与三端源码接线。全部通过输出 `M14 B4 VERIFY PASSED`，退出码 0（109 条断言、0 失败）。
+
+回归：本批改动与独立审查修复后 `verify-m3 / m8 / m7 / m9 / m13 / m14-b2 / m14-b3` 全部重新跑过。其中 `verify-m8` 补了每轮唯一的 `phoneCode`，并把评分重算与分页 total 的 SQL 补上 `AND status='APPROVED'`（B4 起评分聚合只统计通过评价）；这是脚本跟随契约变化，不是产品逻辑问题。
+
 ### 交付文档
 
 | 文档 | 内容 |
 | --- | --- |
 | [README.md](README.md) | 项目全貌、验收方式、配置项、常见问题 |
 | [docs/deployment.md](docs/deployment.md) | 部署说明：中间件准备、构建启动、配置与凭据、日常运维、升级回滚、故障排查 |
-| [docs/api-list.md](docs/api-list.md) | 接口清单：`/v3/api-docs` 159 个路径 / 177 个操作按端与分组列出，附权限点对照与业务码分段（M13 新增 10 个、M14 B2 新增 2 个、M14 B3 新增 10 个见文末；M14 B1 只扩错误码段，未新增接口） |
+| [docs/api-list.md](docs/api-list.md) | 接口清单：`/v3/api-docs` 173 个路径 / 191 个操作按端与分组列出，附权限点对照与业务码分段（M13 新增 10 个、M14 B2 新增 2 个、B3 新增 10 个、B4 新增 14 个见文末；M14 B1 只扩错误码段，未新增接口） |
 | [docs/mock-replacement.md](docs/mock-replacement.md) | Mock 能力替换清单：支付网关、微信登录、订阅消息、短信、上传，逐项写替换点与要改的配置 |
 | [docs/milestone-m14.md](docs/milestone-m14.md) | M14 里程碑：2.md 未实现项与 M13 交付欠账，六批次范围、DDL 清单、验收口径与状态跟踪 |
 
@@ -421,6 +438,7 @@ Vite dev server 在 `http://localhost:5173`，`/api` 代理到后端 8080。
 | `comeoften.job.stock-rebuild-cron` | 三类库存键按 DB 重建的 cron | `0 10 0 * * ?` |
 | `comeoften.job.order-auto-complete-cron` | 订单自动完成任务的 cron | `0 5 0 * * ?` |
 | `comeoften.job.coupon-expire-cron` | 券过期提醒小时级兜底的 cron | `0 0 * * * ?` |
+| `comeoften.job.presale-shelf-cron` | 预售到点自动上架 / 结束自动下架的 cron；只处理配了预售时间窗的菜品（M14 B4） | `0 * * * * ?` |
 | `comeoften.coupon.expire-fallback-batch-size` | 券过期兜底的单批条数 | `200` |
 | `comeoften.notify.channel` | 通知通道：`log` 落库 + 日志；`wx-subscribe` 为订阅消息骨架（同样降级落库）；`NOTIFY_CHANNEL` 覆盖 | `log` |
 | `comeoften.notify.wx-subscribe-template-id` | 订阅消息模板 ID，只影响日志里的 `templateConfigured` | 空 |
@@ -590,7 +608,7 @@ M11 没有新增业务分组，只在既有面板上加两个运维入口，复�
 
 | 端 | 接口 | 说明 |
 | --- | --- | --- |
-| 兜底任务 | `GET /api/admin/job` | 返回 7 个任务名：`mq-retry` / `points-expire` / `reservation-no-show` / `reservation-slot-generate` / `stock-rebuild` / `order-auto-complete` / `coupon-expire-fallback` |
+| 兜底任务 | `GET /api/admin/job` | M11 时返回 7 个任务名：`mq-retry` / `points-expire` / `reservation-no-show` / `reservation-slot-generate` / `stock-rebuild` / `order-auto-complete` / `coupon-expire-fallback`；M14 后追加 `queue-expire` / `member-tag` / `coupon-rule` / `presale-shelf`，共 11 个 |
 | 兜底任务 | `POST /api/admin/job/{jobName}/run` | 手动补跑一次，返回 `{jobName, executed, count, detail}`；`executed=false` 表示锁被其他实例持有、本次跳过；任务名不存在返回 10001 |
 | 告警查询 | `GET /api/admin/mq/message/alarm` | 只查 `message_record` 的 `MQ_ALARM`（死信与重发耗尽都落这个类型）；刻意不支持按任意类型查，避免门店级权限读到别店业务通知 |
 

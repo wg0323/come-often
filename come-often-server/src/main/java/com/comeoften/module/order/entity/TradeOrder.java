@@ -36,6 +36,8 @@ public class TradeOrder implements Serializable {
     private Integer pointsUsed;
     private Long couponId;
     private Long tableId;
+    /** 团购套餐 ID，普通订单为空；取消回补套餐库存与 #BUNDLE 核销幂等键都靠它识别。 */
+    private Long bundleId;
     private String pickupCode;
     private LocalDate bizDate;
     private LocalDateTime pickupTime;

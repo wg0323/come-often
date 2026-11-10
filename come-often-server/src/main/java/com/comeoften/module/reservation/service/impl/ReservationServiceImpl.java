@@ -12,6 +12,7 @@ import com.comeoften.config.ReservationProperties;
 import com.comeoften.module.auth.entity.Member;
 import com.comeoften.module.auth.mapper.MemberMapper;
 import com.comeoften.module.reservation.constant.ReservationConstants;
+import com.comeoften.module.reservation.constant.ReservationRoomType;
 import com.comeoften.module.reservation.constant.ReservationStatus;
 import com.comeoften.module.reservation.constant.ReservationStatusTransition;
 import com.comeoften.module.reservation.constant.ReservationTableType;
@@ -31,6 +32,7 @@ import com.comeoften.module.reservation.util.ReservationNoGenerator;
 import com.comeoften.module.reservation.vo.ReservationCalendarDayVO;
 import com.comeoften.module.reservation.vo.ReservationCodeVO;
 import com.comeoften.module.reservation.vo.ReservationMetaVO;
+import com.comeoften.module.reservation.vo.ReservationRoomVO;
 import com.comeoften.module.reservation.vo.ReservationSlotVO;
 import com.comeoften.module.reservation.vo.ReservationTableBoardVO;
 import com.comeoften.module.reservation.vo.ReservationTableTypeOptionVO;
@@ -59,6 +61,7 @@ import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -96,6 +99,10 @@ public class ReservationServiceImpl implements ReservationService {
     private static final String KIND_REMIND = "remind";
 
     private static final String TAB_ACTIVE = "active";
+
+    /** 只有包间能被「指定」；HALL 仍是普通大厅桌台，不出现在可选包间里。 */
+    private static final List<String> BOOKABLE_ROOM_TYPES = Arrays.asList(
+            ReservationRoomType.PRIVATE_SMALL.name(), ReservationRoomType.PRIVATE_LARGE.name());
 
     private static final String TAB_FINISHED = "finished";
 
@@ -174,9 +181,34 @@ public class ReservationServiceImpl implements ReservationService {
     }
 
     @Override
+    public List<ReservationRoomVO> rooms(Long storeId, LocalDate reserveDate,
+                                          String timeSlot, Integer peopleCount) {
+        LocalDate date = reserveDate == null ? LocalDate.now() : reserveDate;
+        requireBookableDate(date);
+        if (!reservationProperties.getTimeSlots().contains(timeSlot)) {
+            throw new BizException(ErrorCode.RESERVATION_SLOT_NOT_FOUND);
+        }
+        List<Long> occupied = reservationMapper.selectOccupiedTableIds(storeId, date, timeSlot);
+        Set<Long> occupiedIds = occupied == null ? Collections.emptySet() : new HashSet<>(occupied);
+        return storeTableMapper.selectList(new LambdaQueryWrapper<StoreTable>()
+                        .eq(StoreTable::getStoreId, storeId)
+                        .in(StoreTable::getRoomType, BOOKABLE_ROOM_TYPES)
+                        .isNotNull(StoreTable::getCapacity)
+                        // 占用中（1）的桌台不参与可选列表，与创建时的校验口径一致
+                        .ne(StoreTable::getStatus, 1)
+                        .orderByAsc(StoreTable::getTableNo))
+                .stream()
+                .filter(table -> !occupiedIds.contains(table.getId()))
+                .filter(table -> peopleCount == null || table.getCapacity() >= peopleCount)
+                .map(ReservationConverter::toRoomVO)
+                .collect(Collectors.toList());
+    }
+
+    @Override
     @Transactional(rollbackFor = Exception.class)
     public ReservationVO create(Long memberId, Long storeId, ReservationCreateDTO dto) {
         validateBookable(dto.getReserveDate(), dto.getTimeSlot(), dto.getTableType(), dto.getPeopleCount());
+        Long tableId = resolveRoomTable(storeId, dto);
         LocalDateTime reserveAt = LocalDateTime.of(dto.getReserveDate(),
                 LocalTime.parse(dto.getTimeSlot(), TIME_FORMATTER));
         ReservationSlot slot = reservationSlotService.requireSlot(storeId, dto.getReserveDate(),
@@ -192,6 +224,8 @@ public class ReservationServiceImpl implements ReservationService {
         entity.setTimeSlot(dto.getTimeSlot());
         entity.setTableType(dto.getTableType());
         entity.setPeopleCount(dto.getPeopleCount());
+        // M14 B4：指定包间时创建即锁具体桌台；签到沿用 IFNULL(#{tableId}, table_id) 不会覆盖
+        entity.setTableId(tableId);
         entity.setContactName(dto.getContactName().trim());
         entity.setContactPhone(dto.getContactPhone().trim());
         entity.setRemark(dto.getRemark() == null ? "" : dto.getRemark().trim());
@@ -206,8 +240,9 @@ public class ReservationServiceImpl implements ReservationService {
                 autoConfirm ? "会员自助预约，系统自动确认" : "会员自助预约，等待商家确认");
         publishTimeout(entity, reserveAt, timeoutDelayMillis(reserveAt));
         publishRemind(entity, reserveAt, remindDelayMillis(reserveAt));
-        log.info("预约已创建: reserveNo={}, memberId={}, slot={} {}, tableType={}",
-                entity.getReserveNo(), memberId, dto.getReserveDate(), dto.getTimeSlot(), dto.getTableType());
+        log.info("预约已创建: reserveNo={}, memberId={}, slot={} {}, tableType={}, tableId={}",
+                entity.getReserveNo(), memberId, dto.getReserveDate(), dto.getTimeSlot(),
+                dto.getTableType(), tableId);
         return toVO(entity, memberMapper.selectById(memberId), LocalDateTime.now());
     }
 
@@ -217,6 +252,11 @@ public class ReservationServiceImpl implements ReservationService {
         Reservation entity = requireOwned(memberId, reserveNo);
         if (!ReservationStatus.active(entity.getStatus())) {
             throw new BizException(ErrorCode.RESERVATION_STATUS_INVALID);
+        }
+        if (entity.getTableId() != null) {
+            // 改期会换日期/时段，创建时锁定的包间不能跟着搬过去；取消后重订才能释放并重新选。
+            // 拦截要早于桌型/人数校验，否则改到不匹配的大包间会先返回 30044 而不是可读的 30098。
+            throw new BizException(ErrorCode.TABLE_ROOM_TYPE_INVALID, "指定包间的预约请先取消后重新预订");
         }
         validateBookable(dto.getReserveDate(), dto.getTimeSlot(), dto.getTableType(), entity.getPeopleCount());
         if (Objects.equals(entity.getReserveDate(), dto.getReserveDate())
@@ -405,7 +445,10 @@ public class ReservationServiceImpl implements ReservationService {
     public ReservationVO checkin(Long storeId, Long operatorId, String reserveNo, Long tableId) {
         Reservation entity = requireStore(storeId, reserveNo);
         ReservationStatusTransition.require(entity.getStatus(), ReservationStatus.CHECKED_IN.name());
-        Long boundTableId = resolveTableId(storeId, tableId);
+        // 创建时已锁定具体包间的预约不允许签到改绑，否则后台 / 扫码签到的 tableId 会覆盖锁定值，
+        // 且绕过该时段包间占用校验；只有未锁定的普通预约才接受签到时绑定桌台。
+        Long boundTableId = entity.getTableId() != null
+                ? entity.getTableId() : resolveTableId(storeId, tableId);
         LocalDateTime now = LocalDateTime.now();
         String fromStatus = entity.getStatus();
         if (reservationMapper.checkIn(entity.getId(), operatorId, now, boundTableId) == 0) {
@@ -628,6 +671,40 @@ public class ReservationServiceImpl implements ReservationService {
             }
         }
         throw new BizException(ErrorCode.SYSTEM_ERROR, "预约单号生成冲突次数过多");
+    }
+
+    /**
+     * 指定包间的校验与锁定。未指定 tableId 时只校验 roomType 是否合法，仍走原来的桌型容量桶。
+     *
+     * <p>并发口径：同一包间同一时段的占用靠查询 active 预约判定，属于应用层校验；
+     * 没有给 reservation 加唯一索引，极端并发下两笔预约可能同时通过，见 init.md 已知局限。</p>
+     */
+    private Long resolveRoomTable(Long storeId, ReservationCreateDTO dto) {
+        if (StringUtils.hasText(dto.getRoomType()) && !ReservationRoomType.isValid(dto.getRoomType())) {
+            throw new BizException(ErrorCode.TABLE_ROOM_TYPE_INVALID);
+        }
+        if (dto.getTableId() == null) {
+            return null;
+        }
+        StoreTable table = storeTableMapper.selectById(dto.getTableId());
+        if (table == null || !Objects.equals(table.getStoreId(), storeId)) {
+            throw new BizException(ErrorCode.STORE_TABLE_NOT_FOUND);
+        }
+        if (!ReservationRoomType.isPrivate(table.getRoomType())
+                || !Objects.equals(dto.getTableType(), table.getRoomType())
+                || (StringUtils.hasText(dto.getRoomType())
+                && !dto.getRoomType().equals(table.getRoomType()))) {
+            throw new BizException(ErrorCode.TABLE_ROOM_TYPE_INVALID);
+        }
+        if (table.getCapacity() == null || table.getCapacity() < dto.getPeopleCount()) {
+            throw new BizException(ErrorCode.RESERVATION_PEOPLE_INVALID);
+        }
+        List<Long> occupied = reservationMapper.selectOccupiedTableIds(storeId,
+                dto.getReserveDate(), dto.getTimeSlot());
+        if (occupied != null && occupied.contains(dto.getTableId())) {
+            throw new BizException(ErrorCode.RESERVATION_SLOT_FULL, "该包间在所选时段已被预约");
+        }
+        return dto.getTableId();
     }
 
     private void validateBookable(LocalDate reserveDate, String timeSlot, String tableType, int peopleCount) {

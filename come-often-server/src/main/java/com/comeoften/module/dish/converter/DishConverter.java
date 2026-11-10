@@ -7,12 +7,14 @@ import com.comeoften.module.dish.entity.DishImage;
 import com.comeoften.module.dish.entity.DishSpec;
 import com.comeoften.module.dish.entity.DishSpecOption;
 import com.comeoften.module.dish.util.DishConstants;
+import com.comeoften.module.dish.util.PresaleStatusResolver;
 import com.comeoften.module.dish.vo.DishCategoryVO;
 import com.comeoften.module.dish.vo.DishDetailVO;
 import com.comeoften.module.dish.vo.DishListVO;
 import org.springframework.beans.BeanUtils;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -37,6 +39,10 @@ public final class DishConverter {
         vo.setTags(tags);
         vo.setSoldOut(soldOut);
         vo.setPreorder(isPreorder(dish));
+        String presaleStatus = presaleStatusOf(dish);
+        vo.setPresale(dish.getPresaleStartTime() != null);
+        vo.setPresaleStatus(presaleStatus);
+        vo.setPresaleText(PresaleStatusResolver.text(presaleStatus, dish.getPresaleStartTime()));
         return vo;
     }
 
@@ -54,7 +60,16 @@ public final class DishConverter {
         vo.setPreorderNote(preorder ? DishConstants.PREORDER_NOTE : "");
         vo.setDepositAmount(preorder ? DishConstants.PREORDER_DEPOSIT : BigDecimal.ZERO);
         vo.setOnlyDineIn(preorder);
+        String presaleStatus = presaleStatusOf(dish);
+        vo.setPresale(dish.getPresaleStartTime() != null);
+        vo.setPresaleStatus(presaleStatus);
+        vo.setPresaleText(PresaleStatusResolver.text(presaleStatus, dish.getPresaleStartTime()));
         return vo;
+    }
+
+    private static String presaleStatusOf(Dish dish) {
+        return PresaleStatusResolver.resolve(dish.getPresaleStartTime(),
+                dish.getPresaleEndTime(), LocalDateTime.now());
     }
 
     /**

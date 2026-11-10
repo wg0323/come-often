@@ -1,14 +1,17 @@
 package com.comeoften.module.reservation.converter;
 
 import com.comeoften.module.auth.entity.Member;
+import com.comeoften.module.reservation.constant.ReservationRoomType;
 import com.comeoften.module.reservation.constant.ReservationStatus;
 import com.comeoften.module.reservation.constant.ReservationTableType;
 import com.comeoften.module.reservation.entity.Reservation;
 import com.comeoften.module.reservation.entity.ReservationSlot;
 import com.comeoften.module.reservation.entity.ReservationStatusLog;
+import com.comeoften.module.reservation.vo.ReservationRoomVO;
 import com.comeoften.module.reservation.vo.ReservationSlotVO;
 import com.comeoften.module.reservation.vo.ReservationStatusLogVO;
 import com.comeoften.module.reservation.vo.ReservationVO;
+import com.comeoften.module.store.entity.StoreTable;
 
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -22,6 +25,17 @@ public final class ReservationConverter {
     private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm");
 
     private ReservationConverter() {
+    }
+
+    public static ReservationRoomVO toRoomVO(StoreTable table) {
+        ReservationRoomVO vo = new ReservationRoomVO();
+        vo.setTableId(table.getId());
+        vo.setTableNo(table.getTableNo());
+        vo.setRoomType(table.getRoomType());
+        vo.setRoomTypeText(ReservationRoomType.describe(table.getRoomType()));
+        vo.setTableType(table.getTableType());
+        vo.setCapacity(table.getCapacity());
+        return vo;
     }
 
     public static ReservationVO toVO(Reservation entity, String storeName, Member member,

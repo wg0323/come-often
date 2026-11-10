@@ -1,0 +1,21 @@
+<scroll-view class="page-scroll" scroll-y enhanced="{{true}}" show-scrollbar="{{false}}" bindscrolltolower="onReachBottom">
+  <view class="page">
+    <view wx:for="{{records}}" wx:key="id" class="record-card" data-order-no="{{item.orderNo}}" bindtap="onTapOrder">
+      <view class="head-row">
+        <text class="order-no">{{item.orderNo}}</text>
+        <text class="channel">{{item.channelText}}</text>
+      </view>
+      <text class="code">核销码 {{item.verifyCode}}</text>
+      <view class="foot-row">
+        <text class="time">{{item.verifyTime}}</text>
+        <text class="remark">{{item.remark}}</text>
+      </view>
+    </view>
+
+    <view wx:if="{{loaded && !loading && records.length === 0}}" class="empty">
+      <text class="empty-text">还没有核销记录</text>
+    </view>
+    <view wx:if="{{loading}}" class="tip">加载中…</view>
+    <view wx:elif="{{!hasMore && records.length > 0}}" class="tip">没有更多了</view>
+  </view>
+</scroll-view>

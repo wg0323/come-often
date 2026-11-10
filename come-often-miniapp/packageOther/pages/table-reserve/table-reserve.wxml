@@ -53,6 +53,20 @@
   <view wx:if="{{slotsEmpty && selectedType}}" class="tip">当前日期暂无可预约时段，请切换日期或联系门店</view>
   <view wx:if="{{!selectedType}}" class="tip">请先选择与人数匹配的桌型</view>
 
+  <block wx:if="{{mode === 'create' && rooms.length > 0}}">
+    <text class="section-heading">指定包间（可不选）</text>
+    <view class="chips">
+      <view
+        wx:for="{{rooms}}"
+        wx:key="tableId"
+        class="chip {{selectedTableId === item.tableId ? 'chip--active' : ''}}"
+        data-table-id="{{item.tableId}}"
+        bindtap="onTapRoom"
+      >{{item.tableNo}} · {{item.roomTypeText}} · {{item.capacity}} 人</view>
+    </view>
+    <text wx:if="{{selectedTableId}}" class="tip">已锁定所选包间，改期需先取消后重订</text>
+  </block>
+
   <text class="section-heading">联系方式</text>
   <view class="form">
     <view class="form-row">

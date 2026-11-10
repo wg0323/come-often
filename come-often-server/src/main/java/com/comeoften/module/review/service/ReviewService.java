@@ -31,6 +31,22 @@ public interface ReviewService {
 
     /**
      * 会员已评价过的订单 ID 集合，供订单列表 / 详情计算 canReview。
+     * 刻意不按 status 过滤：一单一评，被拒绝的评价也算「已评价」，否则会开放重复刷分。
      */
     Set<Long> reviewedOrderIds(Long memberId, Collection<Long> orderIds);
+
+    /**
+     * 后台评价分页，可按审核状态与菜品过滤。
+     */
+    PageResult<ReviewVO> pageForAdmin(Long storeId, String status, Long dishId, Long current, Long size);
+
+    /**
+     * 后台评价详情，非本店评价返回 30085。
+     */
+    ReviewVO detailForAdmin(Long storeId, Long reviewId);
+
+    /**
+     * 审核评价：状态三态可互转，重复提交同一状态返回 30087。
+     */
+    ReviewVO audit(Long storeId, Long reviewId, String targetStatus, Long operatorId, String remark);
 }

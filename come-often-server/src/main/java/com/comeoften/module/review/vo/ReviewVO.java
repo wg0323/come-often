@@ -47,6 +47,23 @@ public class ReviewVO implements Serializable {
     @Schema(description = "评价图 objectKey 列表")
     private List<String> imageObjectKeys;
 
+    @Schema(description = "审核状态：PENDING/APPROVED/REJECTED")
+    private String status;
+
+    @Schema(description = "审核状态文案")
+    private String statusText;
+
+    @JsonSerialize(using = ToStringSerializer.class)
+    @Schema(description = "审核员工 ID")
+    private Long auditUserId;
+
+    @JsonFormat(pattern = TIME_PATTERN)
+    @Schema(description = "审核时间")
+    private LocalDateTime auditTime;
+
+    @Schema(description = "订单号，后台审核页展示用")
+    private String orderNo;
+
     @JsonFormat(pattern = TIME_PATTERN)
     @Schema(description = "评价时间")
     private LocalDateTime createTime;

@@ -72,6 +72,9 @@ export interface DishSavePayload {
   craftInfo?: string;
   monthlySales?: number;
   preorder?: boolean;
+  presaleStartTime?: string | null;
+  presaleEndTime?: string | null;
+  presaleStock?: number | null;
   status?: number;
   sort?: number;
   stockTotal?: number;

@@ -20,6 +20,7 @@ import com.comeoften.module.order.mapper.TradeOrderMapper;
 import com.comeoften.module.points.constant.PointsBizType;
 import com.comeoften.module.points.service.PointsAccountService;
 import com.comeoften.module.points.util.PointsBizKeys;
+import com.comeoften.module.review.constant.ReviewStatus;
 import com.comeoften.module.review.converter.ReviewConverter;
 import com.comeoften.module.review.dto.ReviewCreateDTO;
 import com.comeoften.module.review.entity.Review;
@@ -38,6 +39,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -110,6 +112,8 @@ public class ReviewServiceImpl implements ReviewService {
         review.setRating(dto.getRating());
         review.setContent(StringUtils.hasText(dto.getContent()) ? dto.getContent().trim() : "");
         review.setIsWithImage(imageKeys.isEmpty() ? 0 : 1);
+        // 先发后审：新建评价立即通过（与 DB 默认值一致，历史评价无需刷数据），后台仍可改为拒绝 / 待复核
+        review.setStatus(ReviewStatus.APPROVED.name());
         try {
             reviewMapper.insert(review);
         } catch (DuplicateKeyException e) {
@@ -129,16 +133,92 @@ public class ReviewServiceImpl implements ReviewService {
         if (dishId == null) {
             throw new BizException(ErrorCode.PARAM_INVALID, "菜品 ID 不能为空");
         }
-        long pageNo = current == null || current < 1 ? 1L : current;
-        long pageSize = size == null || size < 1 ? DEFAULT_PAGE_SIZE : Math.min(size, MAX_PAGE_SIZE);
+        long pageNo = normalizePageNo(current);
+        long pageSize = normalizePageSize(size);
         IPage<Review> page = reviewMapper.selectPage(new Page<>(pageNo, pageSize),
                 new LambdaQueryWrapper<Review>()
                         .eq(Review::getDishId, dishId)
+                        // 只有通过的评价对顾客可见；待复核与已拒绝都不出现在菜品评价区
+                        .eq(Review::getStatus, ReviewStatus.APPROVED.name())
                         .orderByDesc(Review::getCreateTime)
                         .orderByDesc(Review::getId));
-        List<Review> records = page.getRecords();
-        if (records.isEmpty()) {
-            return PageResult.of(page.getTotal(), page.getCurrent(), page.getSize(), Collections.emptyList());
+        return PageResult.of(page.getTotal(), page.getCurrent(), page.getSize(), toVOs(page.getRecords()));
+    }
+
+    @Override
+    public PageResult<ReviewVO> pageForAdmin(Long storeId, String status, Long dishId,
+                                              Long current, Long size) {
+        ReviewStatus target = StringUtils.hasText(status) ? ReviewStatus.of(status) : null;
+        if (StringUtils.hasText(status) && target == null) {
+            throw new BizException(ErrorCode.REVIEW_STATUS_INVALID);
+        }
+        IPage<Review> page = reviewMapper.selectPage(new Page<>(normalizePageNo(current),
+                        normalizePageSize(size)),
+                new LambdaQueryWrapper<Review>()
+                        .eq(Review::getStoreId, storeId)
+                        .eq(target != null, Review::getStatus, target == null ? null : target.name())
+                        .eq(dishId != null, Review::getDishId, dishId)
+                        .orderByDesc(Review::getCreateTime)
+                        .orderByDesc(Review::getId));
+        return PageResult.of(page.getTotal(), page.getCurrent(), page.getSize(), toVOs(page.getRecords()));
+    }
+
+    @Override
+    public ReviewVO detailForAdmin(Long storeId, Long reviewId) {
+        Review review = requireByStore(storeId, reviewId);
+        return toVOs(Collections.singletonList(review)).get(0);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public ReviewVO audit(Long storeId, Long reviewId, String targetStatus,
+                           Long operatorId, String remark) {
+        ReviewStatus target = ReviewStatus.of(targetStatus);
+        if (target == null) {
+            throw new BizException(ErrorCode.REVIEW_STATUS_INVALID);
+        }
+        Review review = requireByStore(storeId, reviewId);
+        String from = review.getStatus();
+        if (target.name().equals(from)) {
+            throw new BizException(ErrorCode.REVIEW_ALREADY_AUDITED);
+        }
+        // 带旧状态条件的 CAS：并发两次审核同一目标状态时只有一个成功
+        if (reviewMapper.audit(reviewId, storeId, target.name(), operatorId) == 0) {
+            throw new BizException(ErrorCode.REVIEW_ALREADY_AUDITED);
+        }
+        review.setStatus(target.name());
+        review.setAuditUserId(operatorId);
+        review.setAuditTime(LocalDateTime.now());
+        log.info("评价审核完成: reviewId={}, from={}, to={}, operatorId={}, remark={}",
+                reviewId, from, target.name(), operatorId, remark);
+        return toVOs(Collections.singletonList(review)).get(0);
+    }
+
+    private static long normalizePageNo(Long current) {
+        return current == null || current < 1 ? 1L : current;
+    }
+
+    private static long normalizePageSize(Long size) {
+        return size == null || size < 1 ? DEFAULT_PAGE_SIZE : Math.min(size, MAX_PAGE_SIZE);
+    }
+
+    private Review requireByStore(Long storeId, Long reviewId) {
+        if (reviewId == null) {
+            throw new BizException(ErrorCode.REVIEW_NOT_FOUND);
+        }
+        Review review = reviewMapper.selectById(reviewId);
+        if (review == null || !Objects.equals(storeId, review.getStoreId())) {
+            throw new BizException(ErrorCode.REVIEW_NOT_FOUND);
+        }
+        return review;
+    }
+
+    /**
+     * 顾客端评价列表、后台分页与审核结果共用同一份装配：图片、菜名、昵称、订单号批量查回。
+     */
+    private List<ReviewVO> toVOs(List<Review> records) {
+        if (records == null || records.isEmpty()) {
+            return Collections.emptyList();
         }
         List<Long> reviewIds = records.stream().map(Review::getId).collect(Collectors.toList());
         Map<Long, List<ReviewImage>> imageMap = reviewImageMapper.selectList(
@@ -148,12 +228,16 @@ public class ReviewServiceImpl implements ReviewService {
                 .stream().collect(Collectors.groupingBy(ReviewImage::getReviewId));
         Map<Long, String> dishNames = loadDishNames(records);
         Map<Long, String> nicknames = loadNicknames(records);
-        List<ReviewVO> vos = records.stream()
-                .map(review -> ReviewConverter.toVO(review,
-                        imageMap.getOrDefault(review.getId(), Collections.emptyList()),
-                        dishNames.get(review.getDishId()), nicknames.get(review.getMemberId())))
+        Map<Long, String> orderNos = loadOrderNos(records);
+        return records.stream()
+                .map(review -> {
+                    ReviewVO vo = ReviewConverter.toVO(review,
+                            imageMap.getOrDefault(review.getId(), Collections.emptyList()),
+                            dishNames.get(review.getDishId()), nicknames.get(review.getMemberId()));
+                    vo.setOrderNo(orderNos.get(review.getOrderId()));
+                    return vo;
+                })
                 .collect(Collectors.toList());
-        return PageResult.of(page.getTotal(), page.getCurrent(), page.getSize(), vos);
     }
 
     @Override
@@ -279,6 +363,21 @@ public class ReviewServiceImpl implements ReviewService {
         }
         return dishMapper.selectBatchIds(dishIds).stream()
                 .collect(Collectors.toMap(Dish::getId, Dish::getDishName, (left, right) -> left));
+    }
+
+    private Map<Long, String> loadOrderNos(List<Review> records) {
+        List<Long> orderIds = records.stream().map(Review::getOrderId)
+                .filter(Objects::nonNull).distinct().collect(Collectors.toList());
+        if (orderIds.isEmpty()) {
+            return Collections.emptyMap();
+        }
+        List<TradeOrder> orders = tradeOrderMapper.selectBatchIds(orderIds);
+        if (orders == null || orders.isEmpty()) {
+            return Collections.emptyMap();
+        }
+        return orders.stream()
+                .collect(Collectors.toMap(TradeOrder::getId, TradeOrder::getOrderNo,
+                        (left, right) -> left));
     }
 
     private Map<Long, String> loadNicknames(List<Review> records) {

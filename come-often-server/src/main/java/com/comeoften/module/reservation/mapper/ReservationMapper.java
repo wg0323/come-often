@@ -38,6 +38,18 @@ public interface ReservationMapper extends BaseMapper<Reservation> {
     List<Reservation> selectOverdue(@Param("cutoff") LocalDateTime cutoff, @Param("limit") int limit);
 
     /**
+     * 指定包间的占用判定：该门店该日期时段仍有效的预约已经锁了哪些具体桌台。
+     * 取消 / 超时 / 拒绝后的预约不在 IN 列表里，包间自动释放。
+     */
+    @Select("SELECT DISTINCT table_id FROM reservation "
+            + "WHERE store_id = #{storeId} AND reserve_date = #{reserveDate} AND time_slot = #{timeSlot} "
+            + "AND table_id IS NOT NULL AND is_deleted = 0 "
+            + "AND status IN ('PENDING','CONFIRMED','CHECKED_IN')")
+    List<Long> selectOccupiedTableIds(@Param("storeId") Long storeId,
+                                      @Param("reserveDate") LocalDate reserveDate,
+                                      @Param("timeSlot") String timeSlot);
+
+    /**
      * 后台确认：只允许 PENDING→CONFIRMED。
      */
     @Update("UPDATE reservation SET status = 'CONFIRMED', update_time = NOW() "
