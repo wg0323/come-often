@@ -37,7 +37,7 @@
   </view>
 
   <view class="sections">
-    <view class="section section--ink" bindtap="onTapQueue" hover-class="section--hover">
+    <view class="section section--accent" bindtap="onTapQueue" hover-class="section--hover">
       <text class="section-title">取号</text>
       <text class="section-desc">到店取号，随时看叫号</text>
     </view>
@@ -45,7 +45,7 @@
       <text class="section-title">预约</text>
       <text class="section-desc">订座 / 包厢，按时段来</text>
     </view>
-    <view class="section section--ink" bindtap="onTapBundle" hover-class="section--hover">
+    <view class="section section--accent" bindtap="onTapBundle" hover-class="section--hover">
       <text class="section-title">套餐</text>
       <text class="section-desc">团购套餐按份下单</text>
     </view>

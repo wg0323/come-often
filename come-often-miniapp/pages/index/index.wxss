@@ -167,8 +167,9 @@
   opacity: 0.86;
 }
 
-.section--ink {
-  background-color: var(--co-ink);
+/* 主入口用品牌朱砂填充，替代原先偏黑的墨绿，和米纸底 + 金色描边卡更协调 */
+.section--accent {
+  background-color: var(--co-cinnabar);
   color: var(--co-card);
 }
 
