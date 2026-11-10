@@ -264,6 +264,71 @@ public class PointsAccountServiceImpl implements PointsAccountService {
     }
 
     @Override
+    public int pointsRequired(BigDecimal amount) {
+        return PointsAmountCalculator.pointsFor(amount, pointsProperties.getExchangeRate());
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public int redeemForExchange(Long memberId, String orderNo, int points) {
+        if (memberId == null || !StringUtils.hasText(orderNo) || points <= 0) {
+            return 0;
+        }
+        String bizId = PointsBizKeys.exchange(orderNo);
+        if (pointsRecordMapper.countByBiz(memberId, PointsBizType.EXCHANGE, bizId) > 0) {
+            log.info("积分兑换流水已存在，跳过重复扣减: orderNo={}", orderNo);
+            return 0;
+        }
+        ensureAccount(memberId);
+        // 兑换没有支付环节，直接实扣：余额不足时带条件的 UPDATE 影响行数为 0
+        if (pointsAccountMapper.deduct(memberId, points) == 0) {
+            throw new BizException(ErrorCode.POINTS_BALANCE_NOT_ENOUGH,
+                    "可用积分不足 " + points + " 分，请调整兑换数量后重试");
+        }
+        pointsAccountMapper.addUsed(memberId, points);
+        PointsRecord record = new PointsRecord();
+        record.setMemberId(memberId);
+        record.setChangeType(PointsChangeType.USE.getCode());
+        record.setChangeAmount(-points);
+        record.setBizType(PointsBizType.EXCHANGE);
+        record.setBizId(bizId);
+        record.setBalanceAfter(balanceOf(memberId));
+        record.setRemark("积分兑换菜品，订单号 " + orderNo);
+        pointsRecordMapper.insert(record);
+        log.info("积分兑换已扣减: orderNo={}, points={}", orderNo, points);
+        return points;
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void rollbackExchange(Long memberId, String orderNo) {
+        if (memberId == null || !StringUtils.hasText(orderNo)) {
+            return;
+        }
+        PointsRecord exchange = pointsRecordMapper.selectByBiz(memberId, PointsBizType.EXCHANGE,
+                PointsBizKeys.exchange(orderNo));
+        if (exchange == null) {
+            return;
+        }
+        String rollbackBizId = PointsBizKeys.exchangeRollback(orderNo);
+        if (pointsRecordMapper.countByBiz(memberId, PointsBizType.EXCHANGE, rollbackBizId) > 0) {
+            return;
+        }
+        int points = Math.abs(exchange.getChangeAmount());
+        PointsRecord rollback = new PointsRecord();
+        rollback.setMemberId(memberId);
+        rollback.setChangeType(PointsChangeType.ROLLBACK.getCode());
+        rollback.setChangeAmount(points);
+        rollback.setBizType(PointsBizType.EXCHANGE);
+        rollback.setBizId(rollbackBizId);
+        rollback.setBalanceAfter(balanceOf(memberId) + points);
+        rollback.setRemark("积分兑换订单取消，退回积分，订单号 " + orderNo);
+        pointsRecordMapper.insert(rollback);
+        pointsAccountMapper.restore(memberId, points);
+        log.info("积分兑换已回滚: orderNo={}, points={}", orderNo, points);
+    }
+
+    @Override
     @Transactional(rollbackFor = Exception.class)
     public int earnForCompletedOrder(String orderNo) {
         if (!StringUtils.hasText(orderNo)) {

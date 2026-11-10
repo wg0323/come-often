@@ -1,0 +1,73 @@
+<scroll-view class="page-scroll" scroll-y enhanced="{{true}}" show-scrollbar="{{false}}" bindscrolltolower="onReachBottom">
+<view class="page">
+  <view wx:if="{{account}}" class="account-card">
+    <view class="account-balance">
+      <text class="balance-label">可用储值余额</text>
+      <view class="balance-row">
+        <text class="price-symbol">¥</text>
+        <text class="balance-num">{{account.balance}}</text>
+      </view>
+    </view>
+    <view class="account-foot">
+      <text class="foot-item">累计充值 ¥{{account.totalRecharge}}</text>
+      <text class="foot-item">累计赠送 ¥{{account.totalGift}}</text>
+      <text class="foot-item">累计消费 ¥{{account.totalConsume}}</text>
+    </view>
+  </view>
+
+  <view wx:if="{{account}}" class="recharge-card">
+    <text class="card-title">充值（当前为本地 Mock 渠道）</text>
+    <view class="tier-row">
+      <view
+        wx:for="{{account.giftTiers}}"
+        wx:key="amount"
+        class="tier-chip {{amount == item.amount ? 'tier-chip--active' : ''}}"
+        data-amount="{{item.amount}}"
+        bindtap="onPickTier"
+        hover-class="entry--hover"
+      >{{item.text}}</view>
+    </view>
+    <view class="amount-input-row">
+      <text class="input-symbol">¥</text>
+      <input
+        class="amount-input"
+        type="digit"
+        value="{{amount}}"
+        placeholder="自定义金额，{{account.minRecharge}} ~ {{account.maxRecharge}} 元"
+        bindinput="onAmountInput"
+      />
+    </view>
+    <view
+      class="primary-btn {{submitting ? 'primary-btn--disabled' : ''}}"
+      bindtap="onRecharge"
+      hover-class="entry--hover"
+    >{{submitting ? '充值中…' : '确认充值'}}</view>
+    <text class="tip">赠送额按「不超过充值金额的最高档位」计算；充值本金挂预收，消费时确认营收</text>
+  </view>
+
+  <text class="section-heading">余额流水</text>
+
+  <view wx:if="{{records.length > 0}}" class="list">
+    <view wx:for="{{records}}" wx:key="id" class="record">
+      <view class="record-body">
+        <text class="record-title">{{item.remark || item.changeTypeText}}</text>
+        <text class="record-time">{{item.createTime}}</text>
+      </view>
+      <view class="record-amount">
+        <text class="record-num {{item.changeAmount > 0 ? 'record-num--earn' : 'record-num--spend'}}">
+          {{item.changeAmount > 0 ? '+' : ''}}{{item.changeAmount}}
+        </text>
+        <text class="record-balance">余额 {{item.balanceAfter}}</text>
+      </view>
+    </view>
+  </view>
+
+  <view wx:elif="{{loaded && !loading}}" class="empty">
+    <text class="empty-text">暂无储值流水</text>
+    <text class="empty-tip">充值后这里会显示本金、赠送与订单抵扣</text>
+  </view>
+
+  <view wx:if="{{loading}}" class="loading">加载中…</view>
+  <view wx:elif="{{!hasMore && records.length > 0}}" class="list-end">没有更多了</view>
+</view>
+</scroll-view>

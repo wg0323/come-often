@@ -2,6 +2,9 @@ package com.comeoften.module.points.controller;
 
 import com.comeoften.common.PageResult;
 import com.comeoften.common.Result;
+import com.comeoften.module.order.service.OrderService;
+import com.comeoften.module.order.vo.OrderVO;
+import com.comeoften.module.points.dto.PointsExchangeDTO;
 import com.comeoften.module.points.dto.PointsProfileDTO;
 import com.comeoften.module.points.service.PointsAccountService;
 import com.comeoften.module.points.service.PointsLevelService;
@@ -9,6 +12,7 @@ import com.comeoften.module.points.vo.MemberLevelOverviewVO;
 import com.comeoften.module.points.vo.PointsAccountVO;
 import com.comeoften.module.points.vo.PointsRecordVO;
 import com.comeoften.module.points.vo.PointsRuleVO;
+import com.comeoften.module.store.service.StoreService;
 import com.comeoften.security.LoginUserHolder;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -36,6 +40,10 @@ public class PointsAppController {
     private final PointsAccountService pointsAccountService;
 
     private final PointsLevelService pointsLevelService;
+
+    private final OrderService orderService;
+
+    private final StoreService storeService;
 
     @Operation(summary = "积分账户概览", description = "余额、累计获得与使用、当前会员等级")
     @ApiResponse(responseCode = "200", description = "返回账户概览")
@@ -88,5 +96,15 @@ public class PointsAppController {
     @GetMapping("/rule")
     public Result<PointsRuleVO> rule() {
         return Result.ok(pointsAccountService.rule());
+    }
+
+    @Operation(summary = "积分兑换菜品",
+            description = "整单用积分结算，下单即 PAID、无在线支付流水；所需积分 = 菜品金额 × 兑换比例向上取整，"
+                    + "余额不足返回 30033，预定菜不支持兑换返回 10001，门店休息返回 30093")
+    @ApiResponse(responseCode = "200", description = "返回兑换订单详情")
+    @PostMapping("/exchange")
+    public Result<OrderVO> exchange(@Valid @RequestBody PointsExchangeDTO dto) {
+        return Result.ok(orderService.exchange(LoginUserHolder.getRequired().getUserId(),
+                storeService.defaultStoreId(), dto));
     }
 }

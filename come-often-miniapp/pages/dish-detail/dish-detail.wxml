@@ -31,9 +31,10 @@
     <text class="subtitle">{{detail.subtitle}}</text>
     <view class="price-row">
       <text class="price-symbol">¥</text>
-      <text class="price-num">{{detail.price}}</text>
+      <text class="price-num">{{detail.memberPrice > 0 ? detail.memberPrice : detail.price}}</text>
+      <text wx:if="{{detail.memberPrice > 0}}" class="sales">会员价</text>
       <text wx:if="{{!detail.preorder}}" class="sales">月售 {{detail.monthlySales}}</text>
-      <text wx:else class="craft">{{detail.craftInfo}}</text>
+      <text wx:elif="{{detail.memberPrice <= 0}}" class="craft">{{detail.craftInfo}}</text>
     </view>
     <view wx:if="{{detail.reviewCount > 0}}" class="rating-row">
       <text class="rating-score">{{detail.ratingAverage}} 分</text>

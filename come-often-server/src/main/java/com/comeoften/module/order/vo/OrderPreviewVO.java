@@ -54,8 +54,11 @@ public class OrderPreviewVO implements Serializable {
     @Schema(description = "会员折扣金额，单位元；B3 接会员价与等级折扣前恒为 0")
     private BigDecimal memberDiscountAmount;
 
-    @Schema(description = "储值余额抵扣金额，单位元；B3 接组合支付前恒为 0，与 balanceAmount（到店尾款）不同义")
+    @Schema(description = "储值余额抵扣金额，单位元；与 balanceAmount（到店尾款）不同义")
     private BigDecimal balanceDeductAmount;
+
+    @Schema(description = "会员当前可用储值余额，单位元")
+    private BigDecimal balanceAvailable;
 
     @Schema(description = "整单定金，单位元；含预定菜为 min(200, 券后实付金额)")
     private BigDecimal depositAmount;

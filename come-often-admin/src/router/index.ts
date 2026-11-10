@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router';
+import BalanceView from '@/views/BalanceView.vue';
 import CouponView from '@/views/CouponView.vue';
 import DashboardView from '@/views/DashboardView.vue';
 import DishView from '@/views/DishView.vue';
@@ -56,6 +57,12 @@ const router = createRouter({
       name: 'queue',
       component: QueueView,
       meta: { title: '排队叫号', requiresAuth: true },
+    },
+    {
+      path: '/balance',
+      name: 'balance',
+      component: BalanceView,
+      meta: { title: '储值管理', requiresAuth: true },
     },
     {
       path: '/stats',

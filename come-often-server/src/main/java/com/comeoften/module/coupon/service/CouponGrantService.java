@@ -16,6 +16,12 @@ public interface CouponGrantService {
     int grant(Long storeId, Long templateId, List<Long> memberIds, String source);
 
     /**
+     * 规则发券：除库存链路外，额外用 {@code user_coupon.grant_biz_id} 做业务幂等
+     * （如 {@code {memberId}#RULE#BIRTHDAY#2026}），同一幂等键只发一张。
+     */
+    int grantWithBizId(Long storeId, Long templateId, Long memberId, String source, String grantBizId);
+
+    /**
      * 支付成功后按首单判定发新人券。非首单、模板未配置或已发过时返回 0。
      * 幂等：同一会员同一模板只发一次，并叠加消息级 Redis 幂等键。
      */

@@ -18,3 +18,6 @@ export const completeProfilePoints = (data) => request('/points/profile', { meth
 export const getMemberLevel = () => request('/points/level');
 
 export const getPointsRule = () => request('/points/rule');
+
+/** 积分兑换菜品：整单用积分结算，下单即已支付，不走在线支付 */
+export const exchangeDish = (payload) => request('/points/exchange', { method: 'POST', data: payload });

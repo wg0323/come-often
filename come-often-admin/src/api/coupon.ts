@@ -94,6 +94,34 @@ export interface CouponUseRecordItem {
   verifyTime: string;
 }
 
+/** 券发放规则：新客 / 生日 / 复购 / 沉睡唤醒，事件与每日任务共用同一份配置。 */
+export interface CouponRuleItem {
+  id: string;
+  ruleCode: string;
+  ruleName: string;
+  ruleType: string;
+  ruleTypeText: string;
+  couponTemplateId: string;
+  templateName: string;
+  triggerValue: number;
+  maxPerMember: number;
+  isEnabled: number;
+  periodText: string;
+  remark: string;
+  createTime: string;
+}
+
+export interface CouponRulePayload {
+  ruleCode: string;
+  ruleName: string;
+  ruleType: string;
+  couponTemplateId: string;
+  triggerValue?: number;
+  maxPerMember?: number;
+  enabled?: boolean;
+  remark?: string;
+}
+
 export interface CouponRoiItem {
   templateId: string;
   templateName: string;
@@ -149,4 +177,16 @@ export const couponApi = {
     http<PageData<CouponUseRecordItem>>(`/admin/coupon/record/page?${toQuery(params)}`),
   roi: (templateId?: string): Promise<CouponRoiItem[]> =>
     http<CouponRoiItem[]>(`/admin/coupon/roi${templateId ? `?templateId=${templateId}` : ''}`),
+  rules: (): Promise<CouponRuleItem[]> => http<CouponRuleItem[]>('/admin/coupon/rule'),
+  saveRule: (payload: CouponRulePayload): Promise<CouponRuleItem> =>
+    http<CouponRuleItem>('/admin/coupon/rule', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }),
+  updateRuleStatus: (ruleId: string, enabled: boolean): Promise<CouponRuleItem> =>
+    http<CouponRuleItem>(`/admin/coupon/rule/${ruleId}/status?enabled=${enabled}`, {
+      method: 'POST',
+    }),
+  runRule: (ruleType: string): Promise<number> =>
+    http<number>(`/admin/coupon/rule/run?ruleType=${ruleType}`, { method: 'POST' }),
 };

@@ -24,6 +24,8 @@ public final class PointsBizKeys {
 
     private static final String EXPIRE = "EXPIRE";
 
+    private static final String EXCHANGE = "EXCHANGE";
+
     private static final DateTimeFormatter DAY_FORMATTER = DateTimeFormatter.ofPattern("yyyyMMdd");
 
     private PointsBizKeys() {
@@ -48,6 +50,20 @@ public final class PointsBizKeys {
      */
     public static String orderRollback(String orderNo) {
         return orderNo + SEPARATOR + ROLLBACK;
+    }
+
+    /**
+     * 积分兑换菜品：EXCHANGE + {orderNo}#EXCHANGE。
+     */
+    public static String exchange(String orderNo) {
+        return orderNo + SEPARATOR + EXCHANGE;
+    }
+
+    /**
+     * 兑换单取消退回：EXCHANGE + {orderNo}#EXCHANGE_ROLLBACK，与兑换行正负相抵。
+     */
+    public static String exchangeRollback(String orderNo) {
+        return orderNo + SEPARATOR + EXCHANGE + "_ROLLBACK";
     }
 
     /**

@@ -1,0 +1,36 @@
+<scroll-view class="page-scroll" scroll-y enhanced="{{true}}" show-scrollbar="{{false}}">
+<view class="page">
+  <view wx:if="{{account && rule}}" class="summary-card">
+    <view class="summary-row">
+      <text class="summary-label">可用积分</text>
+      <text class="summary-num">{{account.balance}}</text>
+    </view>
+    <text class="summary-tip">{{rule.exchangeRate}} 积分抵 ¥1；兑换按菜品金额向上取整，下单后直接进入待取餐</text>
+  </view>
+
+  <view wx:if="{{dishes.length > 0}}" class="list">
+    <view wx:for="{{dishes}}" wx:key="id" class="dish-row">
+      <view class="dish-body">
+        <text class="dish-name">{{item.dishName}}</text>
+        <text class="dish-meta">¥{{item.exchangePrice}} · 需 {{item.requiredPoints}} 积分</text>
+        <text wx:if="{{item.memberPrice > 0}}" class="dish-badge">会员价</text>
+      </view>
+      <view
+        class="exchange-btn {{(exchanging || account.balance < item.requiredPoints) ? 'exchange-btn--disabled' : ''}}"
+        data-dish-id="{{item.id}}"
+        data-name="{{item.dishName}}"
+        data-points="{{item.requiredPoints}}"
+        bindtap="onExchange"
+        hover-class="entry--hover"
+      >{{account.balance < item.requiredPoints ? '积分不足' : '兑换'}}</view>
+    </view>
+  </view>
+
+  <view wx:elif="{{!loading}}" class="empty">
+    <text class="empty-text">暂无可兑换菜品</text>
+    <text class="empty-tip">售罄与预定菜不参与积分兑换</text>
+  </view>
+
+  <view wx:if="{{loading}}" class="loading">加载中…</view>
+</view>
+</scroll-view>

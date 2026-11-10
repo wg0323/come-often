@@ -57,5 +57,8 @@ public class OrderCheckVO implements Serializable {
 
         @Schema(description = "行金额，单位元")
         private BigDecimal amount;
+
+        @Schema(description = "本行是否按会员价计价")
+        private Boolean memberPriceApplied;
     }
 }

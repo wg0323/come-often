@@ -4,6 +4,8 @@ import com.comeoften.common.BizException;
 import com.comeoften.common.ErrorCode;
 import com.comeoften.common.job.JobResult;
 import com.comeoften.job.CouponExpireFallbackJob;
+import com.comeoften.job.CouponRuleJob;
+import com.comeoften.job.MemberTagJob;
 import com.comeoften.job.MqRetryJob;
 import com.comeoften.job.OrderAutoCompleteJob;
 import com.comeoften.job.PointsExpireJob;
@@ -49,6 +51,10 @@ public class JobTriggerServiceImpl implements JobTriggerService {
 
     private final QueueExpireJob queueExpireJob;
 
+    private final MemberTagJob memberTagJob;
+
+    private final CouponRuleJob couponRuleJob;
+
     private final Map<String, Supplier<JobResult>> handlers = new LinkedHashMap<>();
 
     @PostConstruct
@@ -61,6 +67,8 @@ public class JobTriggerServiceImpl implements JobTriggerService {
         handlers.put(OrderAutoCompleteJob.JOB_NAME, orderAutoCompleteJob::complete);
         handlers.put(CouponExpireFallbackJob.JOB_NAME, couponExpireFallbackJob::remind);
         handlers.put(QueueExpireJob.JOB_NAME, queueExpireJob::expire);
+        handlers.put(MemberTagJob.JOB_NAME, memberTagJob::refresh);
+        handlers.put(CouponRuleJob.JOB_NAME, couponRuleJob::grant);
     }
 
     @Override

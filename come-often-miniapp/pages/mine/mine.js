@@ -33,6 +33,18 @@ const MENU_ITEMS = [
     url: '/packageMember/pages/points-record/points-record',
   },
   {
+    key: 'exchange',
+    label: '积分兑菜',
+    desc: '用积分换一份招牌菜',
+    url: '/packageMember/pages/points-exchange/points-exchange',
+  },
+  {
+    key: 'balance',
+    label: '我的储值',
+    desc: '余额、充值与赠送',
+    url: '/packageMember/pages/balance/balance',
+  },
+  {
     key: 'reservation',
     label: '我的预约',
     desc: '订座记录与状态',

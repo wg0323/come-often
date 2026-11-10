@@ -155,6 +155,7 @@ public final class CouponConverter {
             vo.setTemplateName(template.getTemplateName());
             vo.setCouponType(template.getCouponType());
             vo.setCouponTypeText(CouponType.describe(template.getCouponType()));
+            vo.setStackable(template.getStackable());
         }
         return vo;
     }

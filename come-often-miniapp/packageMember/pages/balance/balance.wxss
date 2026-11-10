@@ -1,0 +1,236 @@
+.page {
+  min-height: 100vh;
+  padding: var(--co-space-page);
+  box-sizing: border-box;
+}
+
+.account-card {
+  padding: var(--co-space-card);
+  background-color: var(--co-card);
+  border-radius: var(--co-radius-card);
+  border: 1rpx solid var(--co-divider);
+}
+
+.account-balance {
+  display: flex;
+  flex-direction: column;
+}
+
+.balance-label {
+  color: var(--co-text-secondary);
+  font-size: 24rpx;
+}
+
+.balance-row {
+  display: flex;
+  align-items: baseline;
+  margin-top: 8rpx;
+}
+
+.price-symbol {
+  color: var(--co-cinnabar);
+  font-size: 32rpx;
+  font-weight: 600;
+}
+
+.balance-num {
+  margin-left: 4rpx;
+  color: var(--co-cinnabar);
+  font-size: 64rpx;
+  font-weight: 700;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+}
+
+.account-foot {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--co-space-gap);
+  margin-top: var(--co-space-card);
+  padding-top: 16rpx;
+  border-top: 1rpx solid var(--co-divider);
+}
+
+.foot-item {
+  color: var(--co-text-tertiary);
+  font-size: 24rpx;
+  font-variant-numeric: tabular-nums;
+}
+
+.recharge-card {
+  margin-top: var(--co-space-gap);
+  padding: var(--co-space-card);
+  background-color: var(--co-card);
+  border-radius: var(--co-radius-card);
+  border: 1rpx solid var(--co-divider);
+}
+
+.card-title {
+  color: var(--co-text-primary);
+  font-size: 30rpx;
+  font-weight: 600;
+}
+
+.tier-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--co-space-gap);
+  margin-top: 16rpx;
+}
+
+.tier-chip {
+  padding: 12rpx 20rpx;
+  border: 1rpx solid var(--co-divider);
+  border-radius: var(--co-radius-button);
+  color: var(--co-text-secondary);
+  font-size: 24rpx;
+}
+
+.tier-chip--active {
+  border-color: var(--co-cinnabar);
+  color: var(--co-cinnabar);
+}
+
+.amount-input-row {
+  display: flex;
+  align-items: center;
+  margin-top: 20rpx;
+  padding: 16rpx 20rpx;
+  background-color: var(--co-bg);
+  border-radius: var(--co-radius-button);
+}
+
+.input-symbol {
+  color: var(--co-text-primary);
+  font-size: 30rpx;
+}
+
+.amount-input {
+  flex: 1;
+  margin-left: 8rpx;
+  font-size: 30rpx;
+  font-variant-numeric: tabular-nums;
+}
+
+.primary-btn {
+  min-height: 88rpx;
+  margin-top: 20rpx;
+  line-height: 88rpx;
+  background-color: var(--co-ink);
+  color: var(--co-card);
+  font-size: 28rpx;
+  text-align: center;
+  border-radius: var(--co-radius-button);
+}
+
+.primary-btn--disabled {
+  opacity: 0.6;
+}
+
+.tip {
+  display: block;
+  margin-top: 12rpx;
+  color: var(--co-text-tertiary);
+  font-size: 22rpx;
+  line-height: 1.6;
+}
+
+.section-heading {
+  display: block;
+  margin-top: 40rpx;
+  color: var(--co-text-primary);
+  font-size: 32rpx;
+  font-weight: 600;
+  letter-spacing: 1rpx;
+}
+
+.list {
+  margin-top: var(--co-space-gap);
+}
+
+.record {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--co-space-gap);
+  padding: var(--co-space-card);
+  background-color: var(--co-card);
+  border-radius: var(--co-radius-card);
+  border: 1rpx solid var(--co-divider);
+}
+
+.record-body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+}
+
+.record-title {
+  color: var(--co-text-primary);
+  font-size: 28rpx;
+}
+
+.record-time {
+  margin-top: 8rpx;
+  color: var(--co-text-tertiary);
+  font-size: 24rpx;
+  font-variant-numeric: tabular-nums;
+}
+
+.record-amount {
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.record-num {
+  font-size: 32rpx;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.record-num--earn {
+  color: var(--co-success);
+}
+
+.record-num--spend {
+  color: var(--co-text-secondary);
+}
+
+.record-balance {
+  margin-top: 8rpx;
+  color: var(--co-text-tertiary);
+  font-size: 24rpx;
+  font-variant-numeric: tabular-nums;
+}
+
+.entry--hover {
+  opacity: 0.86;
+}
+
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 120rpx 0;
+}
+
+.empty-text {
+  color: var(--co-text-secondary);
+  font-size: 28rpx;
+}
+
+.empty-tip {
+  margin-top: 12rpx;
+  color: var(--co-text-tertiary);
+  font-size: 24rpx;
+}
+
+.loading,
+.list-end {
+  padding: 32rpx 0;
+  color: var(--co-text-tertiary);
+  font-size: 24rpx;
+  text-align: center;
+}

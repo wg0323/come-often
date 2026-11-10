@@ -120,6 +120,7 @@ public class DishAppController {
     @PostMapping("/quote")
     public Result<DishQuoteVO> quote(@Valid @RequestBody DishQuoteDTO dto) {
         dto.setStoreId(storeService.defaultStoreId());
+        dto.setMemberId(LoginUserHolder.getRequired().getUserId());
         return Result.ok(dishOrderService.quote(dto));
     }
 
@@ -128,6 +129,7 @@ public class DishAppController {
     @PostMapping("/order-check")
     public Result<OrderCheckVO> check(@Valid @RequestBody OrderCheckDTO dto) {
         dto.setStoreId(storeService.defaultStoreId());
+        dto.setMemberId(LoginUserHolder.getRequired().getUserId());
         return Result.ok(dishOrderService.check(dto));
     }
 }

@@ -70,6 +70,8 @@ public final class OrderConverter {
         vo.setStatusText(statusText(order.getStatus()));
         vo.setTotalAmount(order.getTotalAmount());
         vo.setPayAmount(order.getPayAmount());
+        vo.setMemberDiscountAmount(order.getMemberDiscount());
+        vo.setBalanceDeductAmount(order.getBalanceAmount());
         vo.setDepositAmount(order.getDepositAmount());
         vo.setPickupCode(order.getPickupCode());
         vo.setItemSummary(summarize(items));

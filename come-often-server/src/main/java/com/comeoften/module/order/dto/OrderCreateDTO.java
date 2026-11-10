@@ -50,4 +50,8 @@ public class OrderCreateDTO implements Serializable {
     @Min(value = 0, message = "使用的积分不能为负")
     @Schema(description = "使用的积分数量；不传或 0 表示不抵现，抵扣金额由服务端按兑换比例算出", example = "500")
     private Integer usePoints;
+
+    @Schema(description = "是否使用储值余额抵扣；抵扣额由服务端按可用余额与「在线应付至少保留 0.01 元」算出，"
+            + "页面不传具体金额", example = "false")
+    private Boolean useBalance;
 }

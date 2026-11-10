@@ -36,4 +36,7 @@ public class CouponSelectionVO implements Serializable {
 
     @Schema(description = "抵扣金额，单位元")
     private BigDecimal discountAmount;
+
+    @Schema(description = "是否可与会员折扣同享：0-否，1-是")
+    private Integer stackable;
 }

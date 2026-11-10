@@ -24,6 +24,7 @@ Page({
     selectedCouponId: '',
     couponLabel: '不使用优惠券',
     usePointsEnabled: false,
+    useBalanceEnabled: false,
     dineInDate: '',
     dineInTime: '12:00',
     orderModeText: '自提 · 立即取餐',
@@ -103,6 +104,10 @@ Page({
     if (this.data.usePointsEnabled && preview && preview.maxUsablePoints > 0) {
       payload.usePoints = preview.maxUsablePoints;
     }
+    // 余额抵扣同样只回传开关：抵扣金额由服务端按可用余额与「至少留 0.01 元在线支付」算
+    if (this.data.useBalanceEnabled && preview && preview.balanceAvailable > 0) {
+      payload.useBalance = true;
+    }
     if (preview && preview.containsPreorder) {
       payload.orderType = 'DINE_IN';
       payload.dineInTime = `${dineInDate} ${dineInTime}:00`;
@@ -157,6 +162,10 @@ Page({
 
   async onPointsToggle(event) {
     this.setData({ usePointsEnabled: event.detail.value }, () => this.loadPreview());
+  },
+
+  async onBalanceToggle(event) {
+    this.setData({ useBalanceEnabled: event.detail.value }, () => this.loadPreview());
   },
 
   onDineInDateChange(event) {

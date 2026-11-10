@@ -10,6 +10,7 @@ import com.comeoften.common.OrderKeys;
 import com.comeoften.common.PageResult;
 import com.comeoften.common.StockKeys;
 import com.comeoften.common.util.QrCodeUtils;
+import com.comeoften.module.balance.service.BalanceService;
 import com.comeoften.module.cart.entity.CartItem;
 import com.comeoften.module.cart.mapper.CartItemMapper;
 import com.comeoften.module.cart.util.CartSkuKeys;
@@ -51,7 +52,10 @@ import com.comeoften.module.order.vo.OrderQrCodeVO;
 import com.comeoften.module.order.vo.OrderSummaryVO;
 import com.comeoften.module.order.vo.OrderVO;
 import com.comeoften.module.payment.service.PaymentService;
+import com.comeoften.module.points.dto.PointsExchangeDTO;
 import com.comeoften.module.points.service.PointsAccountService;
+import com.comeoften.module.points.service.PointsLevelService;
+import com.comeoften.module.points.util.MemberDiscountCalculator;
 import com.comeoften.module.review.service.ReviewService;
 import com.comeoften.module.store.entity.StoreTable;
 import com.comeoften.module.store.mapper.StoreTableMapper;
@@ -122,6 +126,12 @@ public class OrderServiceImpl implements OrderService {
      */
     private static final int QR_IMAGE_SIZE = 240;
 
+    /**
+     * 组合支付后在线应付额的下限。与 M6 积分抵现同一口径：不允许产生 0 元订单，
+     * 否则支付网关、定金与退款上限三条链路同时失去意义。
+     */
+    private static final BigDecimal MIN_ONLINE_PAY_AMOUNT = new BigDecimal("0.01");
+
     private final TradeOrderMapper tradeOrderMapper;
 
     private final OrderItemMapper orderItemMapper;
@@ -154,6 +164,10 @@ public class OrderServiceImpl implements OrderService {
 
     private final PointsAccountService pointsAccountService;
 
+    private final PointsLevelService pointsLevelService;
+
+    private final BalanceService balanceService;
+
     private final StringRedisTemplate stringRedisTemplate;
 
     private final StoreTableMapper storeTableMapper;
@@ -181,8 +195,10 @@ public class OrderServiceImpl implements OrderService {
         vo.setPointsUsed(selection.pointsUsed);
         vo.setPointsBalance(pointsAccountService.balanceOf(memberId));
         vo.setMaxUsablePoints(pointsAccountService.maxUsablePoints(memberId,
-                selection.check.getTotalAmount().subtract(discount)));
+                selection.check.getTotalAmount().subtract(discount)
+                        .subtract(selection.memberDiscountAmount)));
         vo.setPointsExchangeRate(pointsAccountService.rule().getExchangeRate());
+        vo.setBalanceAvailable(balanceService.availableOf(memberId));
         vo.setAvailableCoupons(userCouponService.listUsable(memberId, storeId,
                 selection.check.getTotalAmount(), selection.dishAmounts));
         return vo;
@@ -241,6 +257,8 @@ public class OrderServiceImpl implements OrderService {
         }
         // 积分抵现先冻结：余额在冻结时扣减，支付成功转实扣，取消 / 超时写反向流水回滚
         pointsAccountService.freezeForOrder(memberId, order.getOrderNo(), selection.pointsUsed);
+        // 储值余额在下单事务内实扣（余额是支付手段而非优惠），取消 / 超时写 #ROLLBACK 冲销
+        balanceService.deductForOrder(memberId, order.getOrderNo(), selection.balanceDeductAmount);
         insertItems(order, selection);
         writeLog(order, null, OrderStatus.CREATED, OperatorType.MEMBER, memberId, "订单创建");
         cartItemMapper.deleteBatchIds(selection.cartItems.stream()
@@ -250,6 +268,82 @@ public class OrderServiceImpl implements OrderService {
         log.info("订单已创建: orderNo={}, orderType={}, pickupCode={}, totalAmount={}, depositAmount={}",
                 order.getOrderNo(), order.getOrderType(), code, order.getTotalAmount(),
                 order.getDepositAmount());
+        return toVO(order);
+    }
+
+    /**
+     * 积分兑换下单：只换一道菜（可带规格 / 加料），整单金额 = 所需积分 / 兑换比例。
+     * 订单直接落到 PAID——没有在线支付环节，也没有定金；不参与券、会员折扣与余额抵扣，
+     * 否则「兑换」与「抵现」两套语义会被混在一起。取消时由 doCancel 走 {@code #EXCHANGE_ROLLBACK} 退回积分。
+     */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public OrderVO exchange(Long memberId, Long storeId, PointsExchangeDTO dto) {
+        storeService.requireOpen(storeId);
+        OrderCheckDTO checkDTO = new OrderCheckDTO();
+        checkDTO.setStoreId(storeId);
+        checkDTO.setMemberId(memberId);
+        OrderCheckDTO.ItemDTO row = new OrderCheckDTO.ItemDTO();
+        row.setDishId(dto.getDishId());
+        row.setQuantity(dto.getQuantity() == null ? 1 : dto.getQuantity());
+        row.setSpecOptionIds(dto.getSpecOptionIds());
+        row.setAddonIds(dto.getAddonIds());
+        checkDTO.setItems(Collections.singletonList(row));
+        OrderCheckVO check = dishOrderService.check(checkDTO);
+        Dish dish = dishMapper.selectById(dto.getDishId());
+        if (dish == null || !storeId.equals(dish.getStoreId())) {
+            throw new BizException(ErrorCode.DISH_NOT_FOUND);
+        }
+        if (DishConverter.isPreorder(dish)) {
+            throw new BizException(ErrorCode.PARAM_INVALID, "预定菜暂不支持积分兑换");
+        }
+        BigDecimal amount = check.getTotalAmount();
+        if (amount.signum() <= 0) {
+            throw new BizException(ErrorCode.PARAM_INVALID, "兑换金额必须大于 0");
+        }
+        int points = pointsAccountService.pointsRequired(amount);
+        Map<Long, Integer> quantityByDish = new LinkedHashMap<>();
+        quantityByDish.put(dish.getId(), row.getQuantity());
+        List<Deduction> deductions = preDeduct(storeId, quantityByDish);
+        registerRollbackCompensation(deductions);
+        for (Deduction deduction : deductions) {
+            if (dishStockMapper.deduct(storeId, deduction.dishId, deduction.date, deduction.quantity) == 0) {
+                throw new BizException(ErrorCode.STOCK_NOT_ENOUGH, "并发下库存不足，请稍后重试");
+            }
+        }
+        LocalDate bizDate = LocalDate.now();
+        String code = generateCode(storeId, bizDate, OrderType.PICKUP);
+        TradeOrder order = new TradeOrder();
+        order.setOrderNo(generateOrderNo());
+        order.setStoreId(storeId);
+        order.setMemberId(memberId);
+        order.setOrderType(OrderType.PICKUP.name());
+        order.setStatus(OrderStatus.PAID.name());
+        order.setTotalAmount(amount);
+        order.setDiscountAmount(BigDecimal.ZERO.setScale(2));
+        order.setPointsAmount(amount);
+        order.setMemberDiscount(BigDecimal.ZERO.setScale(2));
+        order.setBalanceAmount(BigDecimal.ZERO.setScale(2));
+        order.setDepositAmount(BigDecimal.ZERO.setScale(2));
+        order.setPayAmount(BigDecimal.ZERO.setScale(2));
+        order.setPointsUsed(points);
+        order.setPickupCode(code);
+        order.setBizDate(bizDate);
+        order.setRemark("积分兑换，扣减 " + points + " 积分");
+        order.setPaidTime(LocalDateTime.now());
+        try {
+            tradeOrderMapper.insert(order);
+        } catch (DuplicateKeyException e) {
+            throw new BizException(ErrorCode.SYSTEM_ERROR, "取餐码冲突，请重试下单");
+        }
+        insertExchangeItems(order, check, dto.getSpecOptionIds(), dto.getAddonIds(),
+                loadImageOf(dish.getId()));
+        pointsAccountService.redeemForExchange(memberId, order.getOrderNo(), points);
+        writeLog(order, null, OrderStatus.PAID, OperatorType.MEMBER, memberId,
+                "积分兑换下单，扣减 " + points + " 积分");
+        publishStatus(order, null, OrderStatus.PAID);
+        log.info("积分兑换订单已创建: orderNo={}, dishId={}, amount={}, points={}",
+                order.getOrderNo(), dish.getId(), amount, points);
         return toVO(order);
     }
 
@@ -393,6 +487,8 @@ public class OrderServiceImpl implements OrderService {
         List<CartItem> cartItems = loadCartItems(memberId, storeId, dto.getItemIds());
         OrderCheckDTO checkDTO = new OrderCheckDTO();
         checkDTO.setStoreId(storeId);
+        // 会员价与「仅会员可购」判定在 DishOrderService 里，memberId 由服务端写入而不是前端传
+        checkDTO.setMemberId(memberId);
         List<OrderCheckDTO.ItemDTO> rows = new ArrayList<>();
         for (CartItem item : cartItems) {
             OrderCheckDTO.ItemDTO row = new OrderCheckDTO.ItemDTO();
@@ -432,11 +528,19 @@ public class OrderServiceImpl implements OrderService {
             selection.coupon = userCouponService.resolveForOrder(memberId, storeId,
                     dto.getUserCouponId(), check.getTotalAmount(), selection.dishAmounts);
         }
-        // 积分抵现排在券之后：先算券后金额，再按兑换比例算积分抵扣额，页面只回传用多少积分
-        BigDecimal afterDiscount = check.getTotalAmount().subtract(discountOf(selection));
+        // 会员折扣按商品总额算，独立于券；与不可叠加的券同单时「券优先」，折扣不生效而不是报错
+        selection.memberDiscountAmount = MemberDiscountCalculator.amountOf(check.getTotalAmount(),
+                pointsLevelService.discountRateOf(memberId));
+        resolveStackConflict(selection);
+        // 积分抵现排在券与会员折扣之后：先算券后并打折的金额，再按兑换比例算积分抵扣额
+        BigDecimal afterDiscount = check.getTotalAmount().subtract(discountOf(selection))
+                .subtract(selection.memberDiscountAmount);
         selection.pointsUsed = pointsAccountService.resolveUsePoints(memberId, dto.getUsePoints(),
                 afterDiscount);
         selection.pointsAmount = pointsAccountService.amountOf(selection.pointsUsed);
+        // 余额抵扣放在最后一段：只能抵掉前面三段之后剩下的应付额，且至少留 0.01 元给在线支付
+        selection.balanceDeductAmount = resolveBalanceDeduct(memberId, dto.getUseBalance(),
+                afterDiscount.subtract(selection.pointsAmount));
         return selection;
     }
 
@@ -459,6 +563,43 @@ public class OrderServiceImpl implements OrderService {
 
     private static BigDecimal discountOf(Selection selection) {
         return selection.coupon == null ? BigDecimal.ZERO : selection.coupon.getDiscountAmount();
+    }
+
+    /**
+     * 券与会员折扣的叠加规则：{@code coupon_template.stackable = 1} 才允许两者同时生效；
+     * 默认 0（不可同享）时**券优先、会员折扣置零**，不抛业务错误。
+     *
+     * <p>为什么不是报错：卡包里的券不按等级折扣过滤，选了券再被 30075 拦下会让顾客在任何折扣等级上
+     * 都用不了历史券（M5 建模板时 stackable 一律落 0）。「券优先」既保住券的可用性，
+     * 也让 stackable 成为「能否叠加」的开关，页面从 preview 的 memberDiscountAmount=0 就能看出结果。</p>
+     */
+    private static void resolveStackConflict(Selection selection) {
+        if (selection.coupon == null || selection.memberDiscountAmount.signum() <= 0) {
+            return;
+        }
+        Integer stackable = selection.coupon.getStackable();
+        if (stackable == null || stackable != 1) {
+            selection.memberDiscountAmount = BigDecimal.ZERO.setScale(2);
+        }
+    }
+
+    /**
+     * 余额抵扣额：{@code min(可用余额, 剩余应付 − 0.01)}，剩余应付不足 0.01 元时为 0。
+     * 页面的「使用余额」只是开关，金额全部由服务端算，避免前端传一个夸大金额再来回退。
+     */
+    private BigDecimal resolveBalanceDeduct(Long memberId, Boolean useBalance, BigDecimal remaining) {
+        if (!Boolean.TRUE.equals(useBalance) || remaining == null) {
+            return BigDecimal.ZERO.setScale(2);
+        }
+        BigDecimal limit = remaining.subtract(MIN_ONLINE_PAY_AMOUNT);
+        if (limit.signum() <= 0) {
+            return BigDecimal.ZERO.setScale(2);
+        }
+        BigDecimal available = balanceService.availableOf(memberId);
+        if (available.signum() <= 0) {
+            return BigDecimal.ZERO.setScale(2);
+        }
+        return OrderAmountCalculator.scale(available.min(limit));
     }
 
     /**
@@ -658,6 +799,48 @@ public class OrderServiceImpl implements OrderService {
         }
     }
 
+    /**
+     * 兑换单只有一行（一道菜），规格 / 加料的展示文案按提交的 ID 反查，与普通下单同口径。
+     */
+    private void insertExchangeItems(TradeOrder order, OrderCheckVO check,
+                                     List<Long> specOptionIds, List<Long> addonIds, String objectKey) {
+        String specDesc = describeOptions(specOptionIds == null
+                ? Collections.emptyList() : specOptionIds);
+        String addonDesc = describeAddons(addonIds == null ? Collections.emptyList() : addonIds);
+        for (OrderCheckVO.ItemVO row : check.getItems()) {
+            OrderItem item = new OrderItem();
+            item.setOrderId(order.getId());
+            item.setDishId(row.getDishId());
+            item.setDishName(row.getDishName());
+            item.setSpecDesc(specDesc);
+            item.setAddonDesc(addonDesc);
+            item.setPrice(row.getUnitPrice());
+            item.setQuantity(row.getQuantity());
+            item.setAmount(row.getAmount());
+            item.setObjectKey(objectKey == null ? "" : objectKey);
+            orderItemMapper.insert(item);
+        }
+    }
+
+    /**
+     * 菜品列表图：优先 LIST，其次 THUMB，都没有返回空串（与下单快照同口径）。
+     */
+    private String loadImageOf(Long dishId) {
+        List<DishImage> images = dishImageMapper.selectList(new LambdaQueryWrapper<DishImage>()
+                .eq(DishImage::getDishId, dishId));
+        for (DishImage image : images) {
+            if (IMAGE_TYPE_LIST.equals(image.getImageType())) {
+                return image.getObjectKey();
+            }
+        }
+        for (DishImage image : images) {
+            if (IMAGE_TYPE_THUMB.equals(image.getImageType())) {
+                return image.getObjectKey();
+            }
+        }
+        return "";
+    }
+
     private void writeLog(TradeOrder order, OrderStatus from, OrderStatus to,
                           OperatorType operatorType, Long operatorId, String remark) {
         OrderStatusLog logRecord = new OrderStatusLog();
@@ -685,6 +868,10 @@ public class OrderServiceImpl implements OrderService {
         userCouponService.releaseForOrder(order.getCouponId(), order.getId());
         // 积分抵现同样要退回：只回滚仍处于冻结状态的流水，已转实扣的订单不可取消
         pointsAccountService.rollbackForOrder(order.getMemberId(), order.getOrderNo());
+        // 储值余额抵扣退回：幂等键 {orderNo}#ROLLBACK，重复取消不会重复加钱
+        balanceService.rollbackForOrder(order.getMemberId(), order.getOrderNo());
+        // 积分兑换单退回积分：普通订单没有 EXCHANGE 流水，这里直接 no-op
+        pointsAccountService.rollbackExchange(order.getMemberId(), order.getOrderNo());
         publishStatus(order, from, OrderStatus.CANCELLED);
         return true;
     }
@@ -965,10 +1152,10 @@ public class OrderServiceImpl implements OrderService {
 
         private BigDecimal pointsAmount = BigDecimal.ZERO;
 
-        /** B3 接会员价与等级折扣后由服务端算；B1 底座阶段恒为 0，不参与页面传值。 */
+        /** 会员折扣，按商品总额 × (1 − 等级折扣率) 由服务端算。 */
         private BigDecimal memberDiscountAmount = BigDecimal.ZERO;
 
-        /** B3 接储值组合支付后按可用余额算；B1 底座阶段恒为 0。 */
+        /** 储值余额抵扣，按可用余额与剩余应付额由服务端算。 */
         private BigDecimal balanceDeductAmount = BigDecimal.ZERO;
     }
 

@@ -18,6 +18,12 @@ public final class PointsBizType {
 
     public static final String PROFILE = "PROFILE";
 
+    /**
+     * 积分兑换菜品。与 ORDER 的积分抵现（REDEEM）刻意分开：
+     * 抵现是「少付现金」，兑换是「整单用积分结算」，统计与回滚口径都不同。
+     */
+    public static final String EXCHANGE = "EXCHANGE";
+
     private PointsBizType() {
     }
 }

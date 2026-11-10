@@ -28,6 +28,7 @@ const memberTotal = ref(0);
 const memberCurrent = ref(1);
 const memberSize = ref(10);
 const keyword = ref('');
+const tagFilter = ref('');
 const records = ref<PointsRecordItem[]>([]);
 const recordTotal = ref(0);
 const recordCurrent = ref(1);
@@ -90,6 +91,7 @@ const loadMembers = async (): Promise<void> => {
       current: memberCurrent.value,
       size: memberSize.value,
       keyword: keyword.value,
+      tagCode: tagFilter.value,
     });
     members.value = page.records;
     memberTotal.value = page.total;
@@ -164,6 +166,25 @@ const submitLevel = async (): Promise<void> => {
   }
 };
 
+const onRefreshTag = async (): Promise<void> => {
+  try {
+    await ElMessageBox.confirm(
+      '将立即按沉睡阈值刷新一次会员标签（与每日 00:30 任务同一条链路），重复执行只统计实际变化。',
+      '刷新沉睡标签',
+      { type: 'warning' },
+    );
+  } catch {
+    return;
+  }
+  try {
+    const changed = await pointsApi.refreshTag();
+    ElMessage.success(`本次打标 / 摘标共 ${changed} 条`);
+    await loadMembers();
+  } catch (error) {
+    ElMessage.error(errorMessage(error, '标签刷新失败'));
+  }
+};
+
 const onRunExpire = async (): Promise<void> => {
   try {
     await ElMessageBox.confirm('将立即执行一次积分过期批处理，与每日 00:05 任务同一条链路。', '执行积分过期', {
@@ -225,7 +246,7 @@ onMounted(async () => {
               </template>
             </el-table-column>
           </el-table>
-          <p class="hint">折扣率当前只作权益展示，未参与订单金额计算；等级在订单完成后自动结算。</p>
+          <p class="hint">折扣率自 M14 B3 起参与订单金额计算（落 trade_order.member_discount，不折进券抵扣）；等级在订单完成后自动结算，只升不降。</p>
         </el-tab-pane>
 
         <el-tab-pane label="会员积分" name="members">
@@ -237,13 +258,26 @@ onMounted(async () => {
               clearable
               @keyup.enter="onQueryMember"
             />
+            <el-select v-model="tagFilter" class="status-select" @change="onQueryMember">
+              <el-option label="全部会员" value="" />
+              <el-option label="沉睡会员" value="SLEEPING" />
+            </el-select>
             <el-button type="primary" @click="onQueryMember">查询</el-button>
+            <el-button @click="onRefreshTag">刷新沉睡标签</el-button>
             <span class="muted">共 {{ memberTotal }} 名会员</span>
           </div>
           <el-table :data="members" border empty-text="暂无会员">
             <el-table-column prop="nickname" label="昵称" min-width="140" />
             <el-table-column prop="phoneMasked" label="手机号" width="150" />
             <el-table-column prop="levelName" label="等级" width="120" />
+            <el-table-column label="标签" min-width="140">
+              <template #default="{ row }">
+                <el-tag v-for="tag in row.tags" :key="tag" size="small" type="warning" class="tag-item">
+                  {{ tag }}
+                </el-tag>
+                <span v-if="!row.tags || row.tags.length === 0" class="muted">—</span>
+              </template>
+            </el-table-column>
             <el-table-column prop="balance" label="可用积分" width="110" />
             <el-table-column prop="totalEarned" label="累计获得" width="110" />
             <el-table-column prop="totalUsed" label="累计使用" width="110" />
@@ -370,6 +404,14 @@ onMounted(async () => {
 
 .keyword-input {
   width: 240px;
+}
+
+.status-select {
+  width: 160px;
+}
+
+.tag-item {
+  margin-right: 6px;
 }
 
 .muted {

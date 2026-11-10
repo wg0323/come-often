@@ -50,6 +50,19 @@ public class PointsLevelServiceImpl implements PointsLevelService {
     private final TradeOrderMapper tradeOrderMapper;
 
     @Override
+    public BigDecimal discountRateOf(Long memberId) {
+        if (memberId == null) {
+            return BigDecimal.ONE;
+        }
+        Member member = memberMapper.selectById(memberId);
+        MemberLevel level = resolveCurrent(member, loadLevels());
+        if (level == null || level.getDiscountRate() == null) {
+            return BigDecimal.ONE;
+        }
+        return level.getDiscountRate();
+    }
+
+    @Override
     public MemberLevelOverviewVO overview(Long memberId) {
         List<MemberLevel> levels = loadLevels();
         Member member = memberMapper.selectById(memberId);

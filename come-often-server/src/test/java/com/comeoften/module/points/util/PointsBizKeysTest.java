@@ -38,4 +38,14 @@ class PointsBizKeysTest {
     void should_build_review_key_from_review_id() {
         assertThat(PointsBizKeys.review(88L)).isEqualTo("88");
     }
+
+    @Test
+    void should_keep_exchange_keys_distinct_from_order_redeem() {
+        String exchange = PointsBizKeys.exchange("CO20261110090000ABCDEF");
+        String rollback = PointsBizKeys.exchangeRollback("CO20261110090000ABCDEF");
+        assertThat(exchange).isEqualTo("CO20261110090000ABCDEF#EXCHANGE");
+        assertThat(rollback).isEqualTo("CO20261110090000ABCDEF#EXCHANGE_ROLLBACK");
+        assertThat(exchange).isNotEqualTo(rollback);
+        assertThat(exchange).isNotEqualTo(PointsBizKeys.orderRedeem("CO20261110090000ABCDEF"));
+    }
 }

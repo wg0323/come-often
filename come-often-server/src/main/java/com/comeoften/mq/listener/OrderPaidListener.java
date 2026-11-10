@@ -2,6 +2,7 @@ package com.comeoften.mq.listener;
 
 import com.comeoften.common.OrderKeys;
 import com.comeoften.module.coupon.service.CouponGrantService;
+import com.comeoften.module.coupon.service.CouponRuleService;
 import com.comeoften.module.points.service.PointsAccountService;
 import com.comeoften.mq.RabbitConst;
 import com.comeoften.mq.message.OrderEventMessage;
@@ -30,6 +31,8 @@ public class OrderPaidListener {
 
     private final CouponGrantService couponGrantService;
 
+    private final CouponRuleService couponRuleService;
+
     private final PointsAccountService pointsAccountService;
 
     private final StringRedisTemplate stringRedisTemplate;
@@ -53,6 +56,9 @@ public class OrderPaidListener {
             // 新人券：同一会员同一模板只发一次，非首单直接返回 0
             couponGrantService.grantNewcomerIfFirstPaidOrder(message.getMemberId(),
                     message.getStoreId(), message.getOrderId());
+            // 规则化新客券：与上面的配置型新人券并存，谁先发到同一模板，另一条按次数与幂等键跳过
+            couponRuleService.onFirstPaidOrder(message.getMemberId(), message.getStoreId(),
+                    message.getOrderId());
             // 积分抵现：冻结转实扣，未用积分或已处理的订单直接返回
             pointsAccountService.confirmUseForOrder(message.getMemberId(), message.getOrderNo());
             log.info("支付成功事件处理完成: orderNo={}, messageId={}",

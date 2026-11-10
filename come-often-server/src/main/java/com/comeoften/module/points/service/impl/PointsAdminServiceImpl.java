@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.comeoften.common.PageResult;
 import com.comeoften.module.auth.entity.Member;
 import com.comeoften.module.auth.mapper.MemberMapper;
+import com.comeoften.module.member.service.MemberTagService;
 import com.comeoften.module.points.converter.PointsConverter;
 import com.comeoften.module.points.entity.MemberLevel;
 import com.comeoften.module.points.entity.PointsAccount;
@@ -44,10 +45,27 @@ public class PointsAdminServiceImpl implements PointsAdminService {
 
     private final MemberLevelMapper memberLevelMapper;
 
+    private final MemberTagService memberTagService;
+
+    /** 标签筛选一次最多取多少会员；一期单店规模远小于该值。 */
+    private static final int TAG_FILTER_LIMIT = 1000;
+
     @Override
     public PageResult<PointsMemberVO> memberPage(Long current, Long size, String keyword) {
+        return memberPage(current, size, keyword, null);
+    }
+
+    @Override
+    public PageResult<PointsMemberVO> memberPage(Long current, Long size, String keyword,
+                                                 String tagCode) {
+        List<Long> taggedMemberIds = StringUtils.hasText(tagCode)
+                ? memberTagService.memberIdsByTag(tagCode, TAG_FILTER_LIMIT) : null;
+        if (taggedMemberIds != null && taggedMemberIds.isEmpty()) {
+            return PageResult.of(0L, current, size, Collections.emptyList());
+        }
         IPage<Member> page = memberMapper.selectPage(new Page<>(current, size),
                 new LambdaQueryWrapper<Member>()
+                        .in(taggedMemberIds != null, Member::getId, taggedMemberIds)
                         .and(StringUtils.hasText(keyword), wrapper -> wrapper
                                 .like(Member::getNickname, keyword)
                                 .or().like(Member::getPhone, keyword))
@@ -63,9 +81,14 @@ public class PointsAdminServiceImpl implements PointsAdminService {
                 .stream().collect(Collectors.toMap(PointsAccount::getMemberId, Function.identity(),
                         (left, right) -> left));
         Map<Long, MemberLevel> levelMap = loadLevelMap(members);
+        Map<Long, List<String>> tagMap = memberTagService.tagNamesOf(memberIds);
         List<PointsMemberVO> records = members.stream()
-                .map(member -> PointsConverter.toMemberVO(member, accountMap.get(member.getId()),
-                        levelMap.get(member.getLevelId())))
+                .map(member -> {
+                    PointsMemberVO vo = PointsConverter.toMemberVO(member,
+                            accountMap.get(member.getId()), levelMap.get(member.getLevelId()));
+                    vo.setTags(tagMap.getOrDefault(member.getId(), Collections.emptyList()));
+                    return vo;
+                })
                 .collect(Collectors.toList());
         return PageResult.of(page.getTotal(), page.getCurrent(), page.getSize(), records);
     }

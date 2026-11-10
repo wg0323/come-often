@@ -22,6 +22,10 @@ public class OrderCheckDTO implements Serializable {
     @Schema(description = "门店 ID，为空回退到当前唯一门店")
     private Long storeId;
 
+    @Schema(description = "会员 ID，由服务端按登录态写入，前端不传；非空时才应用会员价",
+            hidden = true)
+    private Long memberId;
+
     @NotEmpty(message = "校验菜品不能为空")
     @Valid
     @Schema(description = "待校验菜品", requiredMode = Schema.RequiredMode.REQUIRED)

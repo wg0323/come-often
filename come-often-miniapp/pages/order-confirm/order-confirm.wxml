@@ -9,6 +9,8 @@
     <view class="amount-row"><text>商品总额</text><text>¥{{preview.totalAmount}}</text></view>
     <view wx:if="{{preview.discountAmount > 0}}" class="amount-row"><text>券抵扣</text><text>-¥{{preview.discountAmount}}</text></view>
     <view wx:if="{{preview.pointsAmount > 0}}" class="amount-row"><text>积分抵现（{{preview.pointsUsed}} 分）</text><text>-¥{{preview.pointsAmount}}</text></view>
+    <view wx:if="{{preview.memberDiscountAmount > 0}}" class="amount-row"><text>会员折扣</text><text>-¥{{preview.memberDiscountAmount}}</text></view>
+    <view wx:if="{{preview.balanceDeductAmount > 0}}" class="amount-row"><text>储值余额抵扣</text><text>-¥{{preview.balanceDeductAmount}}</text></view>
     <view wx:if="{{preview.containsPreorder}}" class="amount-row"><text>定金（整单内抵扣，不退）</text><text>¥{{preview.depositAmount}}</text></view>
     <view class="amount-row amount-row--strong"><text>实付金额</text><text>¥{{preview.payAmount}}</text></view>
     <view wx:if="{{preview.containsPreorder}}" class="amount-row"><text>到店待付尾款</text><text>¥{{preview.balanceAmount}}</text></view>
@@ -40,6 +42,15 @@
       <switch checked="{{usePointsEnabled}}" bindchange="onPointsToggle" />
     </view>
     <text class="coupon-tip">{{preview.pointsExchangeRate}} 积分抵 ¥1，抵现后订单至少保留 ¥0.01</text>
+  </view>
+
+  <view wx:if="{{preview.balanceAvailable > 0}}" class="form-card">
+    <text class="card-title">储值余额</text>
+    <view class="switch-row">
+      <text>可用 ¥{{preview.balanceAvailable}}，本单抵扣 ¥{{preview.balanceDeductAmount}}</text>
+      <switch checked="{{useBalanceEnabled}}" bindchange="onBalanceToggle" />
+    </view>
+    <text class="coupon-tip">余额抵扣后仍需在线支付至少 ¥0.01，抵扣金额由服务端计算</text>
   </view>
 
   <view wx:if="{{preview.containsPreorder}}" class="preorder-card">

@@ -38,6 +38,12 @@ public class DishSaveDTO implements Serializable {
     @Schema(description = "售价，单位元", requiredMode = Schema.RequiredMode.REQUIRED, example = "28.00")
     private BigDecimal price;
 
+    @Schema(description = "会员价，单位元；为空表示不设会员价，不能高于售价", example = "25.00")
+    private BigDecimal memberPrice;
+
+    @Schema(description = "是否仅会员可购；默认 false", example = "false")
+    private Boolean memberOnly;
+
     @Schema(description = "划线价，单位元")
     private BigDecimal originalPrice;
 

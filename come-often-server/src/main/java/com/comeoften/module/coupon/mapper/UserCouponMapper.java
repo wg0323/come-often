@@ -48,4 +48,10 @@ public interface UserCouponMapper extends BaseMapper<UserCoupon> {
     @Select("SELECT COUNT(*) FROM user_coupon WHERE member_id = #{memberId} "
             + "AND template_id = #{templateId} AND is_deleted = 0")
     Long countByMemberAndTemplate(@Param("memberId") Long memberId, @Param("templateId") Long templateId);
+
+    /**
+     * 规则发券幂等判据：uk_grant_biz_id 唯一索引，手动领券该列为 NULL 不参与。
+     */
+    @Select("SELECT COUNT(*) FROM user_coupon WHERE grant_biz_id = #{grantBizId}")
+    Long countByGrantBizId(@Param("grantBizId") String grantBizId);
 }

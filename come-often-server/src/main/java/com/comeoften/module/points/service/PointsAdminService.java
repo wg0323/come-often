@@ -15,6 +15,11 @@ public interface PointsAdminService {
     PageResult<PointsMemberVO> memberPage(Long current, Long size, String keyword);
 
     /**
+     * 按会员标签筛选（如 SLEEPING），tagCode 为空时不加条件。
+     */
+    PageResult<PointsMemberVO> memberPage(Long current, Long size, String keyword, String tagCode);
+
+    /**
      * 指定会员的积分流水分页；memberId 为空时查全店流水。
      */
     PageResult<PointsRecordVO> recordPage(Long memberId, Long current, Long size);

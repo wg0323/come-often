@@ -4,10 +4,13 @@ import com.comeoften.common.PageResult;
 import com.comeoften.common.Result;
 import com.comeoften.module.coupon.constant.VerifyChannel;
 import com.comeoften.module.coupon.dto.CouponGrantDTO;
+import com.comeoften.module.coupon.dto.CouponGrantRuleSaveDTO;
 import com.comeoften.module.coupon.dto.CouponTemplateSaveDTO;
 import com.comeoften.module.coupon.dto.CouponVerifyDTO;
 import com.comeoften.module.coupon.service.CouponAdminService;
+import com.comeoften.module.coupon.service.CouponRuleService;
 import com.comeoften.module.coupon.service.CouponVerifyService;
+import com.comeoften.module.coupon.vo.CouponGrantRuleVO;
 import com.comeoften.module.coupon.vo.CouponRoiVO;
 import com.comeoften.module.coupon.vo.CouponTemplateVO;
 import com.comeoften.module.coupon.vo.CouponUseRecordVO;
@@ -44,6 +47,8 @@ public class CouponAdminController {
     private final CouponAdminService couponAdminService;
 
     private final CouponVerifyService couponVerifyService;
+
+    private final CouponRuleService couponRuleService;
 
     @Operation(summary = "券模板分页", description = "按名称模糊与状态过滤")
     @ApiResponse(responseCode = "200", description = "返回分页结果")
@@ -134,6 +139,47 @@ public class CouponAdminController {
     public Result<List<CouponRoiVO>> roi(
             @Parameter(description = "券模板 ID；不传返回全部") @RequestParam(required = false) Long templateId) {
         return Result.ok(couponAdminService.roi(LoginUserHolder.getRequired().getStoreId(), templateId));
+    }
+
+    @Operation(summary = "券发放规则列表", description = "新客 / 生日 / 复购 / 沉睡唤醒四条规则的配置与开关")
+    @ApiResponse(responseCode = "200", description = "返回规则列表")
+    @RequirePerm("coupon:manage")
+    @GetMapping("/rule")
+    public Result<List<CouponGrantRuleVO>> ruleList() {
+        return Result.ok(couponRuleService.list(LoginUserHolder.getRequired().getStoreId()));
+    }
+
+    @Operation(summary = "保存券发放规则",
+            description = "ruleCode 同门店唯一，重复提交即编辑；ruleType 不合法或复购阈值小于 2 返回 10001，"
+                    + "券模板不属于本店返回 30022")
+    @ApiResponse(responseCode = "200", description = "返回保存后的规则")
+    @RequirePerm("coupon:manage")
+    @PostMapping("/rule")
+    public Result<CouponGrantRuleVO> saveRule(@Valid @RequestBody CouponGrantRuleSaveDTO dto) {
+        return Result.ok(couponRuleService.save(LoginUserHolder.getRequired().getStoreId(), dto));
+    }
+
+    @Operation(summary = "启用 / 停用券发放规则")
+    @ApiResponse(responseCode = "200", description = "返回更新后的规则")
+    @RequirePerm("coupon:manage")
+    @PostMapping("/rule/{ruleId}/status")
+    public Result<CouponGrantRuleVO> updateRuleStatus(
+            @Parameter(description = "规则 ID", required = true) @PathVariable Long ruleId,
+            @Parameter(description = "是否启用", required = true) @RequestParam Boolean enabled) {
+        return Result.ok(couponRuleService.setEnabled(LoginUserHolder.getRequired().getStoreId(),
+                ruleId, enabled));
+    }
+
+    @Operation(summary = "手动执行券发放规则",
+            description = "只对 BIRTHDAY / SLEEPING 有效（新客与复购由支付 / 完成事件驱动，返回 0）；"
+                    + "与每日 00:40 的 coupon-rule 任务同一条链路，重复执行不重复发券")
+    @ApiResponse(responseCode = "200", description = "返回本次发出的券张数")
+    @RequirePerm("coupon:manage")
+    @PostMapping("/rule/run")
+    public Result<Integer> runRule(
+            @Parameter(description = "触发类型：BIRTHDAY / SLEEPING", required = true)
+            @RequestParam String ruleType) {
+        return Result.ok(couponRuleService.run(LoginUserHolder.getRequired().getStoreId(), ruleType));
     }
 
     @Operation(summary = "补发券过期提醒", description = "运维 / 验收用：发一条短延迟消息验证延迟链路与消费者")

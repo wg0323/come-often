@@ -83,6 +83,21 @@ class PointsAmountCalculatorTest {
     }
 
     @Test
+    void should_round_up_required_points_when_exchanging_dish() {
+        // 12.34 × 100 = 1234 分，正好整数；12.345 不能出现（金额两位小数），这里锁向上取整的方向
+        assertThat(PointsAmountCalculator.pointsFor(new BigDecimal("12.34"), EXCHANGE_RATE))
+                .isEqualTo(1234);
+        assertThat(PointsAmountCalculator.pointsFor(new BigDecimal("0.005"), EXCHANGE_RATE))
+                .isEqualTo(1);
+    }
+
+    @Test
+    void should_require_no_points_when_exchange_amount_is_not_positive() {
+        assertThat(PointsAmountCalculator.pointsFor(BigDecimal.ZERO, EXCHANGE_RATE)).isZero();
+        assertThat(PointsAmountCalculator.pointsFor(null, EXCHANGE_RATE)).isZero();
+    }
+
+    @Test
     void should_earn_one_point_per_yuan_when_rate_is_one() {
         assertThat(PointsAmountCalculator.earnPoints(new BigDecimal("136.80"), 1)).isEqualTo(136);
     }

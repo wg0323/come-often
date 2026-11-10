@@ -2,7 +2,15 @@
 import { computed, nextTick, onMounted, ref } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { COUPON_TYPES, couponApi } from '@/api/coupon';
-import type { CouponRoiItem, CouponTemplateItem, CouponTemplatePayload, CouponUseRecordItem, CouponVerifyResult } from '@/api/coupon';
+import type {
+  CouponRoiItem,
+  CouponRuleItem,
+  CouponRulePayload,
+  CouponTemplateItem,
+  CouponTemplatePayload,
+  CouponUseRecordItem,
+  CouponVerifyResult,
+} from '@/api/coupon';
 import { dishApi } from '@/api/dish';
 import type { DishListItem } from '@/api/dish';
 
@@ -59,6 +67,24 @@ const recordTotal = ref(0);
 const recordCurrent = ref(1);
 const recordSize = ref(10);
 const rois = ref<CouponRoiItem[]>([]);
+const RULE_TYPES = [
+  { value: 'NEW_MEMBER', label: '新客券', desc: '首单支付成功后发放' },
+  { value: 'BIRTHDAY', label: '生日券', desc: '每年生日当天发放，每日 00:40 任务执行' },
+  { value: 'REPEAT_PURCHASE', label: '复购券', desc: '累计支付单数达标后发放' },
+  { value: 'SLEEPING', label: '沉睡唤醒券', desc: '按沉睡标签发放，每自然月一次' },
+];
+const rules = ref<CouponRuleItem[]>([]);
+const ruleVisible = ref(false);
+const ruleForm = ref<CouponRulePayload>({
+  ruleCode: '',
+  ruleName: '',
+  ruleType: 'BIRTHDAY',
+  couponTemplateId: '',
+  triggerValue: 0,
+  maxPerMember: 1,
+  enabled: false,
+  remark: '',
+});
 const dishes = ref<DishListItem[]>([]);
 const formVisible = ref(false);
 const form = ref<TemplateForm>(emptyForm());
@@ -304,11 +330,92 @@ const confirmDisable = async (row: CouponTemplateItem): Promise<void> => {
   await switchStatus(row, 2);
 };
 
+const loadRules = async (): Promise<void> => {
+  try {
+    rules.value = await couponApi.rules();
+  } catch (error) {
+    ElMessage.error(errorMessage(error, '券发放规则加载失败'));
+  }
+};
+
+const openRuleCreate = (): void => {
+  ruleForm.value = {
+    ruleCode: '',
+    ruleName: '',
+    ruleType: 'BIRTHDAY',
+    couponTemplateId: '',
+    triggerValue: 0,
+    maxPerMember: 1,
+    enabled: false,
+    remark: '',
+  };
+  ruleVisible.value = true;
+};
+
+const openRuleEdit = (row: CouponRuleItem): void => {
+  ruleForm.value = {
+    ruleCode: row.ruleCode,
+    ruleName: row.ruleName,
+    ruleType: row.ruleType,
+    couponTemplateId: row.couponTemplateId,
+    triggerValue: row.triggerValue,
+    maxPerMember: row.maxPerMember,
+    enabled: row.isEnabled === 1,
+    remark: row.remark,
+  };
+  ruleVisible.value = true;
+};
+
+const submitRule = async (): Promise<void> => {
+  if (!ruleForm.value.ruleCode || !ruleForm.value.ruleName || !ruleForm.value.couponTemplateId) {
+    ElMessage.warning('规则编码、名称与券模板都不能为空');
+    return;
+  }
+  try {
+    await couponApi.saveRule(ruleForm.value);
+    ElMessage.success('券发放规则已保存');
+    ruleVisible.value = false;
+    await loadRules();
+  } catch (error) {
+    ElMessage.error(errorMessage(error, '券发放规则保存失败'));
+  }
+};
+
+const toggleRule = async (row: CouponRuleItem): Promise<void> => {
+  try {
+    await couponApi.updateRuleStatus(row.id, row.isEnabled !== 1);
+    ElMessage.success(row.isEnabled === 1 ? '规则已停用' : '规则已启用');
+    await loadRules();
+  } catch (error) {
+    ElMessage.error(errorMessage(error, '规则状态切换失败'));
+  }
+};
+
+const runRule = async (ruleType: string): Promise<void> => {
+  try {
+    await ElMessageBox.confirm(
+      '将立即执行一次该规则（与每日 00:40 任务同一条链路），已有幂等键的会员不会重复发券。',
+      '执行券发放规则',
+      { type: 'warning' },
+    );
+  } catch {
+    return;
+  }
+  try {
+    const granted = await couponApi.runRule(ruleType);
+    ElMessage.success(`本次发出 ${granted} 张券`);
+    await loadRules();
+  } catch (error) {
+    ElMessage.error(errorMessage(error, '规则执行失败'));
+  }
+};
+
 onMounted(async () => {
   await loadTemplates();
   await loadDishes();
   await loadRecords();
   await loadRoi();
+  await loadRules();
   await nextTick();
   verifyInput.value?.focus();
 });
@@ -417,6 +524,39 @@ onMounted(async () => {
           />
         </el-tab-pane>
 
+        <el-tab-pane label="发放规则" name="rules">
+          <div class="toolbar">
+            <el-button type="primary" @click="openRuleCreate">新建规则</el-button>
+            <el-button @click="loadRules">刷新</el-button>
+            <el-button @click="runRule('BIRTHDAY')">执行生日券</el-button>
+            <el-button @click="runRule('SLEEPING')">执行沉睡唤醒</el-button>
+            <span class="muted">新客券与复购券由支付 / 订单完成事件触发，无需手动执行</span>
+          </div>
+          <el-table :data="rules" border empty-text="暂无发放规则">
+            <el-table-column prop="ruleName" label="规则名称" min-width="140" />
+            <el-table-column prop="ruleCode" label="编码" width="150" />
+            <el-table-column prop="ruleTypeText" label="类型" width="110" />
+            <el-table-column prop="templateName" label="发放券模板" min-width="160" />
+            <el-table-column prop="triggerValue" label="阈值" width="90" />
+            <el-table-column prop="maxPerMember" label="每会员上限" width="110" />
+            <el-table-column prop="periodText" label="口径" min-width="240" />
+            <el-table-column label="启用" width="90">
+              <template #default="{ row }">
+                <el-switch :model-value="row.isEnabled === 1" @update:model-value="() => toggleRule(row)" />
+              </template>
+            </el-table-column>
+            <el-table-column label="操作" width="90" fixed="right">
+              <template #default="{ row }">
+                <el-button link type="primary" @click="openRuleEdit(row)">编辑</el-button>
+              </template>
+            </el-table-column>
+          </el-table>
+          <p class="note">
+            幂等键：生日按自然年、沉睡唤醒按自然月、新客一次性、复购按订单，统一落 user_coupon.grant_biz_id。
+            模板不是「发放中」时该规则整轮跳过并打日志。
+          </p>
+        </el-tab-pane>
+
         <el-tab-pane label="券 ROI" name="roi">
           <div class="toolbar">
             <el-button @click="loadRoi">刷新</el-button>
@@ -487,6 +627,49 @@ onMounted(async () => {
       <template #footer>
         <el-button @click="formVisible = false">取消</el-button>
         <el-button type="primary" :loading="loading" @click="submitForm">保存</el-button>
+      </template>
+    </el-dialog>
+
+    <el-dialog v-model="ruleVisible" title="券发放规则" width="520px">
+      <el-form label-width="120px">
+        <el-form-item label="规则编码">
+          <el-input v-model="ruleForm.ruleCode" placeholder="如 BIRTHDAY_2026（大写字母 / 数字 / 下划线）" />
+        </el-form-item>
+        <el-form-item label="规则名称">
+          <el-input v-model="ruleForm.ruleName" placeholder="如 生日赠券" />
+        </el-form-item>
+        <el-form-item label="触发类型">
+          <el-select v-model="ruleForm.ruleType">
+            <el-option v-for="item in RULE_TYPES" :key="item.value" :label="item.label" :value="item.value" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="券模板">
+          <el-select v-model="ruleForm.couponTemplateId" placeholder="选择发放的券模板">
+            <el-option
+              v-for="item in templates"
+              :key="item.id"
+              :label="`${item.templateName}（${item.statusText}）`"
+              :value="item.id"
+            />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="阈值">
+          <el-input-number v-model="ruleForm.triggerValue" :min="0" :step="1" />
+        </el-form-item>
+        <el-form-item label="每会员上限">
+          <el-input-number v-model="ruleForm.maxPerMember" :min="1" :step="1" />
+        </el-form-item>
+        <el-form-item label="启用">
+          <el-switch v-model="ruleForm.enabled" />
+        </el-form-item>
+        <el-form-item label="说明">
+          <el-input v-model="ruleForm.remark" type="textarea" :rows="2" />
+        </el-form-item>
+      </el-form>
+      <p class="note">阈值：复购券为「累计支付单数」（至少 2），沉睡唤醒券为「无支付天数」（留 0 取配置阈值）。</p>
+      <template #footer>
+        <el-button @click="ruleVisible = false">取消</el-button>
+        <el-button type="primary" @click="submitRule">保存</el-button>
       </template>
     </el-dialog>
 

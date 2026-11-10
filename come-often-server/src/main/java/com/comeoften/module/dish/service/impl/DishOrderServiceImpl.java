@@ -65,12 +65,16 @@ public class DishOrderServiceImpl implements DishOrderService {
         }
         int quantity = normalizeQuantity(dto.getQuantity());
         Additions additions = resolveAdditions(dish, dto.getSpecOptionIds(), dto.getAddonIds());
-        BigDecimal unitPrice = DishPriceCalculator.quote(dish.getPrice(),
+        boolean memberPriceApplied = memberPriceApplied(dish, dto.getMemberId());
+        BigDecimal basePrice = memberPriceApplied ? dish.getMemberPrice() : dish.getPrice();
+        BigDecimal unitPrice = DishPriceCalculator.quote(basePrice,
                 additions.specDeltas, additions.addonDeltas, 1);
         DishQuoteVO vo = new DishQuoteVO();
         vo.setDishId(dish.getId());
         vo.setDishName(dish.getDishName());
-        vo.setBasePrice(dish.getPrice());
+        vo.setBasePrice(basePrice);
+        vo.setMemberPrice(dish.getMemberPrice());
+        vo.setMemberPriceApplied(memberPriceApplied);
         vo.setSpecAmount(additions.specAmount);
         vo.setAddonAmount(additions.addonAmount);
         vo.setUnitPrice(unitPrice);
@@ -100,7 +104,9 @@ public class DishOrderServiceImpl implements DishOrderService {
             int quantity = normalizeQuantity(item.getQuantity());
             Dish dish = requireDish(item.getDishId(), dto.getStoreId());
             Additions additions = resolveAdditions(dish, item.getSpecOptionIds(), item.getAddonIds());
-            BigDecimal unitPrice = DishPriceCalculator.quote(dish.getPrice(),
+            boolean memberPriceApplied = memberPriceApplied(dish, dto.getMemberId());
+            BigDecimal basePrice = memberPriceApplied ? dish.getMemberPrice() : dish.getPrice();
+            BigDecimal unitPrice = DishPriceCalculator.quote(basePrice,
                     additions.specDeltas, additions.addonDeltas, 1);
             BigDecimal amount = unitPrice.multiply(BigDecimal.valueOf(quantity))
                     .setScale(SCALE, RoundingMode.HALF_UP);
@@ -110,6 +116,7 @@ public class DishOrderServiceImpl implements DishOrderService {
             row.setQuantity(quantity);
             row.setUnitPrice(unitPrice);
             row.setAmount(amount);
+            row.setMemberPriceApplied(memberPriceApplied);
             rows.add(row);
             totalAmount = totalAmount.add(amount);
             preorder = preorder || DishConverter.isPreorder(dish);
@@ -138,6 +145,17 @@ public class DishOrderServiceImpl implements DishOrderService {
         if (stock != null && stock.getRemain() < quantity) {
             throw new BizException(ErrorCode.DISH_SOLD_OUT);
         }
+    }
+
+    /**
+     * 会员价判定：只有登录会员（memberId 非空）且菜品设了大于 0 的会员价才替换基础价。
+     * 「仅会员可购」的菜品在无会员上下文时直接拒绝，避免内部调用绕过限制。
+     */
+    private boolean memberPriceApplied(Dish dish, Long memberId) {
+        if (Objects.equals(dish.getMemberOnly(), DishConstants.YES) && memberId == null) {
+            throw new BizException(ErrorCode.MEMBER_ONLY_DISH);
+        }
+        return memberId != null && dish.getMemberPrice() != null && dish.getMemberPrice().signum() > 0;
     }
 
     /**

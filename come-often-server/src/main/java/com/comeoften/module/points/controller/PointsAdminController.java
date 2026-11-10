@@ -3,6 +3,7 @@ package com.comeoften.module.points.controller;
 import com.comeoften.common.PageResult;
 import com.comeoften.common.Result;
 import com.comeoften.common.job.JobResult;
+import com.comeoften.job.MemberTagJob;
 import com.comeoften.job.PointsExpireJob;
 import com.comeoften.module.points.dto.MemberLevelSaveDTO;
 import com.comeoften.module.points.service.PointsAccountService;
@@ -48,6 +49,8 @@ public class PointsAdminController {
 
     private final PointsExpireJob pointsExpireJob;
 
+    private final MemberTagJob memberTagJob;
+
     @Operation(summary = "积分规则", description = "发放额度与兑换比例来自配置，只读")
     @ApiResponse(responseCode = "200", description = "返回规则")
     @RequirePerm("member:manage")
@@ -74,15 +77,26 @@ public class PointsAdminController {
         return Result.ok(pointsLevelService.updateLevel(levelId, dto));
     }
 
-    @Operation(summary = "会员积分分页", description = "keyword 命中昵称或手机号")
+    @Operation(summary = "会员积分分页", description = "keyword 命中昵称或手机号；tagCode 可按会员标签筛选（SLEEPING 沉睡会员）")
     @ApiResponse(responseCode = "200", description = "返回分页结果")
     @RequirePerm("member:manage")
     @GetMapping("/member/page")
     public Result<PageResult<PointsMemberVO>> memberPage(
             @Parameter(description = "昵称或手机号关键字") @RequestParam(required = false) String keyword,
+            @Parameter(description = "会员标签编码，如 SLEEPING") @RequestParam(required = false) String tagCode,
             @Parameter(description = "当前页，从 1 开始") @RequestParam(defaultValue = "1") Long current,
             @Parameter(description = "每页条数") @RequestParam(defaultValue = "10") Long size) {
-        return Result.ok(pointsAdminService.memberPage(current, size, keyword));
+        return Result.ok(pointsAdminService.memberPage(current, size, keyword, tagCode));
+    }
+
+    @Operation(summary = "手动刷新沉睡标签",
+            description = "与每日 00:30 的 member-tag 任务同一条链路，运维 / 验收用；重复执行只统计实际变化")
+    @ApiResponse(responseCode = "200", description = "返回本次打标 + 摘标的条数；锁被占用时 data 为 null")
+    @RequirePerm("member:manage")
+    @PostMapping("/tag/refresh")
+    public Result<Integer> refreshTag() {
+        JobResult result = memberTagJob.refresh();
+        return Result.ok(result.getCount() == null ? Integer.valueOf(0) : result.getCount());
     }
 
     @Operation(summary = "积分流水分页", description = "memberId 为空时查全部会员的流水")

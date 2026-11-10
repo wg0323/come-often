@@ -27,6 +27,8 @@
         "pages/coupon-wallet/coupon-wallet",
         "pages/coupon-code/coupon-code",
         "pages/points-record/points-record",
+        "pages/points-exchange/points-exchange",
+        "pages/balance/balance",
         "pages/sign-in/sign-in",
         "pages/member-level/member-level",
         "pages/reservation-list/reservation-list"

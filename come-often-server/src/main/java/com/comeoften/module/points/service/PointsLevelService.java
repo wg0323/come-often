@@ -4,12 +4,19 @@ import com.comeoften.module.points.dto.MemberLevelSaveDTO;
 import com.comeoften.module.points.vo.MemberLevelOverviewVO;
 import com.comeoften.module.points.vo.MemberLevelVO;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 /**
  * 会员等级。门槛来自 member_level，升降级只在订单完成消费里计算，不单开定时任务（计划 3.7）。
  */
 public interface PointsLevelService {
+
+    /**
+     * 会员当前等级的折扣率；无等级、等级配置缺失或折扣率未配置时返回 1.00（不打折）。
+     */
+    BigDecimal discountRateOf(Long memberId);
+
 
     /**
      * 等级页数据：当前等级、全部档位与距下一档的差值。

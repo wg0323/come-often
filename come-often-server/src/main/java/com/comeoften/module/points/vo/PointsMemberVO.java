@@ -7,6 +7,7 @@ import lombok.Data;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
+import java.util.List;
 
 /**
  * PC 后台的会员积分行。手机号中间位脱敏，与 M1 的登录信息口径一致。
@@ -48,4 +49,7 @@ public class PointsMemberVO implements Serializable {
 
     @Schema(description = "等级折扣率")
     private BigDecimal discountRate;
+
+    @Schema(description = "会员标签名，如沉睡会员")
+    private List<String> tags;
 }

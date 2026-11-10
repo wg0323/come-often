@@ -42,6 +42,7 @@ export interface PointsMemberItem {
   levelCode: string;
   levelName: string;
   discountRate: number | null;
+  tags: string[];
 }
 
 export interface PointsRecordItem {
@@ -82,4 +83,6 @@ export const pointsApi = {
   pageRecord: (params: Record<string, string | number | undefined>): Promise<PageData<PointsRecordItem>> =>
     http<PageData<PointsRecordItem>>(`/admin/points/record/page?${toQuery(params)}`),
   runExpire: (): Promise<number> => http<number>('/admin/points/expire/run', { method: 'POST' }),
+  /** 与每日 00:30 的 member-tag 任务同一条链路，重复执行只统计实际变化 */
+  refreshTag: (): Promise<number> => http<number>('/admin/points/tag/refresh', { method: 'POST' }),
 };

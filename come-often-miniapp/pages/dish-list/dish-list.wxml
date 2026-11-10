@@ -43,7 +43,11 @@
             <text wx:for="{{item.tags}}" wx:for-item="tag" wx:key="*this" class="tag">{{tag}}</text>
           </view>
           <view class="dish-bottom">
-            <view class="price"><text class="price-symbol">¥</text><text class="price-num">{{item.price}}</text></view>
+            <view class="price">
+              <text class="price-symbol">¥</text>
+              <text class="price-num">{{item.memberPrice > 0 ? item.memberPrice : item.price}}</text>
+              <text wx:if="{{item.memberPrice > 0}}" class="member-tag">会员价</text>
+            </view>
             <!-- 预定菜要选用餐时间与定金，只能进详情；售罄不带加购入口 -->
             <view
               wx:if="{{!item.soldOut && !item.preorder}}"

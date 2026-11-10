@@ -8,6 +8,7 @@ import com.comeoften.common.BizException;
 import com.comeoften.common.ErrorCode;
 import com.comeoften.common.PageResult;
 import com.comeoften.integration.pay.PayGateway;
+import com.comeoften.module.balance.service.BalanceService;
 import com.comeoften.integration.pay.model.RefundOrder;
 import com.comeoften.integration.pay.model.RefundResult;
 import com.comeoften.module.order.constant.OperatorType;
@@ -80,6 +81,8 @@ public class RefundServiceImpl implements RefundService {
 
     private final PayGateway payGateway;
 
+    private final BalanceService balanceService;
+
     @Override
     @Transactional(rollbackFor = Exception.class)
     public RefundVO applyByMember(Long memberId, Long storeId, String orderNo, RefundApplyDTO dto) {
@@ -129,6 +132,8 @@ public class RefundServiceImpl implements RefundService {
                 OperatorType.ADMIN, operatorId);
         if (approved) {
             callGateway(order, requireSuccessPayment(order), record);
+            // 余额抵扣部分不经支付渠道，退款通过时直接退回储值账户（幂等键 {orderNo}#REFUND）
+            balanceService.refundForOrder(order.getMemberId(), order.getOrderNo(), order.getBalanceAmount());
         }
         record.setStatus(targetStatus);
         record.setAuditUserId(operatorId);
@@ -211,6 +216,7 @@ public class RefundServiceImpl implements RefundService {
                     "制作前退款自动审核通过，金额 " + refundAmount.toPlainString() + " 元",
                     operatorType, operatorId);
             callGateway(order, payment, record);
+            balanceService.refundForOrder(order.getMemberId(), order.getOrderNo(), order.getBalanceAmount());
             record.setStatus(STATUS_REFUNDED);
             record.setAuditUserId(operatorId);
             record.setRefundTime(LocalDateTime.now());

@@ -1,6 +1,7 @@
 package com.comeoften.mq.listener;
 
 import com.comeoften.common.OrderKeys;
+import com.comeoften.module.coupon.service.CouponRuleService;
 import com.comeoften.module.points.service.PointsAccountService;
 import com.comeoften.module.points.service.PointsLevelService;
 import com.comeoften.mq.RabbitConst;
@@ -34,6 +35,8 @@ public class OrderCompletedListener {
 
     private final PointsLevelService pointsLevelService;
 
+    private final CouponRuleService couponRuleService;
+
     private final StringRedisTemplate stringRedisTemplate;
 
     @RabbitListener(queues = RabbitConst.POINTS_COMPLETED_QUEUE)
@@ -54,6 +57,9 @@ public class OrderCompletedListener {
         try {
             int points = pointsAccountService.earnForCompletedOrder(message.getOrderNo());
             pointsLevelService.refreshLevel(message.getMemberId());
+            // 复购券：累计支付单数达标才发，grant_biz_id 按订单幂等，重投不会重复发
+            couponRuleService.onOrderCompleted(message.getMemberId(), message.getStoreId(),
+                    message.getOrderNo());
             log.info("订单完成事件处理完成: orderNo={}, points={}, messageId={}",
                     message.getOrderNo(), points, message.getMessageId());
         } catch (RuntimeException e) {

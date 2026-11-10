@@ -49,9 +49,23 @@ comeoften:
     # 自动完成：READY 超过该小时数仍无人取餐，由每日 00:05 兜底任务推进到 COMPLETED
     auto-complete-hours: ${ORDER_AUTO_COMPLETE_HOURS:24}
     auto-complete-batch-size: ${ORDER_AUTO_COMPLETE_BATCH_SIZE:200}
+  balance:
+    # 单笔充值区间，单位元；超出返回业务码 30065
+    min-recharge: ${BALANCE_MIN_RECHARGE:1.00}
+    max-recharge: ${BALANCE_MAX_RECHARGE:5000.00}
+    # 充值赠送档位，{充值金额}:{赠送金额}，取不超过充值金额的最高档；格式非法时启动即失败
+    recharge-tiers: ${BALANCE_RECHARGE_TIERS:500:50,1000:120,2000:300}
+  member:
+    # 连续多少天没有支付成功订单算沉睡会员；唤醒券与后台标签共用该阈值
+    sleeping-days: ${MEMBER_SLEEPING_DAYS:30}
+    tag-batch-size: ${MEMBER_TAG_BATCH_SIZE:200}
   job:
     # 预约时段按未来 N 天滚动预生成，每日 00:00（早于 00:10 库存键重建），补齐 M7 已知局限
     reservation-slot-generate-cron: ${JOB_RESERVATION_SLOT_GENERATE_CRON:0 0 0 * * ?}
+    # 沉睡会员打标，排在 00:20 过号任务之后
+    member-tag-cron: ${JOB_MEMBER_TAG_CRON:0 30 0 * * ?}
+    # 券发放规则（生日 / 沉睡唤醒），排在打标之后才能读到当天新打的沉睡标签
+    coupon-rule-cron: ${JOB_COUPON_RULE_CRON:0 40 0 * * ?}
     # 三类库存键按 DB 重建（菜品 remain / 券模板 remain / 时段 booked），计划 3.5 的每日 00:10
     stock-rebuild-cron: ${JOB_STOCK_REBUILD_CRON:0 10 0 * * ?}
     # 订单自动完成，计划 3.10 的每日 00:05

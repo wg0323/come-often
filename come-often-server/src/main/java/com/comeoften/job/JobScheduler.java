@@ -83,6 +83,22 @@ public class JobScheduler {
         trigger(QueueExpireJob.JOB_NAME);
     }
 
+    /**
+     * 沉睡会员打标，默认每日 00:30（排在 00:20 过号之后，不与整点批处理抢锁）。
+     */
+    @Scheduled(cron = "${comeoften.job.member-tag-cron:0 30 0 * * ?}")
+    public void memberTag() {
+        trigger(MemberTagJob.JOB_NAME);
+    }
+
+    /**
+     * 券发放规则（生日 / 沉睡唤醒），默认每日 00:40。
+     */
+    @Scheduled(cron = "${comeoften.job.coupon-rule-cron:0 40 0 * * ?}")
+    public void couponRule() {
+        trigger(CouponRuleJob.JOB_NAME);
+    }
+
     private void trigger(String jobName) {
         try {
             JobResult result = jobTriggerService.run(jobName);

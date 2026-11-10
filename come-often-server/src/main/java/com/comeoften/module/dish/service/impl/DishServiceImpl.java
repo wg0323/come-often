@@ -133,6 +133,10 @@ public class DishServiceImpl implements DishService {
                 ? (current == null ? 0 : current.getMonthlySales()) : dto.getMonthlySales());
         dish.setOriginalPrice(dto.getOriginalPrice() == null
                 ? (current == null ? null : current.getOriginalPrice()) : dto.getOriginalPrice());
+        dish.setMemberPrice(resolveMemberPrice(dto, current, dish.getPrice()));
+        dish.setMemberOnly(dto.getMemberOnly() == null
+                ? (current == null ? DishConstants.NO : current.getMemberOnly())
+                : (dto.getMemberOnly() ? DishConstants.YES : DishConstants.NO));
         dish.setSubtitle(valueOrFallback(dto.getSubtitle(), current == null ? "" : current.getSubtitle()));
         dish.setDescription(valueOrFallback(dto.getDescription(), current == null ? "" : current.getDescription()));
         dish.setAllergen(valueOrFallback(dto.getAllergen(), current == null ? "" : current.getAllergen()));
@@ -255,6 +259,25 @@ public class DishServiceImpl implements DishService {
             }
             groupSort++;
         }
+    }
+
+    /**
+     * 会员价：未提交时保留原值（与划线价同口径），提交了就必须大于 0 且不高于售价。
+     * 会员价只影响顾客端计价基数，规格与加料加价仍按售价口径叠加。
+     */
+    private BigDecimal resolveMemberPrice(DishSaveDTO dto, Dish current, BigDecimal price) {
+        BigDecimal memberPrice = dto.getMemberPrice() == null
+                ? (current == null ? null : current.getMemberPrice()) : dto.getMemberPrice();
+        if (memberPrice == null) {
+            return null;
+        }
+        if (memberPrice.signum() <= 0) {
+            throw new BizException(ErrorCode.PARAM_INVALID, "会员价必须大于 0");
+        }
+        if (price != null && memberPrice.compareTo(price) > 0) {
+            throw new BizException(ErrorCode.PARAM_INVALID, "会员价不能高于售价");
+        }
+        return memberPrice;
     }
 
     private void saveAddons(Long dishId, DishSaveDTO dto) {

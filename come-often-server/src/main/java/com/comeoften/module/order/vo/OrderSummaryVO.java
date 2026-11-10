@@ -34,8 +34,14 @@ public class OrderSummaryVO implements Serializable {
     @Schema(description = "商品总额，单位元")
     private BigDecimal totalAmount;
 
-    @Schema(description = "实付金额，单位元")
+    @Schema(description = "在线支付应付额，单位元")
     private BigDecimal payAmount;
+
+    @Schema(description = "会员折扣金额，单位元")
+    private BigDecimal memberDiscountAmount;
+
+    @Schema(description = "储值余额抵扣金额，单位元；与到店尾款不是同一含义")
+    private BigDecimal balanceDeductAmount;
 
     @Schema(description = "定金，单位元")
     private BigDecimal depositAmount;

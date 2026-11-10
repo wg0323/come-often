@@ -80,6 +80,21 @@ public interface PointsAccountService {
     void rollbackForOrder(Long memberId, String orderNo);
 
     /**
+     * 积分兑换菜品所需积分，按金额与兑换比例向上取整。
+     */
+    int pointsRequired(BigDecimal amount);
+
+    /**
+     * 积分兑换下单：直接实扣（无支付环节，不冻结），余额不足抛 30033。
+     */
+    int redeemForExchange(Long memberId, String orderNo, int points);
+
+    /**
+     * 兑换单取消退回积分，幂等。
+     */
+    void rollbackExchange(Long memberId, String orderNo);
+
+    /**
      * 订单完成发放消费积分，按订单实付金额计算。返回实际发放积分，重复消息返回 0。
      */
     int earnForCompletedOrder(String orderNo);

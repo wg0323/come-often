@@ -24,8 +24,14 @@ public class DishQuoteVO implements Serializable {
     @Schema(description = "菜品名称")
     private String dishName;
 
-    @Schema(description = "基础价，单位元")
+    @Schema(description = "基础价，单位元；会员下单且菜品设了会员价时为会员价")
     private BigDecimal basePrice;
+
+    @Schema(description = "会员价，单位元；未设置为空")
+    private BigDecimal memberPrice;
+
+    @Schema(description = "本次是否按会员价计价")
+    private Boolean memberPriceApplied;
 
     @Schema(description = "规格加价合计，单位元")
     private BigDecimal specAmount;

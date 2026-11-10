@@ -169,6 +169,16 @@
   font-weight: 700;
 }
 
+.member-tag {
+  margin-left: 8rpx;
+  padding: 0 8rpx;
+  border: 1rpx solid var(--co-gold);
+  border-radius: 6rpx;
+  color: var(--co-gold);
+  font-size: 20rpx;
+  font-weight: 400;
+}
+
 .sales {
   flex: none;
   color: var(--co-text-tertiary);

@@ -73,7 +73,18 @@ public class CouponGrantServiceImpl implements CouponGrantService {
     @Transactional(rollbackFor = Exception.class)
     public int grant(Long storeId, Long templateId, List<Long> memberIds, String source) {
         CouponTemplate template = requireIssuingTemplate(storeId, templateId);
-        return doGrant(template, memberIds, source);
+        return doGrant(template, memberIds, source, null);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public int grantWithBizId(Long storeId, Long templateId, Long memberId, String source,
+                              String grantBizId) {
+        if (memberId == null || !StringUtils.hasText(grantBizId)) {
+            return 0;
+        }
+        CouponTemplate template = requireIssuingTemplate(storeId, templateId);
+        return doGrant(template, Collections.singletonList(memberId), source, grantBizId);
     }
 
     @Override
@@ -96,7 +107,7 @@ public class CouponGrantServiceImpl implements CouponGrantService {
             log.info("新人券已发过，跳过: memberId={}, templateId={}", memberId, template.getId());
             return 0;
         }
-        int granted = doGrant(template, Collections.singletonList(memberId), "NEWCOMER:" + orderId);
+        int granted = doGrant(template, Collections.singletonList(memberId), "NEWCOMER:" + orderId, null);
         log.info("新人券发放完成: memberId={}, templateId={}, granted={}", memberId, template.getId(), granted);
         return granted;
     }
@@ -115,8 +126,13 @@ public class CouponGrantServiceImpl implements CouponGrantService {
     /**
      * 逐会员发放。库存不足即停止，已发出的部分不回滚，符合「发到发完为止」的业务语义。
      */
-    private int doGrant(CouponTemplate template, List<Long> memberIds, String source) {
+    private int doGrant(CouponTemplate template, List<Long> memberIds, String source,
+                        String grantBizId) {
         if (memberIds == null || memberIds.isEmpty()) {
+            return 0;
+        }
+        if (grantBizId != null && userCouponMapper.countByGrantBizId(grantBizId) > 0) {
+            log.info("规则发券已发过，跳过: templateId={}, grantBizId={}", template.getId(), grantBizId);
             return 0;
         }
         Set<Long> distinct = new LinkedHashSet<>(memberIds);
@@ -131,7 +147,7 @@ public class CouponGrantServiceImpl implements CouponGrantService {
                 log.info("券库存不足，停止发放: templateId={}, source={}", template.getId(), source);
                 break;
             }
-            if (!insertUserCoupon(template, memberId)) {
+            if (!insertUserCoupon(template, memberId, grantBizId)) {
                 // 本次预扣单独回补：DB 余量 +1 与 Redis +1 成对，且移出批量回补列表避免重复补
                 String key = StockKeys.coupon(template.getId());
                 couponTemplateMapper.restoreRemain(template.getId(), 1);
@@ -165,7 +181,7 @@ public class CouponGrantServiceImpl implements CouponGrantService {
         return true;
     }
 
-    private boolean insertUserCoupon(CouponTemplate template, Long memberId) {
+    private boolean insertUserCoupon(CouponTemplate template, Long memberId, String grantBizId) {
         LocalDateTime now = LocalDateTime.now();
         int validDays = template.getValidDays() == null || template.getValidDays() <= 0
                 ? DEFAULT_VALID_DAYS : template.getValidDays();
@@ -178,9 +194,15 @@ public class CouponGrantServiceImpl implements CouponGrantService {
             userCoupon.setStatus(0);
             userCoupon.setReceiveTime(now);
             userCoupon.setExpireAt(now.plusDays(validDays));
+            userCoupon.setGrantBizId(grantBizId);
             try {
                 userCouponMapper.insert(userCoupon);
             } catch (DuplicateKeyException e) {
+                if (grantBizId != null && userCouponMapper.countByGrantBizId(grantBizId) > 0) {
+                    // 规则发券的并发重放：唯一索引已存在同一幂等键，按「已发过」处理，由调用方回补库存
+                    log.info("规则发券幂等键已存在，跳过: grantBizId={}", grantBizId);
+                    return false;
+                }
                 log.warn("券码短序号冲突，重试: codeSeq={}", userCoupon.getCodeSeq());
                 continue;
             }

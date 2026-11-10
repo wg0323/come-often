@@ -8,6 +8,7 @@ import com.comeoften.module.order.vo.OrderPreviewVO;
 import com.comeoften.module.order.vo.OrderQrCodeVO;
 import com.comeoften.module.order.vo.OrderSummaryVO;
 import com.comeoften.module.order.vo.OrderVO;
+import com.comeoften.module.points.dto.PointsExchangeDTO;
 
 /**
  * 自提 / 到店订单。金额一律复用 M2 的 DishOrderService.check，页面不参与计算。
@@ -17,6 +18,12 @@ public interface OrderService {
     OrderPreviewVO preview(Long memberId, Long storeId, OrderCreateDTO dto);
 
     OrderVO create(Long memberId, Long storeId, OrderCreateDTO dto);
+
+    /**
+     * 积分兑换下单（M14 B3）：不走购物车、不参与券 / 余额 / 在线支付，整单用积分结算，
+     * 下单即 PAID（无支付流水）。取消时退回积分，退款不支持（没有已收现金可退）。
+     */
+    OrderVO exchange(Long memberId, Long storeId, PointsExchangeDTO dto);
 
     OrderVO detailForApp(Long memberId, Long storeId, String orderNo);
 

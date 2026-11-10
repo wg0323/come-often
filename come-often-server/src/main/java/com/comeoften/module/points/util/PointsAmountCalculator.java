@@ -75,6 +75,19 @@ public final class PointsAmountCalculator {
     }
 
     /**
+     * 积分兑换菜品所需积分：{@code 金额 × 每元积分}，向上取整。
+     * 向上取整而不是向下，避免 0.4 分的零头白送；兑换订单金额通常很小，差 1 分可接受。
+     */
+    public static int pointsFor(BigDecimal amount, int exchangeRate) {
+        requireRate(exchangeRate);
+        if (amount == null || amount.signum() <= 0) {
+            return 0;
+        }
+        return amount.multiply(BigDecimal.valueOf(exchangeRate))
+                .setScale(0, RoundingMode.UP).intValue();
+    }
+
+    /**
      * 消费获得积分：实付金额 × 每元积分，向下取整。
      */
     public static int earnPoints(BigDecimal payAmount, int earnRate) {

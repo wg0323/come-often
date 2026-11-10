@@ -16,9 +16,9 @@
 
 ## 项目简介
 
-按 [docs/development-plan.md](docs/development-plan.md) 分阶段实施，单次交付、每阶段独立验收。M0~M11 全部完成，M12 登录体系、M13 首页改版与排队叫号已交付：骨架与环境、三端认证与权限、门店与菜品、购物车与自提订单（含 MQ 可靠性三件套）、支付与退款（Mock 网关与退款审核）、优惠券（动态券码与核销服务）、积分与等级（积分抵现与年度过期）、预约订座（时段容量与超时释放）、评价/搜索/首页运营、商家端小程序（统一扫码与订阅提醒降级）、数据看板与报表（Excel 导出）、联调与交付（`@JobLock` 兜底任务、死信告警可查、三条端到端脚本、四份交付文档）。M13 未完项（桌码服务端绑定、PC 后台排队页、实时叫号推送等）按 [docs/milestone-m14.md](docs/milestone-m14.md) 分六个批次补齐；B0 已收口 M13 交付欠账，B1 已落地 49 张表、30063~30099 业务码段与金额口径底座，B2 已接通叫号通知与顾客端 10 秒轮询、PC 后台排队页、桌码服务端绑定、营业状态前置校验、门店导航与后端 ZXing 二维码出图。
+按 [docs/development-plan.md](docs/development-plan.md) 分阶段实施，单次交付、每阶段独立验收。M0~M11 全部完成，M12 登录体系、M13 首页改版与排队叫号已交付：骨架与环境、三端认证与权限、门店与菜品、购物车与自提订单（含 MQ 可靠性三件套）、支付与退款（Mock 网关与退款审核）、优惠券（动态券码与核销服务）、积分与等级（积分抵现与年度过期）、预约订座（时段容量与超时释放）、评价/搜索/首页运营、商家端小程序（统一扫码与订阅提醒降级）、数据看板与报表（Excel 导出）、联调与交付（`@JobLock` 兜底任务、死信告警可查、三条端到端脚本、四份交付文档）。M13 未完项（桌码服务端绑定、PC 后台排队页、实时叫号推送等）按 [docs/milestone-m14.md](docs/milestone-m14.md) 分六个批次补齐；B0 已收口 M13 交付欠账，B1 已落地 49 张表、30063~30099 业务码段与金额口径底座，B2 已接通叫号通知与顾客端 10 秒轮询、PC 后台排队页、桌码服务端绑定、营业状态前置校验、门店导航与后端 ZXing 二维码出图，B3 已落地储值充值与余额组合支付、会员价与等级折扣、券发放规则（新客 / 生日 / 复购 / 沉睡唤醒）与沉睡标签、积分兑换菜品。
 
-十三份验收脚本 `deploy/verify-m1.ps1` ~ `verify-m11.ps1`、`deploy/verify-m13.ps1`、`deploy/verify-m14-b2.ps1` 串行执行（M11 一次 108 条断言、0 失败），单测 197 个用例全绿。与开发计划的逐条差异见 [deploy/init.md](deploy/init.md)。
+十四份验收脚本 `deploy/verify-m1.ps1` ~ `verify-m11.ps1`、`deploy/verify-m13.ps1`、`deploy/verify-m14-b2.ps1`、`deploy/verify-m14-b3.ps1` 串行执行（M11 一次 108 条断言、0 失败），单测 209 个用例全绿。与开发计划的逐条差异见 [deploy/init.md](deploy/init.md)。
 
 ### 核心功能
 
@@ -65,6 +65,10 @@
 - [x] 首页改版：按星期营业时间、取号 / 预约入口、团餐券板块、领券中心、最近吃过（M13）
 - [x] tabBar 改为首页 / 点餐 / 领券 / 我的；自提预约时间、购物车改为从下弹出的面板（M13）。堂食桌码经 `POST /api/app/store/table/bind` 服务端校验，下单携带 `tableId` 落 `trade_order.table_id`，下单成功后清空绑定（M14 B2）
 - [x] 排队叫号：顾客取号 / 查号 / 取消、商家端叫号 / 入座（M13）。PC 后台 `/queue` 排队页已接入，叫号经 `NotifySender` 落 `message_record(QUEUE_CALL)`，顾客端前台每 10 秒轮询、离页停止，昨天的等待号由 `queue-expire` 过号任务收口（M14 B2）
+- [x] 储值账户与流水、档位赠送充值、PC 后台储值管理；下单可用余额抵扣，取消 / 超时 / 退款分别写 `#ROLLBACK` / `#REFUND` 冲销（M14 B3）
+- [x] 会员价菜品与等级折扣：会员价替换计价基数，折扣独立落 `trade_order.member_discount`，与不可叠加券同单时「券优先」（M14 B3）
+- [x] 券发放规则（新客 / 生日 / 复购 / 沉睡唤醒）与 `user_coupon.grant_biz_id` 幂等键，沉睡标签每日刷新并支持后台按标签筛选（M14 B3）
+- [x] 积分兑换菜品：整单用积分结算、下单即已支付，取消走 `#EXCHANGE_ROLLBACK` 退回积分（M14 B3）
 
 ## 技术栈
 
@@ -337,19 +341,30 @@ powershell -ExecutionPolicy Bypass -File .\deploy\verify-m14-b2.ps1 -Base 'http:
 
 真机「顾客亮码 → 店员扫码」需人工在微信开发者工具或真机走一遍：券码在卡包券详情页、取餐码在订单详情页，商家端统一扫码页扫同一张二维码即可分流核销。自动化脚本只覆盖出图与码串，不覆盖相机链路。
 
+### M14 B3 会员资金与营销验收
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\deploy\verify-m14-b3.ps1
+# 8080 被日常实例占用时同样支持 -Base
+```
+
+脚本用两个不同 `phoneCode` 的全新会员，验八组：储值账户（零值起步、`0.001` 因 Bean 校验返回 10001、三位小数与低于下限返回 30065、充 500 送 50 / 充 1000 送 120、本金与赠送分两条流水、后台会员页与流水页可见）；会员价（临时把 `dish.member_price` 置 1.00 后 quote 与 preview 都以会员价计价，`finally` 恢复原值）；会员折扣与叠加规则（临时把 NORMAL 折扣率改 0.90，preview 折扣额为总额 10%，不可叠加券同单时折扣归零、券照常抵扣，`finally` 恢复）；组合支付（`useBalance` 抵到剩 0.01 元、订单落 `balance_amount` 与更小的 `pay_amount`、`#DEDUCT` 一条、取消写 `#ROLLBACK` 且余额还原）；积分兑换（订单 PAID、`pay_amount=0`、`EXCHANGE/USE` 一条、取消写 `EXCHANGE_ROLLBACK` 且积分还原）；券规则（生日规则按年幂等、重跑 0 张；把闲置会员注册时间改到 60 天前后刷新沉睡标签、按标签筛到人、沉睡规则按月幂等）；契约与接线（`/v3/api-docs` 出现 6 个新路径、`member-tag` / `coupon-rule` 进任务清单、后台菜单含 `/balance`，并断言小程序余额页 / 积分兑菜页 / 确认页余额开关与 PC 储值页、券规则页存在）。全部通过输出 `M14 B3 VERIFY PASSED`，退出码 0。
+
+回归：本批改动后 `verify-m3 / m5 / m6 / m7 / m10` 全部重新跑过。其中 `verify-m3 / m6 / m7 / m10` 的会员登录补了每轮唯一的 `phoneCode`（M12 按手机号唯一，缺省会落到同一老会员，等级折扣与签到状态会污染断言），`verify-m6` 的实付断言改为「总额 − 积分 − 会员折扣」，`verify-m10` 的「有退款时净额严格小于毛额」改为仅在当天确有退款时断言。
+
 ### 交付文档
 
 | 文档 | 内容 |
 | --- | --- |
 | [README.md](README.md) | 项目全貌、验收方式、配置项、常见问题 |
 | [docs/deployment.md](docs/deployment.md) | 部署说明：中间件准备、构建启动、配置与凭据、日常运维、升级回滚、故障排查 |
-| [docs/api-list.md](docs/api-list.md) | 接口清单：`/v3/api-docs` 149 个路径 / 166 个操作按端与分组列出，附权限点对照与业务码分段（M13 新增 10 个、M14 B2 新增 2 个见文末；M14 B1 只扩错误码段，未新增接口） |
+| [docs/api-list.md](docs/api-list.md) | 接口清单：`/v3/api-docs` 159 个路径 / 177 个操作按端与分组列出，附权限点对照与业务码分段（M13 新增 10 个、M14 B2 新增 2 个、M14 B3 新增 10 个见文末；M14 B1 只扩错误码段，未新增接口） |
 | [docs/mock-replacement.md](docs/mock-replacement.md) | Mock 能力替换清单：支付网关、微信登录、订阅消息、短信、上传，逐项写替换点与要改的配置 |
 | [docs/milestone-m14.md](docs/milestone-m14.md) | M14 里程碑：2.md 未实现项与 M13 交付欠账，六批次范围、DDL 清单、验收口径与状态跟踪 |
 
 ### 显式运行测试
 
-`pom.xml` 默认跳过测试编译与执行以加快打包，需要验证时显式开启（当前 197 个用例）：
+`pom.xml` 默认跳过测试编译与执行以加快打包，需要验证时显式开启（当前 209 个用例）：
 
 ```powershell
 cd come-often-server
