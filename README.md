@@ -5,13 +5,13 @@
 ## 📋 目录
 
 - [项目简介](#项目简介)
+- [界面预览](#界面预览)
 - [技术栈](#技术栈)
 - [项目结构](#项目结构)
 - [环境要求](#环境要求)
 - [快速开始](#快速开始)
 - [配置说明](#配置说明)
 - [部署指南](#部署指南)
-- [API 文档](#api-文档)
 - [常见问题](#常见问题)
 
 ## 项目简介
@@ -74,6 +74,44 @@
 - [x] 指定包间：`store_table.room_type` 三值，预约创建即锁 `reservation.table_id`，PC / 小程序可选具体包间（M14 B4）
 - [x] 订单核销记录：`order_verify_record` 落核销人、渠道、码串、时间与 `#PICKUP` / `#BUNDLE` 幂等键，顾客端核销记录页；订单列表补四组状态 Tab 与触底分页（M14 B4）
 - [x] 评价审核：`review.status` 三态 + PC 后台审核页，评分聚合只统计通过评价；先发后审默认通过，被拒绝的评价仍占「一单一评」（M14 B4）
+
+## 界面预览
+
+截图统一规格：顾客端小程序 440×925（2 倍图，按 220 宽展示），PC 后台 1600×800。原始截图存 `assets/`，README 引用的是 `assets/screenshots/` 下的压缩版。
+
+**顾客端小程序**
+
+<table>
+  <tr>
+    <td align="center"><img src="assets/screenshots/customer-01-home.png" width="200"><br>首页</td>
+    <td align="center"><img src="assets/screenshots/customer-02-menu.png" width="200"><br>点餐</td>
+    <td align="center"><img src="assets/screenshots/customer-03-dish-detail.png" width="200"><br>菜品详情</td>
+    <td align="center"><img src="assets/screenshots/customer-04-coupon.png" width="200"><br>领券中心</td>
+  </tr>
+  <tr>
+    <td align="center"><img src="assets/screenshots/customer-05-balance.png" width="200"><br>储值</td>
+    <td align="center"><img src="assets/screenshots/customer-06-member-level.png" width="200"><br>会员等级</td>
+    <td align="center"><img src="assets/screenshots/customer-07-reservation.png" width="200"><br>预约订座</td>
+    <td align="center"><img src="assets/screenshots/customer-08-queue.png" width="200"><br>排队取号</td>
+  </tr>
+</table>
+
+**PC 后台 / 商家后台**
+
+<table>
+  <tr>
+    <td align="center"><img src="assets/screenshots/admin-01-order-board.png" width="460"><br>订单看板</td>
+    <td align="center"><img src="assets/screenshots/admin-02-dish.png" width="460"><br>菜品管理</td>
+  </tr>
+  <tr>
+    <td align="center"><img src="assets/screenshots/admin-03-queue.png" width="460"><br>排队叫号</td>
+    <td align="center"><img src="assets/screenshots/admin-04-reservation.png" width="460"><br>预约管理</td>
+  </tr>
+  <tr>
+    <td align="center"><img src="assets/screenshots/admin-05-report.png" width="460"><br>数据报表</td>
+    <td align="center"><img src="assets/screenshots/admin-06-balance.png" width="460"><br>储值管理</td>
+  </tr>
+</table>
 
 ## 技术栈
 
@@ -177,232 +215,15 @@ python deploy\image-pipeline\process_images.py
 
 `build.cmd` 只在当前进程内把 `JAVA_HOME` 指向 JDK 8，不改系统环境变量，执行时会打印 `mvn -v` 供核对。
 
-### 登录账号与 M1 验收
+### 初始账号
 
-`.\deploy\init.cmd` 会一并导入 `seed-m1.sql`。三个初始账号密码均为 `Come@2026`：
+`.\deploy\init.cmd` 会一并导入 `seed-m1.sql`，三个初始账号密码均为 `Come@2026`：
 
-| 账号 | 角色 | PC 菜单 | 商家端宫格 |
-| --- | --- | --- | --- |
-| `admin` | 超级管理员 | 9 个（含系统设置） | 6 个全可见 |
-| `manager` | 店长 | 8 个（无系统设置） | 6 个全可见 |
-| `waiter` | 服务员 | 1 个（经营看板） | 3 个（接单、扫码、核销记录） |
-
-后端运行时执行验收脚本，覆盖三端 401、跨端 token 拒绝、角色菜单差异、`@RequirePerm`、清空 `wx_openid` 立即踢登、退出登录：
-
-```powershell
-powershell -ExecutionPolicy Bypass -File .\deploy\verify-m1.ps1
-```
-
-把 token 有效期临时调成 10 秒验证静默续登：用 `JWT_APP_TTL_SECONDS=10`、`JWT_MERCHANT_TTL_SECONDS=10` 环境变量重启后端，再执行 `powershell -ExecutionPolicy Bypass -File .\deploy\verify-m1.ps1 -OnlyShortTtl`。
-
-### M2 门店与菜品验收
-
-后端运行时执行脚本，覆盖第七章的 5 条验收项：
-
-```powershell
-powershell -ExecutionPolicy Bypass -File .\deploy\verify-m2.ps1
-```
-
-脚本先把 99 张 webp 上传到 MinIO，再自建一道「两规格一加料」的菜验证金额试算，检查售罄拒单、下架不可见、预定菜角标与 200 元定金说明、图片管线产物体积与比例，最后删掉测试菜。图片已上传过时加 `-SkipUpload` 可跳过上传。上传脚本自己会登录一次 admin，M1 的 token 存储是「同一用户只保留最新 jti」，所以上传必须排在验收脚本取 token 之前。
-
-### M3 购物车与订单验收
-
-后端运行时执行，覆盖第七章的 5 条标准与 MQ 三件套：
-
-```powershell
-powershell -ExecutionPolicy Bypass -File .\deploy\verify-m3.ps1
-powershell -ExecutionPolicy Bypass -File .\deploy\verify-m3.ps1 -SkipCompensation
-```
-
-脚本会先按 DB 重建当日 Redis 库存键，再验证购物车增删改、确认页金额取自服务端、取餐码同店同日不重复、CREATED→COMPLETED 全流程、`READY→CREATED` 返回 30002、预定菜 24 小时 / 强制 DINE_IN / 200 元定金整单抵扣、延迟消息到点取消并同时回补 DB 与 Redis、本地消息表 PENDING→SENT 与通知落库、重复投递幂等。默认模式还会把一条 SENT 消息改回 PENDING 等每分钟补偿任务重发（最多 75 秒），`-SkipCompensation` 跳过这段等待。脚本注释与输出全 ASCII，全部通过输出 `M3 VERIFY PASSED`。
-
-### M4 支付与退款验收
-
-后端运行时执行，覆盖第七章的 3 条标准与定金/尾款口径：
-
-```powershell
-powershell -ExecutionPolicy Bypass -File .\deploy\verify-m4.ps1
-powershell -ExecutionPolicy Bypass -File .\deploy\verify-m4.ps1 -SkipWait
-```
-
-脚本登录 `admin` 与独立 `mockKey` 的顾客账号，先把 1002 当日备货设为 50 保证多次回归有库存，再验证：Mock 回调把订单转 PAID 并写入 1 条 `payment_record`、同一回调重放 3 次流水仍为 1 条且 `PAY_SUCCEEDED` 消息不增加、制作中（ACCEPTED）发起退款进入 `REFUNDING` 且退款单待审核、后台审核通过后转 `REFUNDED`、制作前（PAID）退款自动审核通过、定金单顾客端退款返回 30021 而商家主动发起只退已收的 200 元（不取整单 238）、Mock 网关下外部 `/api/pay/notify` 验签失败返回 30013。默认模式等 3 秒确认支付成功事件被消费者落库，`-SkipWait` 跳过。脚本注释与输出全 ASCII，全部通过输出 `M4 VERIFY PASSED`。
-
-### M5 优惠券验收
-
-后端运行时执行，覆盖第七章优惠券的五条标准：
-
-```powershell
-powershell -ExecutionPolicy Bypass -File .\deploy\verify-m5.ps1
-powershell -ExecutionPolicy Bypass -File .\deploy\verify-m5.ps1 -SkipWindowWait
-```
-
-脚本登录 `admin` 与独立 `mockKey` 的顾客账号，先把 1002 当日备货设为 50，再验证：5 类券模板各建一张、5 张券各领一次并各核销一次成功、`coupon_use_record.operator_user_id` 等于 admin、同一券再次核销返回 30026、跨 1 个窗口的旧码仍可核销而跨 2 个窗口返回 30028、券 ROI 可查、线上下单券抵扣与取消退回、首单支付后自动发新人券、券过期提醒延迟链路。窗口边界需要真实等待（约 20 秒 + 60 秒），`-SkipWindowWait` 跳过这两段做快速冒烟。脚本注释与输出全 ASCII，全部通过输出 `M5 VERIFY PASSED`。
-
-### M6 积分与等级验收
-
-后端运行时执行，覆盖第七章「积分与等级」的四条标准：
-
-```powershell
-powershell -ExecutionPolicy Bypass -File .\deploy\verify-m6.ps1
-powershell -ExecutionPolicy Bypass -File .\deploy\verify-m6.ps1 -SkipWait
-```
-
-脚本每次用新的 `mockKey` 注册会员，先把 1002 当日备货设为 50，再验证：账户初始为零值、签到 / 分享 / 完善资料各发一次且重复调用返回 30036 / 30037 / 30038、订单完成发积分且按实付金额与配置比例计算、临时把 SILVER 门槛改到 `0.01 / 0` 后完成订单自动升级（`finally` 恢复种子门槛）、删掉 Redis 幂等键后重投同一完成消息 3 次 `points_record` 仍只有 1 条、积分抵现下单写 FREEZE 并扣余额、延迟超时取消后写 ROLLBACK 并回滚余额、过期批处理扣减且重复执行不重复扣、后台四个查询接口可用。默认模式等延迟消息到点（约 6 秒），`-SkipWait` 改用显式取消走同一条回滚链路。脚本注释与输出全 ASCII，全部通过输出 `M6 VERIFY PASSED`。
-
-### M7 预约订座验收
-
-后端运行时执行，覆盖第七章「预约订座」的三条标准：
-
-```powershell
-powershell -ExecutionPolicy Bypass -File .\deploy\verify-m7.ps1
-powershell -ExecutionPolicy Bypass -File .\deploy\verify-m7.ps1 -SkipWait
-```
-
-脚本先调后台生成接口把未来 7 天 × 13 个时段 × 3 类桌型的容量桶幂等建好（capacity 为 `store_table` 按桌型聚合的 14 / 4 / 4），再验证：重复生成不改变行数与容量、创建预约后 `reservation_slot.booked` 与 `comeoften:slot:cap:{slotId}` 同步、把某时段容量改成 5 后 20 路真并发（`Start-Job`）恰好成功 5 单且 DB 与 Redis 余量一致、距预约 30 分钟取消返回 30045、正常取消与改期后新旧时段双向回补、延迟消息到点置 NO_SHOW 并回补容量且重投不重复释放、提前提醒落 `message_record`、R 前缀签到码校验与重复签到返回 30046、后台分页 / 日历 / 桌台看板 / 容量键重建可用。默认模式等两段延迟消息（约 12 秒），`-SkipWait` 跳过等待做快速冒烟。脚本注释与输出全 ASCII，全部通过输出 `M7 VERIFY PASSED`。
-
-回归 M1 / M2 / M3 / M4 / M5 / M6 / M7 时要串行执行：七份脚本都会登录 admin，token 存储只保留同一用户最新 jti。脚本会留下测试订单、退款单、券模板、核销记录、积分流水、预约单与消息记录供复查，不自动清理。与开发计划的逐条差异见 [deploy/init.md](deploy/init.md)。
-
-### M8 评价 / 搜索 / 首页运营验收
-
-后端运行时执行，覆盖第七章「评价 / 搜索 / 首页运营」的三条标准：
-
-```powershell
-powershell -ExecutionPolicy Bypass -File .\deploy\verify-m8.ps1
-```
-
-脚本每次用新的 `mockKey` 注册会员，真实走完 4 笔 COMPLETED 订单后验证：3 张评价图上传（复用图片管线的 320 宽缩略图）并落 `review_image`、评价发 10 积分且 `biz_id` 为评价 ID、重复评价返回 30051 且不重复发分、未完成订单 30052、非本单菜品 30053、非 `review/` 前缀图片 30054；搜索分别命中菜名 / 副标题 / 标签并验证空结果与分页稳定性；推荐只返回最近 3 单菜品、排除售罄、无 token 返回 401；Banner 按 weight 30/20/10 排序，过期与未生效不出现。脚本会临时软删种子轮播并在结束时恢复，创建的轮播会删掉。全部通过输出 `M8 VERIFY PASSED`。
-
-M8 起八份脚本都要串行执行（都登录 admin）；与开发计划的逐条差异见 [deploy/init.md](deploy/init.md) 第 99～111 条。
-
-### M9 商家端小程序验收
-
-后端运行时执行，覆盖第七章「商家端小程序」的五条标准与权限边界：
-
-```powershell
-powershell -ExecutionPolicy Bypass -File .\deploy\verify-m9.ps1
-powershell -ExecutionPolicy Bypass -File .\deploy\verify-m9.ps1 -SkipWindowWait
-```
-
-脚本登录 `admin`、`manager` 与一个全新会员，验证：工作台三个数字与订单看板计数一致；接单 / 出餐 / 确认取餐三步走通，`PAID→READY` 与商家端取消返回 30002；READY 订单扫取餐码转 COMPLETED、二次扫码提示已完成、制作中扫码提示未出餐；券扫码核销后 `coupon_use_record.operator_user_id` 为 manager、`verify_channel=MERCHANT_SCAN`，PC 后台核销记录页能查到同一条并带核销人，二次扫码返回 30026；跨 1 个窗口的旧码仍成功、跨 2 个窗口与篡改签名返回 30028；R 码签到写 `CHECKED_IN` / `checkin_user_id` / `checkin_time` 且重复签到失败；商家端售罄后顾客端下单被拒（20005），开售后恢复；支付成功自动落 `message_record(MERCHANT_NEW_ORDER)`，补发接口在模板缺失时返回 `sent=false` / `channel=LOG`；桌台看板可改状态并还原；`waiter` 可读核销记录，售罄 / 预约 / 桌台均 403。窗口校验需真实等待（约 32 秒 + 60 秒），`-SkipWindowWait` 跳过。全部通过输出 `M9 VERIFY PASSED`，退出码 0。
-
-九份脚本串行执行（M9 只用 merchant token，admin 仍是同一份 jti）；M9 的新增差异见 [deploy/init.md](deploy/init.md) 第 112 条起。
-
-### M10 数据看板与报表验收
-
-后端运行时执行，覆盖第七章「数据看板与报表」的两条标准：
-
-```powershell
-powershell -ExecutionPolicy Bypass -File .\deploy\verify-m10.ps1
-```
-
-脚本先把一批真实订单走完接口链路（购物车 → 下单 → Mock 支付 → 后台推进状态），覆盖 PICKUP / DINE_IN、含券单、积分抵现单与一张已取消单；再用 SQL 在固定历史窗口 `2020-03-02 ~ 2020-03-08` 造 100 单（4 张已取消、4 张整单已退款、4 张退款待审核、4 张退款被拒、5 笔部分退款），订单号统一 `M10nnn`、会员统一 `m10-verify-*`，**重复执行会先清掉上一轮再重建**，因此数值稳定。断言分七段：看板今日净营收 / 退款 / 订单数 / 客单价 / 热销 / 预约数对齐 SQL；区间报表的汇总、7 个日桶、热销 Top、复购率、次日留存、高价值用户逐项对齐 SQL，并专门断言「有已退款单的那天」净营收 = 毛额 − 退款；券 ROI 按新建模板核对领取 / 核销 / 带动金额 / 折扣成本 / 投产比；`waiter` 只能看看板（报表与导出 403），临时收回菜单 100 后看板也 403、恢复后可用；导出核对 HTTP 200、ZIP 头、行数 = 接口行数 + 1、表头列数、金额单元格、空数据只出表头、366 天趋势导出返回 30056；最后校验报错码 30055 / 10001 与「报表不改任何订单数据」。全部通过输出 `M10 VERIFY PASSED`，退出码 0。
-
-十份脚本串行执行（都登录 admin，token 存储只保留同一用户最新 jti）；M10 的新增差异见 [deploy/init.md](deploy/init.md) 第 137 条起。
-
-### M11 联调与交付验收
-
-后端运行时执行，覆盖第七章 M11 行的全部内容（三条端到端流程 + MQ 停机恢复 + 重复投递 + 死信告警 + 兜底任务）：
-
-```powershell
-powershell -ExecutionPolicy Bypass -File .\deploy\verify-m11.ps1
-powershell -ExecutionPolicy Bypass -File .\deploy\verify-m11.ps1 -SkipMqOutage      # 不停 RabbitMQ
-powershell -ExecutionPolicy Bypass -File .\deploy\verify-m11.ps1 -SkipWindowWait    # 不等 30 秒券码窗口
-```
-
-脚本登录 `admin`、`manager`（商家端）与一个全新 `mockKey` 的会员，把小程序侧的点击用接口扮演（UI 由接口代替，真机截图不在自动化范围内），然后验证：
-
-1. **流程 A**：新客领券 → 自提下单（券抵扣 10 元）→ 商家端接单 / 出餐 → 扫取餐码 `A###` 完成 → 订单完成事件发积分，`points_record.biz_id={orderNo}#EARN` 只有 1 条且金额等于实付金额向下取整。
-2. **流程 B**：预约 → 自动确认（`auto-confirm=false` 时走后台审核）→ 商家端扫 `R` 签到码置 `CHECKED_IN` 且记签到人 → 另造一张已过预约时刻的单，由 `reservation-no-show` 兜底任务置 `NO_SHOW` 并释放容量。
-3. **流程 C**：领券 → 取券码（`C` 前缀）→ 等一个时间窗后重新取码，码串发生变化 → 商家端扫码核销成功、`coupon_use_record` 带核销人与 `MERCHANT_SCAN` → 二次扫码返回 30026。
-4. **`@JobLock`**：脚本手动占住 `comeoften:job:lock:stock-rebuild`，调补跑接口返回 `executed=false` 且 Redis 库存键没被动过；放开锁后同一接口 `executed=true` 并把注入的漂移值改回 DB 值。真正的并发互斥（8 路并发只有 1 次执行）由单测 `JobLockAspectIntegrationTest` 覆盖——HTTP 层的并发窗口无法稳定制造。
-5. **RabbitMQ 停机恢复**：`docker stop rabbitmq` 期间下单并支付，业务照常成功，该单 4 条本地消息全为 `PENDING`、无一条 `SENT`；`docker start rabbitmq` 后由补偿任务重发至全部 `SENT`、无 `FAILED`/`DEAD`，订单通知与商家新单提醒在恢复后被消费。**这一步会短暂影响共用该容器的其他项目，加 `-SkipMqOutage` 可跳过。**
-6. **重复投递**：清掉订单完成消息的 Redis 幂等键后连投 3 次，`points_record` 仍只有 1 条、余额不变（判据是 `uk_points_idempotent(member_id, biz_type, biz_id)` 唯一索引）。
-7. **死信告警**：往 `comeoften.order.notify.queue` 投一条无法反序列化的报文，重试耗尽后进死信，`message_record(MQ_ALARM)` 落一条，`GET /api/admin/mq/message/alarm` 能分页查到（类型 `MQ_ALARM`、通道 `LOG`）。
-8. **兜底任务**：库存键重建、`READY` 超 24 小时自动完成并触发积分、券过期兜底首次提醒且重跑不重复、预约未到店扫描、积分过期补跑（与 M6 端点共用一把锁）。
-
-造数可重复：合成的 `M11AUTO001` 订单、过期预约、未使用券在插入前先删除，真实订单用每轮新的 `mockKey`。全部通过输出 `M11 VERIFY PASSED`，退出码 0（本次 108 条断言、0 失败）。十三份脚本串行执行（含 `verify-m13.ps1` 与 `verify-m14-b2.ps1`）；M11 的新增差异见 [deploy/init.md](deploy/init.md) 第 152 条起，M14 B0 的收口差异见第 172 条起。
-
-### M13 首页改版与 M14 B0 收口验收
-
-后端运行时执行，排在其余脚本之后（每次登录 admin 都会刷新 token）：
-
-```powershell
-powershell -ExecutionPolicy Bypass -File .\deploy\verify-m13.ps1
-```
-
-脚本用两个不同 `phoneCode` 的全新会员走排队链路（M12 按手机号唯一，只换 `mockKey` 会落到同一会员），验三件事：首页 8 条（按星期营业时间与门店状态、旧 `sections` 已删、取号 / 预约入口、团餐券板块、最近吃过、四项 tabBar、购物车底部弹层）；9 个排队接口的状态机（取号 / 查号 / 取消 / 分页 / 叫号 / 入座，重复取号 30059、取消后再叫号 30058、无 token 401）；两库 49 张表（M14 B1 加 6 张）、`queue_ticket.is_deleted` 列、3 张团餐券种子，以及逻辑删除后分页不再返回该号、对该号叫号返回 30057（过滤前后做正向对照）。
-
-造数日期取后端返回的 `bizDate`，软删与恢复按本轮票的主键定位，所有失败路径与 `finally` 都按 `member_id + biz_date` 清理，脚本可重复跑。全部通过输出 `M13 VERIFY PASSED`，退出码 0。
-
-### M14 B2 实时性与桌码验收
-
-```powershell
-powershell -ExecutionPolicy Bypass -File .\deploy\verify-m14-b2.ps1
-# 8080 被日常实例占用时，可对独立实例指定端口：
-powershell -ExecutionPolicy Bypass -File .\deploy\verify-m14-b2.ps1 -Base 'http://127.0.0.1:18081'
-```
-
-脚本用两个不同 `phoneCode` 的全新会员，验六组：桌码绑定（`A01` 回真实桌台、未知桌码 30091、格式非法 10001、无 token 401）；营业状态前置校验（临时把 `store.business_status` 置 0，取号与领券都返回 30093，`finally` 恢复）；叫号链路（取号 → 后台叫号 → `message_record` 恰好一条 `QUEUE_CALL` → 商家端入座）；`queue-expire` 兜底（注入一条昨天的 `WAITING` 票 → 手动补跑后 `EXPIRED`、第二次补跑 `count=0`）；券码二维码（`/code` 同时回 16 位动态码与 PNG base64）；契约与接线（`/v3/api-docs` 出现新路径与 `tableId` / `qrImageBase64` 字段、后台菜单含 `/queue`、PC 页面与小程序轮询 / 绑码 / 导航 / 二维码渲染的源码断言）。全部通过输出 `M14 B2 VERIFY PASSED`，退出码 0。
-
-真机「顾客亮码 → 店员扫码」需人工在微信开发者工具或真机走一遍：券码在卡包券详情页、取餐码在订单详情页，商家端统一扫码页扫同一张二维码即可分流核销。自动化脚本只覆盖出图与码串，不覆盖相机链路。
-
-### M14 B3 会员资金与营销验收
-
-```powershell
-powershell -ExecutionPolicy Bypass -File .\deploy\verify-m14-b3.ps1
-# 8080 被日常实例占用时同样支持 -Base
-```
-
-脚本用两个不同 `phoneCode` 的全新会员，验八组：储值账户（零值起步、`0.001` 因 Bean 校验返回 10001、三位小数与低于下限返回 30065、充 500 送 50 / 充 1000 送 120、本金与赠送分两条流水、后台会员页与流水页可见）；会员价（临时把 `dish.member_price` 置 1.00 后 quote 与 preview 都以会员价计价，`finally` 恢复原值）；会员折扣与叠加规则（临时把 NORMAL 折扣率改 0.90，preview 折扣额为总额 10%，不可叠加券同单时折扣归零、券照常抵扣，`finally` 恢复）；组合支付（`useBalance` 抵到剩 0.01 元、订单落 `balance_amount` 与更小的 `pay_amount`、`#DEDUCT` 一条、取消写 `#ROLLBACK` 且余额还原）；积分兑换（订单 PAID、`pay_amount=0`、`EXCHANGE/USE` 一条、取消写 `EXCHANGE_ROLLBACK` 且积分还原）；券规则（生日规则按年幂等、重跑 0 张；把闲置会员注册时间改到 60 天前后刷新沉睡标签、按标签筛到人、沉睡规则按月幂等）；契约与接线（`/v3/api-docs` 出现 6 个新路径、`member-tag` / `coupon-rule` 进任务清单、后台菜单含 `/balance`，并断言小程序余额页 / 积分兑菜页 / 确认页余额开关与 PC 储值页、券规则页存在）。全部通过输出 `M14 B3 VERIFY PASSED`，退出码 0。
-
-回归：本批改动后 `verify-m3 / m5 / m6 / m7 / m10` 全部重新跑过。其中 `verify-m3 / m6 / m7 / m10` 的会员登录补了每轮唯一的 `phoneCode`（M12 按手机号唯一，缺省会落到同一老会员，等级折扣与签到状态会污染断言），`verify-m6` 的实付断言改为「总额 − 积分 − 会员折扣」，`verify-m10` 的「有退款时净额严格小于毛额」改为仅在当天确有退款时断言。
-
-### M14 B4 商品交易与内容验收
-
-```powershell
-powershell -ExecutionPolicy Bypass -File .\deploy\verify-m14-b4.ps1
-# 8080 被日常实例占用时同样支持 -Base
-powershell -ExecutionPolicy Bypass -File .\deploy\verify-m14-b4.ps1 -Base 'http://127.0.0.1:18081'
-```
-
-脚本用两个不同 `phoneCode` 的全新会员，验八组：套餐后台 CRUD / 上下架 / 售罄（30077 / 30078 / 30079 / 30080）；套餐下单落 `trade_order.bundle_id` 与套餐价、取消回补库存、支付 → 后台推进 → 商家扫码完成写一条 `#BUNDLE` 核销记录；顾客端核销记录分页 / 详情 / 越权 30090；订单四组状态 Tab 与分页；评价新建 `APPROVED` → 拒绝后评分聚合减 1 且 `reviewed` 仍为真、30085 / 30086 / 30087；预售 30081 / 30082、库存扣减与取消回补、`presale-shelf` 自动上下架且重跑 `count=0`；可选包间列表 / 创建锁 `table_id` / 冲突 30041 / 类型非法 30098 / 锁包间拒绝改期；契约（`/v3/api-docs` 14 个新路径）、任务清单 11 项、后台菜单 `/bundle` 与 `/review`、两库 `bundle_id` 列与三端源码接线。全部通过输出 `M14 B4 VERIFY PASSED`，退出码 0（109 条断言、0 失败）。
-
-回归：本批改动与独立审查修复后 `verify-m3 / m8 / m7 / m9 / m13 / m14-b2 / m14-b3` 全部重新跑过。其中 `verify-m8` 补了每轮唯一的 `phoneCode`，并把评分重算与分页 total 的 SQL 补上 `AND status='APPROVED'`（B4 起评分聚合只统计通过评价）；这是脚本跟随契约变化，不是产品逻辑问题。
-
-### 交付文档
-
-| 文档 | 内容 |
+| 账号 | 角色 |
 | --- | --- |
-| [README.md](README.md) | 项目全貌、验收方式、配置项、常见问题 |
-| [docs/deployment.md](docs/deployment.md) | 部署说明：中间件准备、构建启动、配置与凭据、日常运维、升级回滚、故障排查 |
-| [docs/api-list.md](docs/api-list.md) | 接口清单：`/v3/api-docs` 173 个路径 / 191 个操作按端与分组列出，附权限点对照与业务码分段（M13 新增 10 个、M14 B2 新增 2 个、B3 新增 10 个、B4 新增 14 个见文末；M14 B1 只扩错误码段，未新增接口） |
-| [docs/mock-replacement.md](docs/mock-replacement.md) | Mock 能力替换清单：支付网关、微信登录、订阅消息、短信、上传，逐项写替换点与要改的配置 |
-| [docs/milestone-m14.md](docs/milestone-m14.md) | M14 里程碑：2.md 未实现项与 M13 交付欠账，六批次范围、DDL 清单、验收口径与状态跟踪 |
-
-### 显式运行测试
-
-`pom.xml` 默认跳过测试编译与执行以加快打包，需要验证时显式开启（当前 209 个用例）：
-
-```powershell
-cd come-often-server
-mvn test "-Dmaven.test.skip=false"
-```
-
-库存并发测试与 `@JobLock` 互斥测试直连本机 Redis 6.2.6 容器，使用 `comeoften:test:` / 独立任务名，结束后自行删除键。
-
-### PC 后台启动
-
-```powershell
-cd come-often-admin
-npm install
-npm run dev
-```
-
-Vite dev server 在 `http://localhost:5173`，`/api` 代理到后端 8080。
-
-### 两个小程序
-
-用微信开发者工具分别导入 `come-often-miniapp` 与 `come-often-merchant` 目录，在 `project.config.json` 中把 `appid` 换成已有测试 AppID，勾选 ES6 转 ES5 后编译预览。开发期两端可共用一个测试 AppID；正式上线商家端需单独申请 AppID。
+| `admin` | 超级管理员 |
+| `manager` | 店长 |
+| `waiter` | 服务员 |
 
 ## 配置说明
 
@@ -469,150 +290,7 @@ java -Dfile.encoding=UTF-8 -jar target/come-often-server-0.0.1-SNAPSHOT.jar --sp
 
 运行日志在 `come-often-server/logs/app.log`，按时间与大小滚动。生产环境还需 HTTPS 与已备案域名、独立部署的中间件、微信支付 V3 证书与每日对账、短信与订阅消息资质，详见开发计划第十章。
 
-中间件准备、环境变量清单、启动自检、日常运维（消息面板 / 兜底任务补跑 / 库存重建）、升级回滚与故障排查见 [docs/deployment.md](docs/deployment.md)。
-
-## API 文档
-
-启动后访问 `http://localhost:8080/doc.html`（Knife4j）。生产环境必须设置 `knife4j.production=true` 或加访问控制，避免文档裸奔。
-
-按端与分组整理的全量接口清单（含权限点对照与业务码分段）见 [docs/api-list.md](docs/api-list.md)。
-
-M0 已提供 `POST /api/admin/file/upload` 与 `GET /api/admin/file`，用于验证 MinIO 上传后能取回。
-
-M1 起，登录接口无需 token，其余 `/api/app/**`、`/api/merchant/**`、`/api/admin/**` 都要带对应端的 Bearer Token：
-
-| 端 | 接口 |
-| --- | --- |
-| 顾客端 | `POST /api/app/auth/login`、`GET /api/app/auth/info` |
-| 商家端 | `POST /api/merchant/auth/login`、`POST /api/merchant/auth/auto-login`、`GET /api/merchant/auth/info`、`POST /api/merchant/auth/logout` |
-| PC 后台 | `POST /api/admin/auth/login`、`GET /api/admin/auth/info`、`GET /api/admin/auth/menus`、`POST /api/admin/auth/refresh`、`POST /api/admin/auth/logout`、`GET /api/admin/auth/permission-probe` |
-
-未登录返回 HTTP 401 + 业务码 40100（过期为 40101；跨端 token 因三套密钥不同，验签失败返回 40102），无权限返回 403 + 40301，员工未绑定门店返回 403 + 40302。
-
-M2 新增分组：`/api/app/{home,dish,store}`、`/api/admin/{dish,store,home,file}`、`/api/public/file`。后台菜品/分类/库存/运营位接口需要 `dish:manage`，门店接口需要 `store:manage`，指定键上传需要 `file:upload`。`/api/public/file` 是匿名只读图片通道，只放行 `dish/`、`banner/`、`review/` 前缀，DB 只存 objectKey，不存完整 URL。
-
-M2 业务码：20001 门店不存在、20002 菜品不存在、20003 分类不存在、20004 已下架、20005 今日已售罄、20006 规格选项不合法、20007 加料不合法、20008 预定菜仅限到店用餐、20009 对象键不合法、20010 分类名重复。
-
-M3 新增分组：`/api/app/{cart,order}`、`/api/admin/order`、`/api/admin/mq/message`。后台订单与消息接口需要 `order:manage`，顾客端订单接口只需登录态。主要接口：
-
-| 端 | 接口 |
-| --- | --- |
-| 购物车 | `GET/POST/DELETE /api/app/cart`、`PUT/DELETE /api/app/cart/{itemId}` |
-| 顾客端订单 | `POST /api/app/order/preview`、`POST /api/app/order`、`GET /api/app/order`、`GET /api/app/order/{orderNo}`、`POST /api/app/order/{orderNo}/pay`、`POST /api/app/order/{orderNo}/cancel` |
-| PC 后台 | `GET /api/admin/order/page`、`GET /api/admin/order/{orderNo}`、`POST /api/admin/order/{orderNo}/transition`、`POST /api/admin/order/{orderNo}/resend-timeout` |
-| 消息可靠性 | `GET /api/admin/mq/message`、`POST /api/admin/mq/message/{messageId}/republish` |
-
-金额一律由服务端计算：确认页取 `POST /api/app/order/preview`（内部复用 M2 的 `DishOrderService.check`），单品展示取 `/api/app/dish/quote`，页面不做业务计算。`POST /api/app/order/{orderNo}/pay` 自 M4 起改为调用 `PayGateway.prepay`，Mock 网关同步确认收款后由同一入账回调写流水，返回体仍是 `OrderVO`，M3 的验收脚本无需改动。
-
-M3 业务码：30001 库存不足、30002 订单状态流转非法、30003 购物车项不存在、30004 购物车为空、30005 订单不存在、30006 无权操作该订单、30007 预定菜需提前 24 小时、30008 请选择到店用餐时间、30009 自提时间不合法、30010 支付金额不合法、30011 本地消息不存在。含预定菜却传自提时段仍返回 20008。
-
-M4 新增分组：`/api/mock/pay`、`/api/pay/notify`、`/api/app/order/{orderNo}/refund`、`/api/admin/refund`。后台退款接口复用 `order:manage` 权限点，未新增菜单。主要接口：
-
-| 端 | 接口 |
-| --- | --- |
-| Mock 回调 | `POST /api/mock/pay/success?orderNo=` |
-| 渠道回调 | `POST /api/pay/notify`（V3 骨架；Mock 网关下验签失败返回 30013） |
-| 顾客端退款 | `POST /api/app/order/{orderNo}/refund`、`GET /api/app/order/{orderNo}/refund` |
-| PC 后台 | `GET /api/admin/refund`、`POST /api/admin/refund/{refundNo}/audit`、`POST /api/admin/refund/order/{orderNo}` |
-
-回调按 `out_trade_no` 先查 `payment_record`，命中成功即返回，绝不二次改订单状态；`uk_out_trade_no` 唯一索引兜住并发插入。支付成功在同一事务内经本地消息表发 `STATUS_CHANGED(PAID)`（供订阅消息）与 `PAY_SUCCEEDED`（路由 `order.paid`，供 M5/M6 消费）两条消息。制作前（PAID）退款在同一事务内自动审核通过，制作中（ACCEPTED / READY）保持 `REFUNDING` 等后台审核；退款金额只取已收流水，定金单不把到店未付的尾款退出去。
-
-M4 业务码：30012 支付回调报文不合法、30013 支付回调验签失败、30014 支付网关未启用、30015 支付流水不存在、30016 当前订单状态不支持退款、30017 退款单不存在、30018 已有处理中的退款申请、30019 退款单状态不允许审核、30020 退款金额不合法、30021 定金订单请联系商家发起退款。
-
-M5 新增分组：`/api/app/coupon`、`/api/admin/coupon`。后台模板与发券需要 `coupon:manage`，核销需要 `coupon:verify`，核销记录需要 `coupon:record`（三个权限点 M1 种子已有）。主要接口：
-
-| 端 | 接口 |
-| --- | --- |
-| 顾客端卡包 | `POST /api/app/coupon/{templateId}/receive`、`GET /api/app/coupon/page?tab=`、`GET /api/app/coupon/{userCouponId}/code` |
-| PC 后台模板 | `GET /api/admin/coupon/template/page`、`GET/PUT /api/admin/coupon/template/{templateId}`、`POST /api/admin/coupon/template`、`POST /api/admin/coupon/template/{templateId}/status` |
-| PC 后台发券与核销 | `POST /api/admin/coupon/grant`、`POST /api/admin/coupon/verify`、`GET /api/admin/coupon/record/page`、`GET /api/admin/coupon/roi`、`POST /api/admin/coupon/expire-probe` |
-| 顾客端订单 | `POST /api/app/order/preview` 与 `POST /api/app/order` 新增 `userCouponId`，返回体新增 `discountAmount` / `couponId` / `availableCoupons` |
-
-动态券码按计划 3.6：`6 位短序号 + HMAC-SHA256(短序号|时间窗序号) 截 10 位`，时间窗 = `epochSecond / 30`，校验当前窗口与前 1 个窗口，密钥走 `comeoften.coupon.code-secret`。核销只走 `CouponVerifyService` 一份规则，PC 入口标记为 `ADMIN_INPUT`，M9 商家端扫码复用同接口传 `MERCHANT_SCAN`。线上下单用券只锁 `user_coupon` 并写 `trade_order.coupon_id/discount_amount`，现场核销才写 `coupon_use_record`（带 `operator_user_id`）。
-
-M5 业务码：30022 券模板不存在、30023 券未发放或已停用、30024 券已领完、30025 券不存在、30026 券已使用、30027 券已过期、30028 券码已失效、30029 未达到券使用门槛、30030 券不适用于当前门店、30031 券不适用于当前订单菜品、30032 券不在可领取时间内。
-
-M6 新增分组：`/api/app/points`、`/api/admin/points`。后台积分与等级接口复用 M1 已有的 `member:manage`（菜单 105 用户管理），未新增菜单与权限点。主要接口：
-
-| 端 | 接口 |
-| --- | --- |
-| 顾客端账户 | `GET /api/app/points/account`、`GET /api/app/points/record/page`、`GET /api/app/points/rule` |
-| 顾客端发放 | `POST /api/app/points/sign-in`、`POST /api/app/points/share`、`POST /api/app/points/profile` |
-| 顾客端等级 | `GET /api/app/points/level` |
-| PC 后台 | `GET /api/admin/points/rule`、`GET /api/admin/points/level`、`PUT /api/admin/points/level/{levelId}` |
-| PC 后台查询 | `GET /api/admin/points/member/page`、`GET /api/admin/points/record/page`、`POST /api/admin/points/expire/run` |
-| 顾客端订单 | `POST /api/app/order/preview` 与 `POST /api/app/order` 新增 `usePoints`，返回体新增 `pointsAmount` / `pointsUsed` / `pointsBalance` / `maxUsablePoints` / `pointsExchangeRate` |
-
-积分抵现按计划 3.7 走三段式：下单写 `FREEZE` 流水并扣余额（`UPDATE ... WHERE balance >= n`），支付成功把同一行 CAS 改成 `USE` 并累加 `total_used`，取消或超时插入 `ROLLBACK` 流水并加回余额。流水幂等由 `points_record.uk_points_idempotent` 兜底，`biz_id` 按用途加后缀（`{orderNo}#EARN` / `#REDEEM` / `#ROLLBACK`）。订单完成事件是新的 `TYPE_ORDER_COMPLETED`，经 `comeoften.member.exchange` 投递到 `comeoften.points.completed.queue`，消费者同时负责发积分与重算等级。
-
-M6 业务码：30033 积分余额不足、30034 使用的积分不合法、30035 积分账户不存在、30036 今日已签到、30037 今日分享积分已领取、30038 完善资料积分已领取、30039 会员等级不存在、30040 等级门槛配置不合法。
-
-M7 新增分组：`/api/app/reservation`、`/api/admin/reservation`。后台接口复用 M1 已有的 `reservation:manage`（菜单 103 预约管理），`reservation:audit` / `table:manage`（菜单 203 / 204）留给 M9 商家端，未新增菜单与权限点。主要接口：
-
-| 端 | 接口 |
-| --- | --- |
-| 顾客端预约 | `GET /api/app/reservation/meta`、`GET /api/app/reservation/slot?date=`、`POST /api/app/reservation` |
-| 顾客端我的预约 | `GET /api/app/reservation/page?tab=`、`GET /api/app/reservation/{reserveNo}`、`POST /api/app/reservation/{reserveNo}/cancel`、`POST /api/app/reservation/{reserveNo}/reschedule`、`GET /api/app/reservation/{reserveNo}/code` |
-| PC 后台审核 | `GET /api/admin/reservation/page`、`GET /api/admin/reservation/{reserveNo}`、`POST /api/admin/reservation/{reserveNo}/confirm`、`POST /api/admin/reservation/{reserveNo}/reject` |
-| PC 后台签到 | `POST /api/admin/reservation/{reserveNo}/checkin`、`POST /api/admin/reservation/checkin-by-code` |
-| PC 后台看板 | `GET /api/admin/reservation/calendar`、`GET /api/admin/reservation/table-board`、`GET /api/admin/reservation/slot` |
-| 运维 | `POST /api/admin/reservation/slot/generate`、`POST /api/admin/reservation/slot/rebuild`、`POST /api/admin/reservation/{reserveNo}/probe` |
-
-时段容量按「日期 × 时段 × 桌型」预生成，`capacity` 取该桌型在 `store_table` 下的桌数（大厅 14 / 小包 4 / 大包 4），不是常量；`uk_slot` 兜底幂等，只有 `booked = 0` 的桶才会随桌台变化刷新容量。扣减固定顺序：Redis `tryOccupy(comeoften:slot:cap:{slotId}, 1, capacity)` → DB `UPDATE reservation_slot SET booked = booked + 1 WHERE id = ? AND booked + 1 <= capacity` → 影响行数为 0 立即回补 Redis 并返回 30041。签到码复用券码的时间窗 + HMAC 公共件（`DynamicCodeSigner`，scope 隔离），格式为 `R` + 预约单号 + 10 位签名，30 秒一个窗口，兼容前 1 个窗口。
-
-M7 业务码：30041 时段已满、30042 时段不存在或未开放、30043 预约单不存在、30044 就餐人数与桌型不匹配、30045 距预约不足 2 小时无法取消、30046 预约状态不允许该操作、30047 无权操作该预约、30048 签到码已失效、30049 预约时间不合法、30050 该门店未开放所选桌型。
-
-M8 新增分组：`/api/app/review`、`/api/app/file`、`/api/app/dish/search` 与 `/api/app/dish/recommend`。全部只需登录态，不新增权限点、不新增后台菜单。主要接口：
-
-| 端 | 接口 |
-| --- | --- |
-| 顾客端评价 | `POST /api/app/review`、`GET /api/app/review/dish/{dishId}`、`GET /api/app/review/dish/{dishId}/rating` |
-| 顾客端上传 | `POST /api/app/file/upload?prefix=review`（只接受 review 前缀与 jpg/jpeg/png/webp） |
-| 顾客端搜索 | `GET /api/app/dish/search?keyword=&current=&size=`（默认 10 条、上限 20 条） |
-| 顾客端推荐 | `GET /api/app/dish/recommend`（最近 3 单，未登录 401） |
-
-评价一单一评由 `review.uk_order_member` 兜底，`dish_id` 可空且必须是该订单里的菜；评价图只收 `review/` 前缀的 objectKey（最多 3 张、单张 3MB、对象必须已上传），服务端不做压缩，端上 `wx.compressImage` 后上传。评价成功按 `comeoften.points.review-points` 发分，幂等键是 `biz_type=REVIEW` + `biz_id=评价 ID`，与 M6 共用同一套积分流水。搜索只用右模糊（菜名 / 副标题 / 描述 / 标签，`%` `_` 已转义），排序为菜名 > 标签 > 副标题 > 描述、同档招牌优先，`DishSearchService` 是后续换 ES 的替换点。菜品详情新增 `ratingAverage` / `reviewCount`（一条聚合 SQL，条数与平均分同源），订单详情与列表新增 `canReview` / `reviewed`，均由服务端计算。
-
-M8 业务码：30051 该订单已评价、30052 订单完成后才能评价、30053 评价菜品不在该订单内、30054 评价图片数量或对象键不合法。
-
-M9 新增分组：`/api/merchant/{workbench,order,scan,coupon,reservation,table,dish,notify}`，全部复用 M1 已有的商家端权限点（200~207），不新增菜单与权限点。主要接口：
-
-| 端 | 接口 |
-| --- | --- |
-| 工作台 | `GET /api/merchant/workbench/summary`（`workbench:view`） |
-| 订单看板 | `GET /api/merchant/order/page`、`GET /api/merchant/order/{orderNo}`、`POST /api/merchant/order/{orderNo}/transition`、`POST /api/merchant/order/{orderNo}/refund`（`order:accept`） |
-| 统一扫码 | `POST /api/merchant/scan/resolve`（`scan:use`） |
-| 核销记录 | `GET /api/merchant/coupon/record/page`、`GET /api/merchant/coupon/record/operators`（`coupon:record`） |
-| 预约管理 | `GET /api/merchant/reservation/page`、`POST .../{reserveNo}/confirm`、`POST .../reject`、`POST .../checkin`（`reservation:audit`） |
-| 桌台看板 | `GET /api/merchant/table/board`、`PUT /api/merchant/table/{tableId}/status`（`table:manage`） |
-| 菜品售罄 | `GET /api/merchant/dish/soldout`、`PUT /api/merchant/dish/soldout`（`dish:soldout`） |
-| 新订单提醒 | `POST /api/merchant/notify/new-order?orderNo=`（`order:accept`） |
-
-扫码只分结果不分功能：前端只有一个扫码按钮，`scan/resolve` 按码串分流——券码 `C` + 6 位短序号 + 10 位签名、预约签到码 `R` + 预约单号 + 10 位签名、取餐 / 到店核销码 `^[A-D]\d{3}$`（`A001` 起，自提 A 段、到店 D 段）。计划 3.12 写的 `P` 前缀不采用：M3 已按 3.3 落地 `A###`/`D###`，实际码串里不会出现 `P`。失败不抛业务异常，统一返回 `success=false` + `failReason` / `failCode` / 可直接展示的 `resultMessage`（已使用 30026、已过期 30027、非本店 30030、码失效 30028、未出餐 `ORDER_NOT_READY`、已完成 `ORDER_COMPLETED`、无法识别 `CODE_UNRECOGNIZED`）。订单看板只放开 `PAID→ACCEPTED→READY→COMPLETED` 三步，退单走 `RefundService.applyByAdmin`（制作前自动通过，制作中 / 待取餐等 PC 审核）。
-
-工作台三个订单数字是**当前积压**（含昨日未处理的单，与订单看板 `total` 同源），营收与预约数是当日口径：营收取当日 `paid_time` 落在区间、状态非 `CANCELLED`/`REFUNDED` 的 `pay_amount` 汇总。售罄复用 `DishStockService`，开售时未配置库存按默认 50 份补齐。发起退单额外要求 `SUPER_ADMIN` / `STORE_MANAGER` 角色（`waiter` 有 `order:accept` 但退款在制作前会自动通过，不能只靠权限点）。新订单提醒由既有 `order.notify` 消费者在 `PAID` 时落 `message_record(MERCHANT_NEW_ORDER)`；`comeoften.merchant.subscribe-template-id` 只影响 `templateConfigured` 字段，M9 的实际通道恒为 `LOG`，真实订阅消息发送留 M11。M9 未新增表、未改表结构。
-
-M10 新增分组：`/api/admin/stats`。经营看板走 M1 已有的 `dashboard:view`（菜单 100），报表与导出走 `stats:view`（菜单 106），**不新增菜单与权限点**。主要接口：
-
-| 端 | 接口 |
-| --- | --- |
-| 经营看板 | `GET /api/admin/stats/dashboard`（`dashboard:view`） |
-| 数据报表 | `GET /api/admin/stats/report?startDate=&endDate=&granularity=&topN=`（`stats:view`） |
-| 报表导出 | `GET /api/admin/stats/export?type=trend|hot-dish|coupon-roi|high-value-member&...`（`stats:view`） |
-
-口径按 4.9 与第六章的两页分工：看板回答「今天怎么样」（今日净营收、订单数、客单价、预约看板、热销 Top 5，60 秒轮询），报表回答「一段时间怎么样」（区间汇总 + 趋势 + 热销 + 券 ROI + 复购留存 + 高价值用户，一个聚合接口返回整页）。净营收 = 区间内已支付实付金额 − 已退款金额，退款按**原订单 `paid_time`** 冲减；有效订单数排除 `CANCELLED` 与 `REFUNDED`；`REFUNDING` 与已拒绝（status=2）的退款不扣。趋势按 `paid_time` 自然日分桶，按周为周一起、按月为当月 1 日起，三种粒度之和恒等于区间汇总；默认近 7 天、按日、Top 10，区间上限 366 天。导出数据直接取 `/report` 的同一份结果，行数超过 300 返回 30056，空结果仍输出表头。
-
-M10 业务码：30055 统计区间不合法（起止倒置或超 366 天）、30056 导出行数超过上限。
-
-M11 没有新增业务分组，只在既有面板上加两个运维入口，复用 `order:manage`，**不新增权限点与菜单**：
-
-| 端 | 接口 | 说明 |
-| --- | --- | --- |
-| 兜底任务 | `GET /api/admin/job` | M11 时返回 7 个任务名：`mq-retry` / `points-expire` / `reservation-no-show` / `reservation-slot-generate` / `stock-rebuild` / `order-auto-complete` / `coupon-expire-fallback`；M14 后追加 `queue-expire` / `member-tag` / `coupon-rule` / `presale-shelf`，共 11 个 |
-| 兜底任务 | `POST /api/admin/job/{jobName}/run` | 手动补跑一次，返回 `{jobName, executed, count, detail}`；`executed=false` 表示锁被其他实例持有、本次跳过；任务名不存在返回 10001 |
-| 告警查询 | `GET /api/admin/mq/message/alarm` | 只查 `message_record` 的 `MQ_ALARM`（死信与重发耗尽都落这个类型）；刻意不支持按任意类型查，避免门店级权限读到别店业务通知 |
-
-调度入口在 `JobScheduler`（cron 只负责触发），执行体是被 `@JobLock` 代理的任务 Bean，手动补跑与 cron 共享同一把锁，因此同一个任务不会并发执行两次。M11 未新增表、未改表结构、未新增业务码（只有 10001 复用）。
+中间件准备、环境变量清单、启动自检、日常运维（消息面板 / 兜底任务补跑 / 库存重建）、升级回滚与故障排查见 [docs/deployment.md](docs/deployment.md)。接口清单见 [docs/api-list.md](docs/api-list.md)，Mock 能力替换清单见 [docs/mock-replacement.md](docs/mock-replacement.md)；启动后可访问 `http://localhost:8080/doc.html` 查看 Knife4j 在线文档。
 
 ## 常见问题
 
