@@ -3,13 +3,14 @@
  * @author come-often
  * @date 2026-11-08
  */
-import { cancelOrder, getOrderDetail, payOrder } from '../../../api/orderApi';
+import { cancelOrder, getOrderDetail, getOrderQrCode, payOrder } from '../../../api/orderApi';
 import { buildImageUrl } from '../../../utils/image';
 
 Page({
   data: {
     orderNo: '',
     order: null,
+    qrImageBase64: '',
     loading: false,
     submitting: false,
   },
@@ -38,10 +39,21 @@ Page({
           })),
         },
       });
+      await this.loadQrCode();
     } catch (error) {
       wx.showToast({ title: error.message ?? '订单详情加载失败', icon: 'none' });
     } finally {
       this.setData({ loading: false });
+    }
+  },
+
+  /** 二维码只是展示增强：出图失败时清空图片，码串仍在页面上，可人工输码 */
+  async loadQrCode() {
+    try {
+      const qr = await getOrderQrCode(this.data.orderNo);
+      this.setData({ qrImageBase64: qr?.qrImageBase64 ?? '' });
+    } catch (error) {
+      this.setData({ qrImageBase64: '' });
     }
   },
 

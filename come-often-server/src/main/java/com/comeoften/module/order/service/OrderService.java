@@ -5,6 +5,7 @@ import com.comeoften.module.order.constant.OperatorType;
 import com.comeoften.module.order.dto.OrderCreateDTO;
 import com.comeoften.module.order.dto.OrderPayDTO;
 import com.comeoften.module.order.vo.OrderPreviewVO;
+import com.comeoften.module.order.vo.OrderQrCodeVO;
 import com.comeoften.module.order.vo.OrderSummaryVO;
 import com.comeoften.module.order.vo.OrderVO;
 
@@ -18,6 +19,11 @@ public interface OrderService {
     OrderVO create(Long memberId, Long storeId, OrderCreateDTO dto);
 
     OrderVO detailForApp(Long memberId, Long storeId, String orderNo);
+
+    /**
+     * 取餐码二维码（M14 B2）。仅本人可查；出图失败时 qrImageBase64 为 null，端上降级显示码串。
+     */
+    OrderQrCodeVO pickupQrCode(Long memberId, Long storeId, String orderNo);
 
     OrderVO detailForAdmin(Long storeId, String orderNo);
 

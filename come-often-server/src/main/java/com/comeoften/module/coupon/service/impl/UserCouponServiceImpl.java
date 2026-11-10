@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.comeoften.common.BizException;
 import com.comeoften.common.ErrorCode;
 import com.comeoften.common.PageResult;
+import com.comeoften.common.util.QrCodeUtils;
 import com.comeoften.config.CouponProperties;
 import com.comeoften.module.coupon.constant.CouponConstants;
 import com.comeoften.module.coupon.constant.CouponTemplateStatus;
@@ -26,6 +27,7 @@ import com.comeoften.module.coupon.vo.CouponCenterItemVO;
 import com.comeoften.module.coupon.vo.CouponCodeVO;
 import com.comeoften.module.coupon.vo.CouponSelectionVO;
 import com.comeoften.module.coupon.vo.UserCouponVO;
+import com.comeoften.module.store.service.StoreService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -69,6 +71,13 @@ public class UserCouponServiceImpl implements UserCouponService {
 
     private final CouponProperties couponProperties;
 
+    private final StoreService storeService;
+
+    /**
+     * 券码二维码边长（像素）。240 在 750 宽的卡片里放大后仍清晰，base64 体积约 1KB。
+     */
+    private static final int QR_IMAGE_SIZE = 240;
+
     @Override
     public List<CouponCenterItemVO> listCenter(Long memberId, Long storeId) {
         LocalDateTime now = LocalDateTime.now();
@@ -103,6 +112,7 @@ public class UserCouponServiceImpl implements UserCouponService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public UserCouponVO receive(Long memberId, Long storeId, Long templateId) {
+        storeService.requireOpen(storeId);
         CouponTemplate template = requireReceivable(storeId, templateId);
         int granted = couponGrantService.grant(storeId, templateId,
                 Collections.singletonList(memberId), "APP_RECEIVE");
@@ -171,6 +181,7 @@ public class UserCouponServiceImpl implements UserCouponService {
         vo.setTemplateId(userCoupon.getTemplateId());
         vo.setCode(code);
         vo.setCodeContent(CouponConstants.CODE_PREFIX + code);
+        vo.setQrImageBase64(qrImageBase64(vo.getCodeContent()));
         vo.setSecondsRemaining(CouponCodeSigner.secondsRemaining(epochSecond));
         vo.setExpireAt(userCoupon.getExpireAt());
         if (template != null) {
@@ -181,6 +192,18 @@ public class UserCouponServiceImpl implements UserCouponService {
             vo.setFaceValue(template.getFaceValue());
         }
         return vo;
+    }
+
+    /**
+     * 二维码只是展示增强，出图失败不能让整张券不可用：降级为只显示数字券码，人工输码仍可核销。
+     */
+    private static String qrImageBase64(String content) {
+        try {
+            return QrCodeUtils.pngBase64(content, QR_IMAGE_SIZE);
+        } catch (RuntimeException exception) {
+            log.warn("券码二维码生成失败，降级为数字券码: content={}", content, exception);
+            return null;
+        }
     }
 
     @Override

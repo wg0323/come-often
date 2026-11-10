@@ -2,6 +2,13 @@
 <view wx:if="{{order}}" class="page">
   <view class="code-card">
     <text class="code-label">{{order.orderType === 'DINE_IN' ? '到店核销码' : '取餐码'}}</text>
+    <image
+      wx:if="{{qrImageBase64}}"
+      class="code-image"
+      src="data:image/png;base64,{{qrImageBase64}}"
+      mode="aspectFit"
+      show-menu-by-longpress
+    />
     <text class="code-value">{{order.pickupCode || '—'}}</text>
     <text class="code-status">{{order.statusText}}</text>
     <text wx:if="{{order.depositNote}}" class="code-note">{{order.depositNote}}</text>

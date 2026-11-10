@@ -47,6 +47,9 @@ public class CouponCodeVO implements Serializable {
     @Schema(description = "扫码内容，带 C 前缀供商家端扫码分流")
     private String codeContent;
 
+    @Schema(description = "二维码 PNG 的 base64（不带 data URI 前缀）；生成失败时为 null，端上降级只显示数字券码")
+    private String qrImageBase64;
+
     @Schema(description = "本窗口剩余秒数，页面按此设置刷新定时器")
     private Long secondsRemaining;
 

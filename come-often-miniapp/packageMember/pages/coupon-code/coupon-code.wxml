@@ -12,8 +12,15 @@
 
     <view class="code-card" bindtap="onToggleEnlarge" hover-class="code-card--hover">
       <text class="code-label">券码 · {{countdown}} 秒后刷新</text>
+      <image
+        wx:if="{{code.qrImageBase64}}"
+        class="code-image"
+        src="data:image/png;base64,{{code.qrImageBase64}}"
+        mode="aspectFit"
+        show-menu-by-longpress
+      />
       <text class="code-value">{{displayCode}}</text>
-      <text class="code-tip">收银台出示此券码，或点击放大并调亮屏幕</text>
+      <text class="code-tip">收银台扫码或人工输码；点击放大并调亮屏幕</text>
     </view>
 
     <view class="note-card">

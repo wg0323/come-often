@@ -44,6 +44,9 @@ public class OrderCreateDTO implements Serializable {
     @Schema(description = "使用的用户券 ID；一个订单最多一张券，不传表示不用券")
     private Long userCouponId;
 
+    @Schema(description = "绑定的桌台 ID；堂食单可传，服务端校验属于当前门店后写入 trade_order.table_id")
+    private Long tableId;
+
     @Min(value = 0, message = "使用的积分不能为负")
     @Schema(description = "使用的积分数量；不传或 0 表示不抵现，抵扣金额由服务端按兑换比例算出", example = "500")
     private Integer usePoints;

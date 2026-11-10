@@ -5,6 +5,7 @@
  */
 import { getCart } from '../../api/cartApi';
 import { getCategories, getDishList } from '../../api/dishApi';
+import { bindStoreTable } from '../../api/storeApi';
 import { buildImageUrl } from '../../utils/image';
 import { quickAddDish } from '../../utils/quickAdd';
 
@@ -53,6 +54,9 @@ Page({
     const now = new Date();
     const defaultPickup = new Date(now.getTime() + 60 * 60 * 1000);
     const boundCode = app.globalData.boundTableCode || wx.getStorageSync('boundTableCode') || '';
+    // 桌台 ID 与桌码成对存在：冷启动后要把本地保存的 ID 一起恢复到 globalData，下单才带得上
+    app.globalData.boundTableId = app.globalData.boundTableId
+      || wx.getStorageSync('boundTableId') || '';
     this.setData({
       pickupDate: formatDate(now),
       pickupClock: formatClock(defaultPickup),
@@ -188,11 +192,22 @@ Page({
     this.setData({ tableCodeInput: event.detail.value });
   },
 
-  bindTable(code) {
-    wx.setStorageSync('boundTableCode', code);
-    getApp().globalData.boundTableCode = code;
-    this.setData({ tableCode: code, tableCodeInput: code });
-    wx.showToast({ title: `已绑定 ${code}`, icon: 'success' });
+  /** 桌码先过服务端校验：校验通过才落本地，并把桌台 ID 存下来供下单携带 */
+  async bindTable(code) {
+    try {
+      const table = await bindStoreTable(code);
+      const app = getApp();
+      wx.setStorageSync('boundTableCode', code);
+      wx.setStorageSync('boundTableId', table?.id ?? '');
+      app.globalData.boundTableCode = code;
+      app.globalData.boundTableId = table?.id ?? '';
+      this.setData({ tableCode: code, tableCodeInput: code });
+      wx.showToast({ title: `已绑定 ${table?.tableNo ?? code}`, icon: 'success' });
+      return true;
+    } catch (error) {
+      wx.showToast({ title: error.message ?? '桌码校验失败', icon: 'none' });
+      return false;
+    }
   },
 
   onPickupDateChange(event) {
@@ -203,7 +218,7 @@ Page({
     this.setData({ pickupClock: event.detail.value });
   },
 
-  onConfirmMode() {
+  async onConfirmMode() {
     const app = getApp();
     if (this.data.modeDraft === 'DINE_IN') {
       const code = this.data.tableCode || `${this.data.tableCodeInput ?? ''}`.trim();
@@ -211,8 +226,10 @@ Page({
         wx.showToast({ title: '请先扫码或输入有效桌码', icon: 'none' });
         return;
       }
-      wx.setStorageSync('boundTableCode', code);
-      app.globalData.boundTableCode = code;
+      const bound = await this.bindTable(code);
+      if (!bound) {
+        return;
+      }
       app.globalData.orderMode = 'DINE_IN';
       this.setData({
         modeVisible: false,

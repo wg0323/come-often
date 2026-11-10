@@ -9,6 +9,7 @@ import com.comeoften.common.ErrorCode;
 import com.comeoften.common.OrderKeys;
 import com.comeoften.common.PageResult;
 import com.comeoften.common.StockKeys;
+import com.comeoften.common.util.QrCodeUtils;
 import com.comeoften.module.cart.entity.CartItem;
 import com.comeoften.module.cart.mapper.CartItemMapper;
 import com.comeoften.module.cart.util.CartSkuKeys;
@@ -46,11 +47,15 @@ import com.comeoften.module.order.service.OrderService;
 import com.comeoften.module.order.util.OrderAmountCalculator;
 import com.comeoften.module.order.util.PickupCodeGenerator;
 import com.comeoften.module.order.vo.OrderPreviewVO;
+import com.comeoften.module.order.vo.OrderQrCodeVO;
 import com.comeoften.module.order.vo.OrderSummaryVO;
 import com.comeoften.module.order.vo.OrderVO;
 import com.comeoften.module.payment.service.PaymentService;
 import com.comeoften.module.points.service.PointsAccountService;
 import com.comeoften.module.review.service.ReviewService;
+import com.comeoften.module.store.entity.StoreTable;
+import com.comeoften.module.store.mapper.StoreTableMapper;
+import com.comeoften.module.store.service.StoreService;
 import com.comeoften.mq.MessageProducer;
 import com.comeoften.mq.RabbitConst;
 import com.comeoften.mq.message.MqEnvelope;
@@ -112,6 +117,11 @@ public class OrderServiceImpl implements OrderService {
 
     private static final long MAX_REPLAY_DELAY_SECONDS = 3600L;
 
+    /**
+     * 取餐码二维码边长（像素）。码串只有 4 位，240 足够商家端扫清。
+     */
+    private static final int QR_IMAGE_SIZE = 240;
+
     private final TradeOrderMapper tradeOrderMapper;
 
     private final OrderItemMapper orderItemMapper;
@@ -146,6 +156,10 @@ public class OrderServiceImpl implements OrderService {
 
     private final StringRedisTemplate stringRedisTemplate;
 
+    private final StoreTableMapper storeTableMapper;
+
+    private final StoreService storeService;
+
     @Value("${comeoften.order.pay-timeout-seconds:900}")
     private long payTimeoutSeconds;
 
@@ -177,7 +191,9 @@ public class OrderServiceImpl implements OrderService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public OrderVO create(Long memberId, Long storeId, OrderCreateDTO dto) {
+        storeService.requireOpen(storeId);
         Selection selection = prepare(memberId, storeId, dto);
+        Long tableId = resolveTableId(storeId, selection.orderType, dto.getTableId());
         List<Deduction> deductions = preDeduct(storeId, selection.quantityByDish);
         // 事务一旦回滚就回补 Redis；DB 回滚由 Spring 负责，两条路径不会重复回补
         registerRollbackCompensation(deductions);
@@ -209,6 +225,7 @@ public class OrderServiceImpl implements OrderService {
         order.setCouponId(selection.coupon == null ? null : selection.coupon.getUserCouponId());
         order.setPointsUsed(selection.pointsUsed);
         order.setPickupCode(code);
+        order.setTableId(tableId);
         order.setBizDate(bizDate);
         order.setPickupTime(selection.pickupTime);
         order.setDineInTime(selection.dineInTime);
@@ -245,6 +262,22 @@ public class OrderServiceImpl implements OrderService {
         boolean completed = OrderStatus.COMPLETED.name().equals(order.getStatus());
         vo.setReviewed(reviewed);
         vo.setCanReview(completed && !reviewed);
+        return vo;
+    }
+
+    @Override
+    public OrderQrCodeVO pickupQrCode(Long memberId, Long storeId, String orderNo) {
+        TradeOrder order = requireOwned(memberId, storeId, orderNo);
+        OrderQrCodeVO vo = new OrderQrCodeVO();
+        vo.setOrderNo(order.getOrderNo());
+        vo.setPickupCode(order.getPickupCode());
+        try {
+            vo.setQrImageBase64(QrCodeUtils.pngBase64(order.getPickupCode(), QR_IMAGE_SIZE));
+        } catch (RuntimeException exception) {
+            // 出图只是展示增强，失败时端上仍可显示并手输码串
+            log.warn("取餐码二维码生成失败: orderNo={}, pickupCode={}",
+                    order.getOrderNo(), order.getPickupCode(), exception);
+        }
         return vo;
     }
 
@@ -569,6 +602,21 @@ public class OrderServiceImpl implements OrderService {
                 log.error("库存 Redis 回补失败，等待每日重建兜底: key={}", deduction.key, e);
             }
         }
+    }
+
+    /**
+     * 桌台只对堂食单生效：自提单即使带了 tableId 也丢弃，避免「自提单挂桌台」这种脏数据。
+     * 桌台必须存在且属于当前门店，否则抛 30091。
+     */
+    private Long resolveTableId(Long storeId, OrderType orderType, Long tableId) {
+        if (tableId == null || orderType != OrderType.DINE_IN) {
+            return null;
+        }
+        StoreTable table = storeTableMapper.selectById(tableId);
+        if (table == null || !storeId.equals(table.getStoreId())) {
+            throw new BizException(ErrorCode.STORE_TABLE_NOT_FOUND);
+        }
+        return tableId;
     }
 
     private String generateCode(Long storeId, LocalDate bizDate, OrderType type) {

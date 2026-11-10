@@ -16,6 +16,12 @@ public interface StoreService {
      */
     Long defaultStoreId();
 
+    /**
+     * 校验门店处于营业中，休息中抛 30093。下单、取号、领券三处前置校验共用，
+     * 避免各模块自己读 business_status 再写字面量。
+     */
+    void requireOpen(Long storeId);
+
     List<StoreVO> list();
 
     StoreVO detail(Long storeId);
@@ -23,6 +29,12 @@ public interface StoreService {
     void update(Long storeId, StoreUpdateDTO dto);
 
     Long saveTable(Long storeId, StoreTableDTO dto);
+
+    /**
+     * 桌码绑定：按桌号校验桌台属于该门店，返回桌台信息供下单携带。
+     * 绑定关系不落库，一次就餐有效；桌号不存在或已删除抛 30091。
+     */
+    StoreVO.StoreTableVO bindTable(Long storeId, String tableCode);
 
     /**
      * 只改桌台状态（0-空闲 / 1-占用 / 2-已预约）。商家端桌台看板点格改状态走这里，

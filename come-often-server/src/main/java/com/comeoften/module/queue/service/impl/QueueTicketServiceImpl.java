@@ -16,6 +16,8 @@ import com.comeoften.module.queue.entity.QueueTicket;
 import com.comeoften.module.queue.mapper.QueueTicketMapper;
 import com.comeoften.module.queue.service.QueueTicketService;
 import com.comeoften.module.queue.vo.QueueTicketVO;
+import com.comeoften.module.store.service.StoreService;
+import com.comeoften.mq.service.NotifyRecordService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataAccessException;
@@ -79,12 +81,17 @@ public class QueueTicketServiceImpl implements QueueTicketService {
 
     private final StringRedisTemplate stringRedisTemplate;
 
+    private final StoreService storeService;
+
+    private final NotifyRecordService notifyRecordService;
+
     @Override
     @Transactional(rollbackFor = Exception.class)
     public QueueTicketVO take(Long memberId, Long storeId, Integer partySize) {
         if (partySize == null || partySize < MIN_PARTY_SIZE || partySize > MAX_PARTY_SIZE) {
             throw new BizException(ErrorCode.QUEUE_PARTY_SIZE_INVALID);
         }
+        storeService.requireOpen(storeId);
         LocalDate today = LocalDate.now();
         Long active = queueTicketMapper.selectCount(new LambdaQueryWrapper<QueueTicket>()
                 .eq(QueueTicket::getStoreId, storeId)
@@ -177,6 +184,7 @@ public class QueueTicketServiceImpl implements QueueTicketService {
             throw new BizException(ErrorCode.QUEUE_TICKET_STATUS_INVALID);
         }
         log.info("排队号已叫号: storeId={}, ticketNo={}", storeId, ticketNo);
+        notifyCalled(ticket);
         return reload(storeId, ticketNo);
     }
 
@@ -194,6 +202,18 @@ public class QueueTicketServiceImpl implements QueueTicketService {
         }
         log.info("排队号已入座: storeId={}, ticketNo={}", storeId, ticketNo);
         return reload(storeId, ticketNo);
+    }
+
+    /**
+     * 叫号通知失败不影响叫号本身：通知是旁路，顾客端 10 秒轮询同样能看到 CALLED。
+     */
+    private void notifyCalled(QueueTicket ticket) {
+        try {
+            notifyRecordService.saveQueueCalledNotice(ticket.getMemberId(), ticket.getStoreId(),
+                    ticket.getTicketNo(), ticket.getPartySize());
+        } catch (RuntimeException exception) {
+            log.warn("叫号通知落库失败，已忽略: ticketNo={}", ticket.getTicketNo(), exception);
+        }
     }
 
     private QueueTicket requireTicket(Long storeId, String ticketNo) {

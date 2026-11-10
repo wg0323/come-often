@@ -17,6 +17,9 @@ export const createOrder = (payload) => request('/order', {
 
 export const getOrders = (params = {}) => request('/order', { data: params });
 
+/** 取餐码 / 到店核销码二维码：后端出图，端上直接渲染 base64 */
+export const getOrderQrCode = (orderNo) => request(`/order/${orderNo}/qrcode`);
+
 export const getOrderDetail = (orderNo) => request(`/order/${orderNo}`);
 
 export const payOrder = (orderNo, payAmount) => request(`/order/${orderNo}/pay`, {

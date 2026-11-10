@@ -3,6 +3,7 @@ package com.comeoften.module.store.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.comeoften.common.BizException;
 import com.comeoften.common.ErrorCode;
+import com.comeoften.module.store.constant.StoreBusinessStatus;
 import com.comeoften.module.store.converter.StoreConverter;
 import com.comeoften.module.store.dto.BusinessHourDTO;
 import com.comeoften.module.store.dto.StoreTableDTO;
@@ -55,6 +56,14 @@ public class StoreServiceImpl implements StoreService {
             throw new BizException(ErrorCode.STORE_NOT_FOUND);
         }
         return store.getId();
+    }
+
+    @Override
+    public void requireOpen(Long storeId) {
+        Store store = require(storeId);
+        if (!StoreBusinessStatus.isOpen(store.getBusinessStatus())) {
+            throw new BizException(ErrorCode.STORE_CLOSED);
+        }
     }
 
     @Override
@@ -134,6 +143,21 @@ public class StoreServiceImpl implements StoreService {
             storeTableMapper.updateById(table);
         }
         return table.getId();
+    }
+
+    @Override
+    public StoreVO.StoreTableVO bindTable(Long storeId, String tableCode) {
+        if (!StringUtils.hasText(tableCode)) {
+            throw new BizException(ErrorCode.STORE_TABLE_BIND_INVALID);
+        }
+        StoreTable table = storeTableMapper.selectOne(new LambdaQueryWrapper<StoreTable>()
+                .eq(StoreTable::getStoreId, storeId)
+                .eq(StoreTable::getTableNo, tableCode.trim())
+                .last("limit 1"));
+        if (table == null) {
+            throw new BizException(ErrorCode.STORE_TABLE_NOT_FOUND);
+        }
+        return StoreConverter.toTableVO(table);
     }
 
     @Override

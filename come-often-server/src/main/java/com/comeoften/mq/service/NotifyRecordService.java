@@ -34,6 +34,12 @@ public interface NotifyRecordService {
      */
     void saveMerchantNewOrderNotice(Long storeId, String orderNo, String content);
 
+    /**
+     * M14 B2 叫号通知落库。顾客端前台每 10 秒轮询当前号，这条记录让「已叫号」在有推送通道后可直接触达；
+     * 与券过期、预约提醒同形态：模板 ID 未接入时只落 message_record 并打日志，不阻塞叫号。
+     */
+    void saveQueueCalledNotice(Long memberId, Long storeId, String ticketNo, Integer partySize);
+
     void saveAlarm(String title, String content);
 
     /**

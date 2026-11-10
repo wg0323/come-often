@@ -65,6 +65,26 @@ Page({
     return groups;
   },
 
+  /** wx.openLocation 不需要腾讯地图 Key，经纬度由门店详情接口下发；未配置定位时引导电话联系 */
+  onTapNavigate() {
+    const store = this.data.store;
+    const latitude = Number(store?.latitude);
+    const longitude = Number(store?.longitude);
+    const located = Number.isFinite(latitude) && Number.isFinite(longitude)
+      && !(latitude === 0 && longitude === 0);
+    if (!located) {
+      wx.showToast({ title: '门店暂未配置定位，请电话联系', icon: 'none' });
+      return;
+    }
+    wx.openLocation({
+      latitude,
+      longitude,
+      name: store.storeName,
+      address: store.address,
+      scale: 18,
+    });
+  },
+
   onTapReserve() {
     wx.navigateTo({
       url: `/packageOther/pages/table-reserve/table-reserve?storeId=${this.data.storeId}`,

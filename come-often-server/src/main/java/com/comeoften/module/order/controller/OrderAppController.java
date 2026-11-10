@@ -6,6 +6,7 @@ import com.comeoften.module.order.dto.OrderCreateDTO;
 import com.comeoften.module.order.dto.OrderPayDTO;
 import com.comeoften.module.order.service.OrderService;
 import com.comeoften.module.order.vo.OrderPreviewVO;
+import com.comeoften.module.order.vo.OrderQrCodeVO;
 import com.comeoften.module.order.vo.OrderSummaryVO;
 import com.comeoften.module.order.vo.OrderVO;
 import com.comeoften.module.store.service.StoreService;
@@ -71,6 +72,15 @@ public class OrderAppController {
     public Result<OrderVO> detail(
             @Parameter(description = "订单号", required = true) @PathVariable String orderNo) {
         return Result.ok(orderService.detailForApp(LoginUserHolder.getRequired().getUserId(),
+                storeService.defaultStoreId(), orderNo));
+    }
+
+    @Operation(summary = "取餐码二维码", description = "仅本人可查；返回码串与 PNG 的 base64，端上直接用 image 渲染")
+    @ApiResponse(responseCode = "200", description = "返回取餐码与二维码图片")
+    @GetMapping("/{orderNo}/qrcode")
+    public Result<OrderQrCodeVO> qrcode(
+            @Parameter(description = "订单号", required = true) @PathVariable String orderNo) {
+        return Result.ok(orderService.pickupQrCode(LoginUserHolder.getRequired().getUserId(),
                 storeService.defaultStoreId(), orderNo));
     }
 

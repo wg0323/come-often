@@ -90,6 +90,12 @@ Page({
     } = this.data;
     const app = getApp();
     const payload = { itemIds, remark: this.decorateRemark(remark), orderType: 'PICKUP' };
+    // 桌台 ID 只随堂食单上送：含预定菜会强制 DINE_IN，因此按「是否将以堂食提交」判断
+    const dineInIntent = (preview && preview.containsPreorder) || app.globalData.orderMode === 'DINE_IN';
+    const tableId = app.globalData.boundTableId || wx.getStorageSync('boundTableId') || '';
+    if (dineInIntent && tableId) {
+      payload.tableId = tableId;
+    }
     if (selectedCouponId) {
       payload.userCouponId = selectedCouponId;
     }
@@ -165,6 +171,15 @@ Page({
     this.setData({ remark: event.detail.value });
   },
 
+  /** 桌码绑定只对当次就餐有效：下单成功后清掉本地与 globalData，避免下次进店沿用旧桌 */
+  clearTableBinding() {
+    const app = getApp();
+    wx.removeStorageSync('boundTableCode');
+    wx.removeStorageSync('boundTableId');
+    app.globalData.boundTableCode = '';
+    app.globalData.boundTableId = '';
+  },
+
   async onSubmit() {
     if (!this.data.preview || this.data.submitting) {
       return;
@@ -173,6 +188,7 @@ Page({
     try {
       const order = await createOrder(this.buildPayload());
       wx.removeStorageSync('checkoutItemIds');
+      this.clearTableBinding();
       wx.redirectTo({
         url: `/packageOrder/pages/order-detail/order-detail?orderNo=${order.orderNo}`,
       });

@@ -44,6 +44,8 @@ public class NotifyRecordServiceImpl implements NotifyRecordService {
 
     private static final String TYPE_MERCHANT_NEW_ORDER = "MERCHANT_NEW_ORDER";
 
+    private static final String TYPE_QUEUE_CALL = "QUEUE_CALL";
+
     private static final int MAX_CONTENT_LENGTH = 480;
 
     private final NotifySender notifySender;
@@ -84,6 +86,13 @@ public class NotifyRecordServiceImpl implements NotifyRecordService {
     @Override
     public void saveMerchantNewOrderNotice(Long storeId, String orderNo, String content) {
         notifySender.send(build(null, TYPE_MERCHANT_NEW_ORDER, "新订单提醒", trim(content), null, storeId));
+    }
+
+    @Override
+    public void saveQueueCalledNotice(Long memberId, Long storeId, String ticketNo, Integer partySize) {
+        String size = partySize == null ? "" : "（" + partySize + " 位）";
+        notifySender.send(build(null, TYPE_QUEUE_CALL, "排队叫号提醒",
+                "您的排队号 " + ticketNo + " 已叫号" + size + "，请尽快到前台", memberId, storeId));
     }
 
     @Override

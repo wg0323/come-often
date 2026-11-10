@@ -19,7 +19,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * PC 后台排队看板。复用预约管理权限点，不新增菜单与权限数据。
+ * PC 后台排队看板。M14 B2 起使用独立权限点 {@code queue:manage}（菜单 109 已于 B1 种入），
+ * 与预约管理 {@code reservation:manage} 解耦。
  */
 @Tag(name = "PC 后台-排队叫号", description = "当天排队号分页、叫号与入座")
 @RestController
@@ -33,7 +34,7 @@ public class QueueAdminController {
 
     @Operation(summary = "排队号分页", description = "只查当天；status 为空表示全部状态")
     @ApiResponse(responseCode = "200", description = "返回分页结果")
-    @RequirePerm("reservation:manage")
+    @RequirePerm("queue:manage")
     @GetMapping("/page")
     public Result<PageResult<QueueTicketVO>> page(
             @Parameter(description = "状态：WAITING/CALLED/SEATED/CANCELLED/EXPIRED")
@@ -45,7 +46,7 @@ public class QueueAdminController {
 
     @Operation(summary = "叫号", description = "WAITING → CALLED，重复点击返回 30058")
     @ApiResponse(responseCode = "200", description = "返回叫号后的排队号")
-    @RequirePerm("reservation:manage")
+    @RequirePerm("queue:manage")
     @PostMapping("/{ticketNo}/call")
     public Result<QueueTicketVO> call(
             @Parameter(description = "排队号", required = true) @PathVariable String ticketNo) {
@@ -54,7 +55,7 @@ public class QueueAdminController {
 
     @Operation(summary = "入座", description = "CALLED → SEATED")
     @ApiResponse(responseCode = "200", description = "返回入座后的排队号")
-    @RequirePerm("reservation:manage")
+    @RequirePerm("queue:manage")
     @PostMapping("/{ticketNo}/seat")
     public Result<QueueTicketVO> seat(
             @Parameter(description = "排队号", required = true) @PathVariable String ticketNo) {

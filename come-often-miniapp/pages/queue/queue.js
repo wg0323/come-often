@@ -9,6 +9,9 @@ import { getToken, redirectToLogin } from '../../utils/request';
 const MIN_PEOPLE = 1;
 const MAX_PEOPLE = 20;
 
+/** 前台轮询间隔：叫号后顾客最迟 10 秒内看到，与 PC 后台排队页同频；离页立即停止 */
+const POLL_INTERVAL_MS = 10 * 1000;
+
 Page({
   data: {
     ticket: null,
@@ -29,11 +32,37 @@ Page({
   },
 
   async onShow() {
+    this.startPolling();
     if (!this.shownOnce) {
       this.shownOnce = true;
       return;
     }
-    await this.loadTicket();
+    await this.loadTicket(true);
+  },
+
+  onHide() {
+    this.stopPolling();
+  },
+
+  onUnload() {
+    this.stopPolling();
+  },
+
+  /** 页面在前台时每 10 秒拉一次当前号，叫号与过号都靠这次刷新体现 */
+  startPolling() {
+    this.stopPolling();
+    this.pollTimer = setInterval(() => {
+      if (!this.data.loading && !this.data.taking) {
+        this.loadTicket(true);
+      }
+    }, POLL_INTERVAL_MS);
+  },
+
+  stopPolling() {
+    if (this.pollTimer) {
+      clearInterval(this.pollTimer);
+      this.pollTimer = null;
+    }
   },
 
   /** 下拉刷新由根 scroll-view 的 refresher 接管，页面已 disableScroll */
@@ -47,15 +76,23 @@ Page({
     await this.loadTicket();
   },
 
-  async loadTicket() {
-    this.setData({ loading: true, loadError: false });
+  /** silent 为 true 时不弹错误提示：轮询失败只是保持上一屏，不打扰用餐中的顾客 */
+  async loadTicket(silent = false) {
+    if (!silent) {
+      this.setData({ loading: true, loadError: false });
+    }
     try {
       this.setData({ ticket: await getCurrentQueueTicket() });
     } catch (error) {
+      if (silent) {
+        return;
+      }
       this.setData({ loadError: true, ticket: null });
       wx.showToast({ title: error.message ?? '排队信息加载失败', icon: 'none' });
     } finally {
-      this.setData({ loading: false });
+      if (!silent) {
+        this.setData({ loading: false });
+      }
     }
   },
 

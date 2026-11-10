@@ -94,6 +94,9 @@ public class StoreVO implements Serializable {
         @Schema(description = "桌型编码")
         private String tableType;
 
+        @Schema(description = "包间类型；普通桌台为空")
+        private String roomType;
+
         @Schema(description = "可容纳人数")
         private Integer capacity;
 

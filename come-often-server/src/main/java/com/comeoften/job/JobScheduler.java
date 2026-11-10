@@ -75,6 +75,14 @@ public class JobScheduler {
         trigger(CouponExpireFallbackJob.JOB_NAME);
     }
 
+    /**
+     * 排队过号兜底，默认每日 00:20（晚于 00:10 的库存键重建，不与整点批处理抢锁）。
+     */
+    @Scheduled(cron = "${comeoften.job.queue-expire-cron:0 20 0 * * ?}")
+    public void queueExpire() {
+        trigger(QueueExpireJob.JOB_NAME);
+    }
+
     private void trigger(String jobName) {
         try {
             JobResult result = jobTriggerService.run(jobName);

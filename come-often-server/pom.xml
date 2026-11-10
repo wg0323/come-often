@@ -31,6 +31,7 @@
         <easyexcel.version>4.0.3</easyexcel.version>
         <commons-io.version>2.16.1</commons-io.version>
         <commons-compress.version>1.26.2</commons-compress.version>
+        <zxing.version>3.5.3</zxing.version>
     </properties>
 
     <dependencies>
@@ -71,6 +72,13 @@
             <groupId>com.github.xiaoymin</groupId>
             <artifactId>knife4j-openapi3-spring-boot-starter</artifactId>
             <version>${knife4j.version}</version>
+        </dependency>
+
+        <!-- M14 B2：券码 / 取餐码由后端出图。只引 core，PNG 用 ImageIO 自绘，不引 javase 与前端新依赖 -->
+        <dependency>
+            <groupId>com.google.zxing</groupId>
+            <artifactId>core</artifactId>
+            <version>${zxing.version}</version>
         </dependency>
 
         <dependency>

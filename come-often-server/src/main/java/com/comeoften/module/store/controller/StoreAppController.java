@@ -3,6 +3,7 @@ package com.comeoften.module.store.controller;
 import com.comeoften.common.BizException;
 import com.comeoften.common.ErrorCode;
 import com.comeoften.common.Result;
+import com.comeoften.module.store.dto.StoreTableBindDTO;
 import com.comeoften.module.store.service.StoreService;
 import com.comeoften.module.store.vo.StoreVO;
 import io.swagger.v3.oas.annotations.Operation;
@@ -12,9 +13,12 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.validation.Valid;
 import java.util.List;
 
 /**
@@ -45,5 +49,12 @@ public class StoreAppController {
             throw new BizException(ErrorCode.PARAM_INVALID, "门店不存在");
         }
         return Result.ok(storeService.detail(currentStoreId));
+    }
+
+    @Operation(summary = "绑定桌码", description = "校验桌号属于当前门店后返回桌台信息；桌号不存在返回 30091")
+    @ApiResponse(responseCode = "200", description = "返回桌台信息")
+    @PostMapping("/table/bind")
+    public Result<StoreVO.StoreTableVO> bindTable(@Valid @RequestBody StoreTableBindDTO dto) {
+        return Result.ok(storeService.bindTable(storeService.defaultStoreId(), dto.getTableCode()));
     }
 }

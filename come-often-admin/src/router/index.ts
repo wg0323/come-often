@@ -5,6 +5,7 @@ import DishView from '@/views/DishView.vue';
 import LoginView from '@/views/LoginView.vue';
 import MemberView from '@/views/MemberView.vue';
 import OrderView from '@/views/OrderView.vue';
+import QueueView from '@/views/QueueView.vue';
 import ReservationView from '@/views/ReservationView.vue';
 import StatsView from '@/views/StatsView.vue';
 import StoreView from '@/views/StoreView.vue';
@@ -49,6 +50,12 @@ const router = createRouter({
       name: 'reservation',
       component: ReservationView,
       meta: { title: '预约管理', requiresAuth: true },
+    },
+    {
+      path: '/queue',
+      name: 'queue',
+      component: QueueView,
+      meta: { title: '排队叫号', requiresAuth: true },
     },
     {
       path: '/stats',
