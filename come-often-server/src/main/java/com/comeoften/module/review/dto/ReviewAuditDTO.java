@@ -17,7 +17,7 @@ public class ReviewAuditDTO implements Serializable {
     private static final long serialVersionUID = 1L;
 
     @NotBlank(message = "目标审核状态不能为空")
-    @Schema(description = "目标状态：PENDING / APPROVED / REJECTED", required = true, example = "APPROVED")
+    @Schema(description = "目标状态：PENDING / APPROVED / REJECTED", requiredMode = Schema.RequiredMode.REQUIRED, example = "APPROVED")
     private String status;
 
     @Size(max = 255, message = "审核说明不超过 255 字")

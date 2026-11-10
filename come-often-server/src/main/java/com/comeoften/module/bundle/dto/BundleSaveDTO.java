@@ -29,7 +29,7 @@ public class BundleSaveDTO implements Serializable {
 
     @NotBlank(message = "套餐名称不能为空")
     @Size(max = 128, message = "套餐名称不超过 128 字")
-    @Schema(description = "套餐名称", required = true, example = "双人尝鲜套餐")
+    @Schema(description = "套餐名称", requiredMode = Schema.RequiredMode.REQUIRED, example = "双人尝鲜套餐")
     private String bundleName;
 
     @Size(max = 500, message = "套餐说明不超过 500 字")
@@ -38,7 +38,7 @@ public class BundleSaveDTO implements Serializable {
 
     @NotNull(message = "套餐售价不能为空")
     @DecimalMin(value = "0.01", message = "套餐售价必须大于 0")
-    @Schema(description = "套餐售价，单位元", required = true, example = "88.00")
+    @Schema(description = "套餐售价，单位元", requiredMode = Schema.RequiredMode.REQUIRED, example = "88.00")
     private BigDecimal bundlePrice;
 
     @Schema(description = "划线价，单位元", example = "128.00")
@@ -46,7 +46,7 @@ public class BundleSaveDTO implements Serializable {
 
     @NotNull(message = "套餐总库存不能为空")
     @Min(value = 0, message = "套餐总库存不能为负数")
-    @Schema(description = "套餐总库存", required = true, example = "50")
+    @Schema(description = "套餐总库存", requiredMode = Schema.RequiredMode.REQUIRED, example = "50")
     private Integer totalStock;
 
     @Min(value = 0, message = "状态只允许 0 或 1")
@@ -56,7 +56,7 @@ public class BundleSaveDTO implements Serializable {
 
     @Valid
     @NotEmpty(message = "套餐明细不能为空")
-    @Schema(description = "套餐明细，至少一道菜", required = true)
+    @Schema(description = "套餐明细，至少一道菜", requiredMode = Schema.RequiredMode.REQUIRED)
     private List<ItemDTO> items;
 
     /**
@@ -69,7 +69,7 @@ public class BundleSaveDTO implements Serializable {
         private static final long serialVersionUID = 1L;
 
         @NotNull(message = "菜品 ID 不能为空")
-        @Schema(description = "菜品 ID", required = true)
+        @Schema(description = "菜品 ID", requiredMode = Schema.RequiredMode.REQUIRED)
         private Long dishId;
 
         @Min(value = 1, message = "份数至少 1 份")
