@@ -4,12 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.comeoften.common.BizException;
 import com.comeoften.common.ErrorCode;
 import com.comeoften.module.dish.dto.DishQueryDTO;
-import com.comeoften.module.dish.entity.Dish;
-import com.comeoften.module.dish.entity.DishCategory;
-import com.comeoften.module.dish.mapper.DishCategoryMapper;
-import com.comeoften.module.dish.mapper.DishMapper;
 import com.comeoften.module.dish.service.DishQueryService;
-import com.comeoften.module.dish.util.DishConstants;
 import com.comeoften.module.home.converter.HomeConverter;
 import com.comeoften.module.home.dto.BannerSaveDTO;
 import com.comeoften.module.home.dto.NoticeSaveDTO;
@@ -29,7 +24,6 @@ import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -44,17 +38,11 @@ public class HomeServiceImpl implements HomeService {
     private static final DateTimeFormatter TIME_FORMATTER =
             DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
-    private static final String DAILY_CATEGORY = "家常";
-
     private static final long BANNER_LIMIT = 3L;
 
     private final StoreService storeService;
 
     private final DishQueryService dishQueryService;
-
-    private final DishCategoryMapper dishCategoryMapper;
-
-    private final DishMapper dishMapper;
 
     private final BannerMapper bannerMapper;
 
@@ -66,17 +54,6 @@ public class HomeServiceImpl implements HomeService {
         vo.setStore(storeService.detail(storeId));
         vo.setBanners(listBanners(storeId).stream().limit(BANNER_LIMIT).collect(Collectors.toList()));
         vo.setNotices(listNotices(storeId));
-        List<DishCategory> categories = dishCategoryMapper.selectList(new LambdaQueryWrapper<DishCategory>()
-                .eq(DishCategory::getStoreId, storeId)
-                .eq(DishCategory::getIsShow, DishConstants.YES));
-        List<HomeSummaryVO.SectionVO> sections = new ArrayList<>();
-        DishCategory daily = findCategory(categories, DAILY_CATEGORY);
-        DishCategory preorder = findCategory(categories, DishConstants.PREORDER_CATEGORY_STORAGE);
-        sections.add(HomeConverter.toSectionVO("daily", "家常小炒", "ink",
-                daily == null ? null : daily.getId(), countOnShelf(storeId, daily)));
-        sections.add(HomeConverter.toSectionVO("preorder", DishConstants.PREORDER_CATEGORY_DISPLAY, "gold",
-                preorder == null ? null : preorder.getId(), countOnShelf(storeId, preorder)));
-        vo.setSections(sections);
         DishQueryDTO query = new DishQueryDTO();
         query.setStoreId(storeId);
         query.setSignature(Boolean.TRUE);
@@ -175,22 +152,6 @@ public class HomeServiceImpl implements HomeService {
         if (notice == null || !Objects.equals(notice.getStoreId(), storeId)) {
             throw new BizException(ErrorCode.PARAM_INVALID, "公告不存在");
         }
-    }
-
-    private long countOnShelf(Long storeId, DishCategory category) {
-        if (category == null) {
-            return 0L;
-        }
-        return dishMapper.selectCount(new LambdaQueryWrapper<Dish>()
-                .eq(Dish::getStoreId, storeId)
-                .eq(Dish::getCategoryId, category.getId())
-                .eq(Dish::getStatus, DishConstants.STATUS_ON_SHELF));
-    }
-
-    private DishCategory findCategory(List<DishCategory> categories, String name) {
-        return categories.stream()
-                .filter(category -> name.equals(category.getCategoryName()))
-                .findFirst().orElse(null);
     }
 
     private static LocalDateTime parseTime(String value) {

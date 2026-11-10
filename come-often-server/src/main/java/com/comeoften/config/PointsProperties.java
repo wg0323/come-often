@@ -22,7 +22,7 @@ public class PointsProperties {
     /** 每日签到积分。 */
     private int signInPoints = 5;
 
-    /** 评价积分，M8 接入评价功能后生效。 */
+    /** 提交评价后发放的积分。 */
     private int reviewPoints = 10;
 
     /** 每日分享积分。 */

@@ -34,6 +34,8 @@ public class QueueTicket implements Serializable {
 
     private LocalDateTime seatedTime;
 
+    private Integer isDeleted;
+
     private LocalDateTime createTime;
 
     private LocalDateTime updateTime;

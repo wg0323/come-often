@@ -55,7 +55,7 @@ const ruleRows = computed<RuleRow[]>(() => {
     { label: '每日签到', value: `+${value.signInPoints} 分 / 天` },
     { label: '每日分享', value: `+${value.sharePoints} 分 / 天` },
     { label: '完善资料', value: `+${value.profilePoints} 分，终身一次` },
-    { label: '评价', value: `+${value.reviewPoints} 分，M8 接入评价功能后生效` },
+    { label: '评价', value: `+${value.reviewPoints} 分，提交评价后发放` },
     { label: '积分有效期', value: `${value.validDays} 天，每日 00:05 批处理过期` },
     { label: '等级判定', value: '年度消费额与累计积分同时达标才升级，只升不降' },
   ];

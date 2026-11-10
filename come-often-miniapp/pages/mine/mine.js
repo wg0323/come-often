@@ -15,12 +15,6 @@ const MENU_ITEMS = [
     url: '/pages/order-list/order-list',
   },
   {
-    key: 'cart',
-    label: '购物车',
-    desc: '查看与结算已选菜品',
-    url: '/pages/cart/cart',
-  },
-  {
     key: 'queue',
     label: '我的排队号',
     desc: '到店取号与叫号进度',

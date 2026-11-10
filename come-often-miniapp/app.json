@@ -8,7 +8,6 @@
     "pages/dish-detail/dish-detail",
     "pages/dish-search/dish-search",
     "pages/dish-review/dish-review",
-    "pages/cart/cart",
     "pages/order-confirm/order-confirm",
     "pages/coupon-center/coupon-center",
     "pages/queue/queue"
