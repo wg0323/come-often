@@ -40,12 +40,19 @@
 }
 
 .submit {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
   height: var(--mk-button-height);
   margin-top: 32rpx;
+  padding: 0;
+  box-sizing: border-box;
   background-color: var(--mk-text);
   color: var(--mk-card);
   font-size: 30rpx;
-  line-height: var(--mk-button-height);
+  line-height: 1;
+  text-align: center;
 }
 
 .hint {
