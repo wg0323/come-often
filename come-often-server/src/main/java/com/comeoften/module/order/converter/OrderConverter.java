@@ -36,6 +36,8 @@ public final class OrderConverter {
         vo.setCouponId(order.getCouponId());
         vo.setPointsAmount(order.getPointsAmount());
         vo.setPointsUsed(order.getPointsUsed());
+        vo.setMemberDiscountAmount(order.getMemberDiscount());
+        vo.setBalanceDeductAmount(order.getBalanceAmount());
         vo.setDepositAmount(order.getDepositAmount());
         vo.setPayAmount(order.getPayAmount());
         vo.setBalanceAmount(OrderAmountCalculator.balance(order.getPayAmount(), order.getDepositAmount()));
@@ -78,23 +80,29 @@ public final class OrderConverter {
     }
 
     /**
-     * 确认页金额。实付 = 商品总额 − 券抵扣 − 积分抵现，定金取实付金额的 min(200)，
-     * 与下单落库口径完全一致；未用券与积分时与 M3 的定金规则等价。
+     * 确认页金额。实付 = 商品总额 − 券抵扣 − 积分抵现 − 会员折扣 − 余额抵扣，定金取实付金额的 min(200)，
+     * 与下单落库口径完全一致；未用券、积分、会员折扣与余额时与 M3 的定金规则等价。
      */
     public static OrderPreviewVO toPreviewVO(OrderCheckVO check, boolean containsPreorder,
                                              OrderType orderType, boolean forcedDineIn,
                                              int preorderLeadHours, String earliestDineInTime,
                                              String depositNote, BigDecimal discountAmount,
-                                             BigDecimal pointsAmount) {
+                                             BigDecimal pointsAmount, BigDecimal memberDiscountAmount,
+                                             BigDecimal balanceDeductAmount) {
         OrderPreviewVO vo = new OrderPreviewVO();
         vo.setItems(check.getItems() == null ? Collections.emptyList() : check.getItems());
         vo.setTotalAmount(check.getTotalAmount());
         BigDecimal discount = discountAmount == null ? BigDecimal.ZERO : discountAmount;
         BigDecimal points = pointsAmount == null ? BigDecimal.ZERO : pointsAmount;
-        BigDecimal pay = OrderAmountCalculator.pay(check.getTotalAmount(), discount, points);
+        BigDecimal memberDiscount = memberDiscountAmount == null ? BigDecimal.ZERO : memberDiscountAmount;
+        BigDecimal balanceDeduct = balanceDeductAmount == null ? BigDecimal.ZERO : balanceDeductAmount;
+        BigDecimal pay = OrderAmountCalculator.pay(check.getTotalAmount(), discount, points,
+                memberDiscount, balanceDeduct);
         BigDecimal deposit = OrderAmountCalculator.deposit(pay, containsPreorder);
         vo.setDiscountAmount(discount);
         vo.setPointsAmount(points);
+        vo.setMemberDiscountAmount(memberDiscount);
+        vo.setBalanceDeductAmount(balanceDeduct);
         vo.setPayAmount(pay);
         vo.setDepositAmount(deposit);
         vo.setBalanceAmount(OrderAmountCalculator.balance(pay, deposit));

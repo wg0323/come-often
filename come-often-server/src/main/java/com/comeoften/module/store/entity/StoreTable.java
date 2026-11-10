@@ -19,6 +19,7 @@ public class StoreTable implements Serializable {
     private Long storeId;
     private String tableNo;
     private String tableType;
+    private String roomType;
     private Integer capacity;
     private Integer status;
     private Integer isDeleted;

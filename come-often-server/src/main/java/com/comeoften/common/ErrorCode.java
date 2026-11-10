@@ -1,7 +1,7 @@
 package com.comeoften.common;
 
 /**
- * 业务错误码。分段：1xxxx 通用、2xxxx 商品与内容、3xxxx 库存与订单、4xxxx 鉴权（401xx 未登录 / 403xx 无权限）。
+ * 业务错误码。分段：1xxxx 通用、2xxxx 商品与内容、3xxxx 库存订单与营销（M14 起扩到 30099）、4xxxx 鉴权（401xx 未登录 / 403xx 无权限）。
  * 401xx 与 403xx 由 GlobalExceptionHandler 映射为对应 HTTP 状态码，其余保持 200 + 业务码。
  */
 public enum ErrorCode {
@@ -90,7 +90,47 @@ public enum ErrorCode {
     QUEUE_TICKET_NOT_FOUND(30057, "排队号不存在"),
     QUEUE_TICKET_STATUS_INVALID(30058, "当前排队号状态不允许该操作"),
     QUEUE_TICKET_DUPLICATED(30059, "今日已有排队号，请勿重复取号"),
-    QUEUE_PARTY_SIZE_INVALID(30062, "就餐人数不合法，请选择 1~20 位");
+    QUEUE_PARTY_SIZE_INVALID(30062, "就餐人数不合法，请选择 1~20 位"),
+
+    // M14 B1 预留，按域分配：储值 30063~30070、会员价 30071~30076、套餐预售 30077~30084、
+    // 审核核销 30085~30090、排队桌码 30091~30099；具体抛出点由 B2~B4 落地。
+    BALANCE_ACCOUNT_NOT_FOUND(30063, "储值账户不存在"),
+    BALANCE_NOT_ENOUGH(30064, "储值余额不足"),
+    BALANCE_RECHARGE_AMOUNT_INVALID(30065, "充值金额不合法"),
+    BALANCE_GIFT_RULE_INVALID(30066, "储值赠送规则不合法"),
+    BALANCE_RECORD_DUPLICATE(30067, "储值流水重复，请勿重复提交"),
+    BALANCE_PAY_AMOUNT_INVALID(30068, "余额抵扣金额不合法"),
+    BALANCE_REFUND_EXCEEDS(30069, "余额退款超过可退金额"),
+    BALANCE_ACCOUNT_DISABLED(30070, "储值账户已停用"),
+    MEMBER_PRICE_NOT_ALLOWED(30071, "该菜品会员价仅登录会员可用"),
+    MEMBER_ONLY_DISH(30072, "该菜品仅会员可购买"),
+    MEMBER_DISCOUNT_INVALID(30073, "会员折扣不合法"),
+    MEMBER_LEVEL_DISCOUNT_DISABLED(30074, "当前等级不享受折扣"),
+    MEMBER_DISCOUNT_STACK_CONFLICT(30075, "该券不可与会员折扣同享"),
+    MEMBER_BIRTHDAY_INVALID(30076, "会员生日不合法"),
+    GROUP_BUNDLE_NOT_FOUND(30077, "团购套餐不存在"),
+    GROUP_BUNDLE_OFF_SHELF(30078, "团购套餐已下架"),
+    GROUP_BUNDLE_SOLD_OUT(30079, "团购套餐库存不足"),
+    GROUP_BUNDLE_ITEM_INVALID(30080, "团购套餐明细不合法"),
+    PRESALE_NOT_STARTED(30081, "商品尚未开售"),
+    PRESALE_ENDED(30082, "预售已结束"),
+    PRESALE_STOCK_NOT_ENOUGH(30083, "预售库存不足"),
+    PRESALE_TIME_INVALID(30084, "预售时间配置不合法"),
+    REVIEW_NOT_FOUND(30085, "评价不存在"),
+    REVIEW_STATUS_INVALID(30086, "评价审核状态不合法"),
+    REVIEW_ALREADY_AUDITED(30087, "评价已审核"),
+    ORDER_VERIFY_CODE_INVALID(30088, "核销码无效"),
+    ORDER_ALREADY_VERIFIED(30089, "订单已核销"),
+    ORDER_VERIFY_RECORD_NOT_FOUND(30090, "核销记录不存在"),
+    STORE_TABLE_NOT_FOUND(30091, "桌台不存在"),
+    STORE_TABLE_BIND_INVALID(30092, "桌码不合法或已失效"),
+    STORE_CLOSED(30093, "门店休息中，暂不受理"),
+    QUEUE_TICKET_NOT_TODAY(30094, "排队号不属于当天"),
+    QR_CODE_GENERATE_FAILED(30095, "二维码生成失败"),
+    QR_CODE_INVALID(30096, "二维码已失效，请刷新后重试"),
+    QUEUE_NOTIFY_FAILED(30097, "叫号通知发送失败"),
+    TABLE_ROOM_TYPE_INVALID(30098, "包间类型不合法"),
+    STORE_NAVIGATION_INVALID(30099, "门店定位信息不合法");
 
     private final Integer code;
     private final String message;

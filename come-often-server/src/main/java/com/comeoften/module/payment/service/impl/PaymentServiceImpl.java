@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.comeoften.common.BizException;
 import com.comeoften.common.ErrorCode;
+import com.comeoften.integration.pay.PayChannel;
 import com.comeoften.integration.pay.PayGateway;
 import com.comeoften.integration.pay.model.PayNotifyResult;
 import com.comeoften.integration.pay.model.PayOrder;
@@ -183,7 +184,7 @@ public class PaymentServiceImpl implements PaymentService {
         record.setTradeNo(StringUtils.hasText(notify.getTradeNo()) ? notify.getTradeNo() : "");
         record.setOrderId(order.getId());
         record.setPayAmount(due);
-        record.setPayChannel(StringUtils.hasText(notify.getChannel()) ? notify.getChannel() : "MOCK");
+        record.setPayChannel(StringUtils.hasText(notify.getChannel()) ? notify.getChannel() : PayChannel.MOCK);
         record.setStatus(PAY_STATUS_SUCCESS);
         record.setNotifyTime(LocalDateTime.now());
         try {

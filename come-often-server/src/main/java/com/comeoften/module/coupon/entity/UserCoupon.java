@@ -25,6 +25,8 @@ public class UserCoupon implements Serializable {
     private LocalDateTime useTime;
     private LocalDateTime expireAt;
     private Long orderId;
+    /** 规则发券幂等键，手动领券为空；沿用 M6 的 # 用途后缀口径。 */
+    private String grantBizId;
     private Integer isDeleted;
     private LocalDateTime createTime;
     private LocalDateTime updateTime;

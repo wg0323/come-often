@@ -158,7 +158,8 @@ public class OrderServiceImpl implements OrderService {
         OrderPreviewVO vo = OrderConverter.toPreviewVO(selection.check, selection.containsPreorder,
                 selection.orderType, selection.forcedDineIn, selection.preorderLeadHours,
                 earliest, selection.containsPreorder ? DishConstants.PREORDER_NOTE : "",
-                discount, selection.pointsAmount);
+                discount, selection.pointsAmount, selection.memberDiscountAmount,
+                selection.balanceDeductAmount);
         if (selection.coupon != null) {
             vo.setCouponId(selection.coupon.getUserCouponId());
             vo.setCouponName(selection.coupon.getTemplateName());
@@ -196,10 +197,12 @@ public class OrderServiceImpl implements OrderService {
         BigDecimal discount = discountOf(selection);
         BigDecimal pointsAmount = selection.pointsAmount;
         BigDecimal payAmount = OrderAmountCalculator.pay(selection.check.getTotalAmount(), discount,
-                pointsAmount);
+                pointsAmount, selection.memberDiscountAmount, selection.balanceDeductAmount);
         order.setTotalAmount(selection.check.getTotalAmount());
         order.setDiscountAmount(discount);
         order.setPointsAmount(pointsAmount);
+        order.setMemberDiscount(selection.memberDiscountAmount);
+        order.setBalanceAmount(selection.balanceDeductAmount);
         // 定金是券后实付的一部分：券把整单压到 200 以下时按券后金额收，不会出现定金大于实付
         order.setDepositAmount(OrderAmountCalculator.deposit(payAmount, selection.containsPreorder));
         order.setPayAmount(payAmount);
@@ -913,6 +916,12 @@ public class OrderServiceImpl implements OrderService {
         private int pointsUsed;
 
         private BigDecimal pointsAmount = BigDecimal.ZERO;
+
+        /** B3 接会员价与等级折扣后由服务端算；B1 底座阶段恒为 0，不参与页面传值。 */
+        private BigDecimal memberDiscountAmount = BigDecimal.ZERO;
+
+        /** B3 接储值组合支付后按可用余额算；B1 底座阶段恒为 0。 */
+        private BigDecimal balanceDeductAmount = BigDecimal.ZERO;
     }
 
     private static final class Deduction {

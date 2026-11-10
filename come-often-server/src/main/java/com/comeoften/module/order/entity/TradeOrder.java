@@ -26,10 +26,16 @@ public class TradeOrder implements Serializable {
     private BigDecimal totalAmount;
     private BigDecimal discountAmount;
     private BigDecimal pointsAmount;
+    /** 会员折扣独立列，不折进 discountAmount（会污染 M5 券 ROI）。 */
+    private BigDecimal memberDiscount;
+    /** 储值余额抵扣，与 OrderVO.balanceAmount（到店待付尾款）不是一个含义。 */
+    private BigDecimal balanceAmount;
     private BigDecimal depositAmount;
+    /** 在线支付应付额，禁止事后重算；M10 净额需按 B5 口径加回 balanceAmount。 */
     private BigDecimal payAmount;
     private Integer pointsUsed;
     private Long couponId;
+    private Long tableId;
     private String pickupCode;
     private LocalDate bizDate;
     private LocalDateTime pickupTime;

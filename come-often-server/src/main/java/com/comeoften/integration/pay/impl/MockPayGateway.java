@@ -2,6 +2,7 @@ package com.comeoften.integration.pay.impl;
 
 import com.comeoften.common.BizException;
 import com.comeoften.common.ErrorCode;
+import com.comeoften.integration.pay.PayChannel;
 import com.comeoften.integration.pay.PayGateway;
 import com.comeoften.integration.pay.model.PayNotifyResult;
 import com.comeoften.integration.pay.model.PayOrder;
@@ -33,7 +34,7 @@ import java.util.UUID;
 @ConditionalOnProperty(name = "comeoften.pay.gateway", havingValue = "mock", matchIfMissing = true)
 public class MockPayGateway implements PayGateway {
 
-    private static final String CHANNEL = "MOCK";
+    private static final String CHANNEL = PayChannel.MOCK;
 
     private static final String TRADE_NO_PREFIX = "MOCK";
 

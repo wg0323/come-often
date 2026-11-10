@@ -51,13 +51,19 @@ public class OrderPreviewVO implements Serializable {
     @Schema(description = "积分兑换比例：多少积分抵 1 元")
     private Integer pointsExchangeRate;
 
+    @Schema(description = "会员折扣金额，单位元；B3 接会员价与等级折扣前恒为 0")
+    private BigDecimal memberDiscountAmount;
+
+    @Schema(description = "储值余额抵扣金额，单位元；B3 接组合支付前恒为 0，与 balanceAmount（到店尾款）不同义")
+    private BigDecimal balanceDeductAmount;
+
     @Schema(description = "整单定金，单位元；含预定菜为 min(200, 券后实付金额)")
     private BigDecimal depositAmount;
 
-    @Schema(description = "实付金额 = 商品总额 − 券抵扣 − 积分抵现；定金已包含在整单内，不额外加收")
+    @Schema(description = "在线支付应付额 = 商品总额 − 券抵扣 − 积分抵现 − 会员折扣 − 余额抵扣；定金已包含在整单内")
     private BigDecimal payAmount;
 
-    @Schema(description = "到店待付尾款，单位元")
+    @Schema(description = "到店待付尾款，单位元；非储值余额抵扣")
     private BigDecimal balanceAmount;
 
     @Schema(description = "本次订单可用的券，抵扣额已由服务端算好，按抵扣额倒序")

@@ -55,13 +55,19 @@ public class OrderVO implements Serializable {
     @Schema(description = "本单使用的积分数量")
     private Integer pointsUsed;
 
+    @Schema(description = "会员折扣金额，单位元；不折进 discountAmount")
+    private BigDecimal memberDiscountAmount;
+
+    @Schema(description = "储值余额抵扣金额，单位元；与 balanceAmount（到店尾款）不是一个含义")
+    private BigDecimal balanceDeductAmount;
+
     @Schema(description = "定金，单位元；整单内抵扣，不额外加收")
     private BigDecimal depositAmount;
 
-    @Schema(description = "实付金额，单位元")
+    @Schema(description = "在线支付应付额，单位元；已扣除券、积分、会员折扣与余额抵扣")
     private BigDecimal payAmount;
 
-    @Schema(description = "到店待付尾款，单位元")
+    @Schema(description = "到店待付尾款，单位元；非储值余额抵扣")
     private BigDecimal balanceAmount;
 
     @Schema(description = "是否含预定菜")

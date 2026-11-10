@@ -16,15 +16,15 @@
 
 ## 项目简介
 
-按 [docs/development-plan.md](docs/development-plan.md) 分阶段实施，单次交付、每阶段独立验收。M0~M11 全部完成，M12 登录体系、M13 首页改版与排队叫号已交付：骨架与环境、三端认证与权限、门店与菜品、购物车与自提订单（含 MQ 可靠性三件套）、支付与退款（Mock 网关与退款审核）、优惠券（动态券码与核销服务）、积分与等级（积分抵现与年度过期）、预约订座（时段容量与超时释放）、评价/搜索/首页运营、商家端小程序（统一扫码与订阅提醒降级）、数据看板与报表（Excel 导出）、联调与交付（`@JobLock` 兜底任务、死信告警可查、三条端到端脚本、四份交付文档）。M13 未完项（桌码服务端绑定、PC 后台排队页、实时叫号推送等）按 [docs/milestone-m14.md](docs/milestone-m14.md) 分六个批次补齐。
+按 [docs/development-plan.md](docs/development-plan.md) 分阶段实施，单次交付、每阶段独立验收。M0~M11 全部完成，M12 登录体系、M13 首页改版与排队叫号已交付：骨架与环境、三端认证与权限、门店与菜品、购物车与自提订单（含 MQ 可靠性三件套）、支付与退款（Mock 网关与退款审核）、优惠券（动态券码与核销服务）、积分与等级（积分抵现与年度过期）、预约订座（时段容量与超时释放）、评价/搜索/首页运营、商家端小程序（统一扫码与订阅提醒降级）、数据看板与报表（Excel 导出）、联调与交付（`@JobLock` 兜底任务、死信告警可查、三条端到端脚本、四份交付文档）。M13 未完项（桌码服务端绑定、PC 后台排队页、实时叫号推送等）按 [docs/milestone-m14.md](docs/milestone-m14.md) 分六个批次补齐；B0 已收口 M13 交付欠账，B1 已落地 49 张表、30063~30099 业务码段与金额口径底座。
 
-十二份验收脚本 `deploy/verify-m1.ps1` ~ `verify-m11.ps1`、`deploy/verify-m13.ps1` 串行执行（M11 一次 108 条断言、0 失败），单测 186 个用例全绿。与开发计划的逐条差异见 [deploy/init.md](deploy/init.md)。
+十二份验收脚本 `deploy/verify-m1.ps1` ~ `verify-m11.ps1`、`deploy/verify-m13.ps1` 串行执行（M11 一次 108 条断言、0 失败），单测 193 个用例全绿。与开发计划的逐条差异见 [deploy/init.md](deploy/init.md)。
 
 ### 核心功能
 
 - [x] 四个工程骨架与 JDK8 构建适配脚本
 - [x] 统一响应、异常、日志与 Knife4j 在线文档
-- [x] 43 张表 DDL（含 M13 排队号表）、M1 种子数据与中间件隔离初始化脚本
+- [x] 49 张表 DDL（含 M13 排队号表与 M14 B1 储值 / 套餐 / 核销 6 张表）、M1 种子数据与中间件隔离初始化脚本
 - [x] RabbitMQ 延迟/业务/死信拓扑、库存 Lua 与并发不超发验证
 - [x] MinIO 后端转存、三端独立视觉 token
 - [x] 三端登录与 RBAC：code2session、员工 BCrypt 登录、微信绑定与免密登录、三套 JWT、按权限渲染菜单与宫格（M1）
@@ -93,10 +93,11 @@ d:\MyProducts\come-often\
 │   └── image-pipeline/       # 33 张菜品图裁切调色、SQL 生成、MinIO 上传
 ├── docs/                     # 文档统一目录：需求、开发计划、视觉基线、菜品素材、交付文档、数据库脚本
 │   ├── db/                   # 数据库脚本：DDL、种子数据、增量迁移
-│   │   ├── schema.sql        # 43 张表 DDL
+│   │   ├── schema.sql        # 49 张表 DDL
 │   │   ├── seed-m1.sql       # M1 账号、角色、菜单、权限点种子数据
 │   │   ├── seed-m2.sql       # M2 分类、菜品、图片、库存、运营位、桌台种子数据
-│   │   └── migration-m13.sql # M13 增量迁移（排队号表 + 团餐券种子）
+│   │   ├── migration-m13.sql # M13 增量迁移（排队号表 + 团餐券种子）
+│   │   └── migration-m14.sql # M14 B1 增量迁移（6 张新表 + 加列 + 菜单权限点）
 │   └── 菜品/                 # 菜品主数据 Excel 与图片素材
 ├── come-often-server/        # Spring Boot 后端（单 Maven 模块）
 │   └── src/
@@ -134,7 +135,7 @@ d:\MyProducts\come-often\
 .\deploy\init.cmd
 ```
 
-`init.cmd` 的第 5 步会对两个库各导入一次 `docs/db/migration-m13.sql`：给 `queue_ticket` 补 `is_deleted`，并播种 3 张团餐券模板。脚本用 `CREATE TABLE IF NOT EXISTS`、`INSERT IGNORE` 和加列前的 `information_schema` 判断，重复执行不会重复插入或报重复列。已建库的机器直接重跑上一条 `.\deploy\init.cmd` 即可，**顺序必须是先补列再启动后端**：旧库没有 `queue_ticket.is_deleted` 时，排队查询会报 `Unknown column 'is_deleted'`。
+`init.cmd` 共 8 步，第 5 步对两个库各导入一次 `docs/db/migration-m13.sql`（给 `queue_ticket` 补 `is_deleted`、播种 3 张团餐券模板），第 6 步再各导一次 `docs/db/migration-m14.sql`（M14 B1 的 6 张新表、既有表加列、4 个菜单权限点）。两份脚本用 `CREATE TABLE IF NOT EXISTS`、`INSERT IGNORE` 和加列前的 `information_schema` 判断，重复执行不会重复插入或报重复列。已建库的机器直接重跑 `.\deploy\init.cmd` 即可，**顺序必须是先迁移再启动后端**：旧库缺列时实体查询会报 `Unknown column`。
 
 只在单独排查迁移脚本时才手工导入，两库都要执行：
 
@@ -142,6 +143,9 @@ d:\MyProducts\come-often\
 docker cp docs\db\migration-m13.sql mysql-8.0:/tmp/migration-m13.sql
 docker exec mysql-8.0 sh -c "mysql -uroot -p123456 come_often < /tmp/migration-m13.sql"
 docker exec mysql-8.0 sh -c "mysql -uroot -p123456 come_often_test < /tmp/migration-m13.sql"
+docker cp docs\db\migration-m14.sql mysql-8.0:/tmp/migration-m14.sql
+docker exec mysql-8.0 sh -c "mysql -uroot -p123456 come_often < /tmp/migration-m14.sql"
+docker exec mysql-8.0 sh -c "mysql -uroot -p123456 come_often_test < /tmp/migration-m14.sql"
 ```
 
 脚本说明与验证命令见 [deploy/init.md](deploy/init.md)。MinIO 私有桶由后端首次上传时自动创建。
@@ -317,7 +321,7 @@ powershell -ExecutionPolicy Bypass -File .\deploy\verify-m11.ps1 -SkipWindowWait
 powershell -ExecutionPolicy Bypass -File .\deploy\verify-m13.ps1
 ```
 
-脚本用两个不同 `phoneCode` 的全新会员走排队链路（M12 按手机号唯一，只换 `mockKey` 会落到同一会员），验三件事：首页 8 条（按星期营业时间与门店状态、旧 `sections` 已删、取号 / 预约入口、团餐券板块、最近吃过、四项 tabBar、购物车底部弹层）；9 个排队接口的状态机（取号 / 查号 / 取消 / 分页 / 叫号 / 入座，重复取号 30059、取消后再叫号 30058、无 token 401）；两库 43 张表、`queue_ticket.is_deleted` 列、3 张团餐券种子，以及逻辑删除后分页不再返回该号、对该号叫号返回 30057（过滤前后做正向对照）。
+脚本用两个不同 `phoneCode` 的全新会员走排队链路（M12 按手机号唯一，只换 `mockKey` 会落到同一会员），验三件事：首页 8 条（按星期营业时间与门店状态、旧 `sections` 已删、取号 / 预约入口、团餐券板块、最近吃过、四项 tabBar、购物车底部弹层）；9 个排队接口的状态机（取号 / 查号 / 取消 / 分页 / 叫号 / 入座，重复取号 30059、取消后再叫号 30058、无 token 401）；两库 49 张表（M14 B1 加 6 张）、`queue_ticket.is_deleted` 列、3 张团餐券种子，以及逻辑删除后分页不再返回该号、对该号叫号返回 30057（过滤前后做正向对照）。
 
 造数日期取后端返回的 `bizDate`，软删与恢复按本轮票的主键定位，所有失败路径与 `finally` 都按 `member_id + biz_date` 清理，脚本可重复跑。全部通过输出 `M13 VERIFY PASSED`，退出码 0。
 
@@ -327,13 +331,13 @@ powershell -ExecutionPolicy Bypass -File .\deploy\verify-m13.ps1
 | --- | --- |
 | [README.md](README.md) | 项目全貌、验收方式、配置项、常见问题 |
 | [docs/deployment.md](docs/deployment.md) | 部署说明：中间件准备、构建启动、配置与凭据、日常运维、升级回滚、故障排查 |
-| [docs/api-list.md](docs/api-list.md) | 接口清单：163 个接口按端与分组列出，附权限点对照与业务码分段（M13 新增 10 个见文末） |
+| [docs/api-list.md](docs/api-list.md) | 接口清单：163 个接口按端与分组列出，附权限点对照与业务码分段（M13 新增 10 个见文末；M14 B1 只扩错误码段，未新增接口） |
 | [docs/mock-replacement.md](docs/mock-replacement.md) | Mock 能力替换清单：支付网关、微信登录、订阅消息、短信、上传，逐项写替换点与要改的配置 |
 | [docs/milestone-m14.md](docs/milestone-m14.md) | M14 里程碑：2.md 未实现项与 M13 交付欠账，六批次范围、DDL 清单、验收口径与状态跟踪 |
 
 ### 显式运行测试
 
-`pom.xml` 默认跳过测试编译与执行以加快打包，需要验证时显式开启（当前 186 个用例）：
+`pom.xml` 默认跳过测试编译与执行以加快打包，需要验证时显式开启（当前 193 个用例）：
 
 ```powershell
 cd come-often-server

@@ -1,5 +1,6 @@
 package com.comeoften.module.dish.entity;
 
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 
@@ -23,6 +24,13 @@ public class Dish implements Serializable {
     private String subtitle;
     private String description;
     private BigDecimal price;
+    private BigDecimal memberPrice;
+    /** DB 列名 is_member_only，POJO 布尔属性按规范去掉 is 前缀。 */
+    @TableField("is_member_only")
+    private Integer memberOnly;
+    private LocalDateTime presaleStartTime;
+    private LocalDateTime presaleEndTime;
+    private Integer presaleStock;
     private BigDecimal originalPrice;
     private Integer monthlySales;
     private String allergen;

@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 
 import java.io.Serializable;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 /** 顾客会员表。 */
@@ -26,6 +27,8 @@ public class Member implements Serializable {
     private String avatar;
 
     private Long levelId;
+
+    private LocalDate birthday;
 
     private LocalDateTime lastVisitTime;
 

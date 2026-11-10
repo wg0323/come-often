@@ -24,6 +24,10 @@ public class Review implements Serializable {
     private Integer rating;
     private String content;
     private Integer isWithImage;
+    /** 先发后审，DB 默认 APPROVED；B4 起评分聚合只统计通过的评价。 */
+    private String status;
+    private Long auditUserId;
+    private LocalDateTime auditTime;
     private Integer isDeleted;
     private LocalDateTime createTime;
     private LocalDateTime updateTime;

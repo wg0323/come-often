@@ -1,6 +1,7 @@
 package com.comeoften.module.order.util;
 
 import com.comeoften.common.BizException;
+import com.comeoften.common.ErrorCode;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
@@ -73,5 +74,58 @@ class OrderAmountCalculatorTest {
         assertThatThrownBy(() -> OrderAmountCalculator.pay(new BigDecimal("10.00"),
                 new BigDecimal("20.00"), BigDecimal.ZERO))
                 .isInstanceOf(BizException.class);
+    }
+
+    @Test
+    void should_subtract_member_discount_and_balance_when_computing_pay_amount() {
+        assertThat(OrderAmountCalculator.pay(new BigDecimal("100.00"), new BigDecimal("10.00"),
+                new BigDecimal("5.50"), new BigDecimal("8.00"), new BigDecimal("20.00")))
+                .isEqualByComparingTo("56.50");
+    }
+
+    @Test
+    void should_keep_legacy_amount_when_new_deductions_are_zero() {
+        assertThat(OrderAmountCalculator.pay(new BigDecimal("100.00"), new BigDecimal("10.00"),
+                new BigDecimal("5.50"), BigDecimal.ZERO, BigDecimal.ZERO))
+                .isEqualByComparingTo("84.50");
+    }
+
+    @Test
+    void should_subtract_only_balance_when_member_discount_is_zero() {
+        assertThat(OrderAmountCalculator.pay(new BigDecimal("100.00"), BigDecimal.ZERO,
+                BigDecimal.ZERO, BigDecimal.ZERO, new BigDecimal("20.00")))
+                .isEqualByComparingTo("80.00");
+    }
+
+    @Test
+    void should_subtract_only_member_discount_when_balance_is_zero() {
+        assertThat(OrderAmountCalculator.pay(new BigDecimal("100.00"), BigDecimal.ZERO,
+                BigDecimal.ZERO, new BigDecimal("8.00"), BigDecimal.ZERO))
+                .isEqualByComparingTo("92.00");
+    }
+
+    @Test
+    void should_treat_null_member_discount_and_balance_as_zero() {
+        assertThat(OrderAmountCalculator.pay(new BigDecimal("100.00"), BigDecimal.ZERO,
+                BigDecimal.ZERO, null, null))
+                .isEqualByComparingTo("100.00");
+    }
+
+    @Test
+    void should_reject_when_member_discount_and_balance_exceed_total() {
+        assertThatThrownBy(() -> OrderAmountCalculator.pay(new BigDecimal("50.00"), BigDecimal.ZERO,
+                BigDecimal.ZERO, new BigDecimal("30.00"), new BigDecimal("25.00")))
+                .isInstanceOf(BizException.class)
+                .extracting(throwable -> ((BizException) throwable).getErrorCode())
+                .isEqualTo(ErrorCode.PARAM_INVALID);
+    }
+
+    @Test
+    void should_reject_when_a_deduction_component_is_negative() {
+        assertThatThrownBy(() -> OrderAmountCalculator.pay(new BigDecimal("100.00"), BigDecimal.ZERO,
+                BigDecimal.ZERO, new BigDecimal("-1.00"), BigDecimal.ZERO))
+                .isInstanceOf(BizException.class)
+                .extracting(throwable -> ((BizException) throwable).getErrorCode())
+                .isEqualTo(ErrorCode.PARAM_INVALID);
     }
 }
