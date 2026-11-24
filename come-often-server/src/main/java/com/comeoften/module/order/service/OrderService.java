@@ -41,7 +41,12 @@ public interface OrderService {
 
     OrderVO detailForAdmin(Long storeId, String orderNo);
 
-    PageResult<OrderSummaryVO> pageForApp(Long memberId, Long storeId, Long current, Long size, String status);
+    /**
+     * 顾客端订单分页。needReview 为真时只看「已完成且未评价」的订单，
+     * 此时忽略 status 入参（待评价是状态与评价表的组合条件，不是一个状态值）。
+     */
+    PageResult<OrderSummaryVO> pageForApp(Long memberId, Long storeId, Long current, Long size,
+                                          String status, boolean needReview);
 
     PageResult<OrderSummaryVO> pageForAdmin(Long storeId, Long current, Long size,
                                             String status, String keyword);

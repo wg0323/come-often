@@ -1,79 +1,39 @@
 /**
- * 我的（tabBar）：会员概览 + 积分等级 + 功能入口 + 退出登录
+ * 我的（tabBar）：会员概览 + 储值资产 + 券与积分快捷入口 + 分区宫格 + 退出登录
  * @author come-often
  * @date 2026-11-09
  */
 import { getInfo, logout } from '../../api/authApi';
+import { getBalanceAccount } from '../../api/balanceApi';
+import { getCoupons } from '../../api/couponApi';
 import { getPointsAccount } from '../../api/pointsApi';
 import { clearToken, getToken, redirectToLogin } from '../../utils/request';
 
-const MENU_ITEMS = [
+/** tab 与 order-list 的 Tab key 一一对应，逗号需编码后再拼进 query */
+const ORDER_ENTRIES = [
+  { key: 'all', icon: '/assets/icons/order-all.png', label: '全部订单', url: '/pages/order-list/order-list' },
+  { key: 'created', icon: '/assets/icons/order-pay.png', label: '待支付', url: '/pages/order-list/order-list?tab=CREATED' },
+  { key: 'review', icon: '/assets/icons/order-review.png', label: '待评价', url: '/pages/order-list/order-list?tab=COMPLETED' },
   {
-    key: 'order',
-    label: '我的订单',
-    desc: '全部订单与评价',
-    url: '/pages/order-list/order-list',
+    key: 'refund',
+    icon: '/assets/icons/order-refund.png',
+    label: '退款售后',
+    url: '/pages/order-list/order-list?tab=REFUNDING%2CREFUNDED',
   },
-  {
-    key: 'queue',
-    label: '我的排队号',
-    desc: '到店取号与叫号进度',
-    url: '/pages/queue/queue',
-  },
-  {
-    key: 'coupon',
-    label: '我的券',
-    desc: '卡包与动态券码',
-    url: '/packageMember/pages/coupon-wallet/coupon-wallet',
-  },
-  {
-    key: 'bundle',
-    label: '团购套餐',
-    desc: '在售套餐与下单',
-    url: '/pages/bundle-list/bundle-list',
-  },
-  {
-    key: 'verify',
-    label: '核销记录',
-    desc: '取餐码与套餐核销流水',
-    url: '/packageMember/pages/verify-record/verify-record',
-  },
-  {
-    key: 'points',
-    label: '我的积分',
-    desc: '余额、签到与流水',
-    url: '/packageMember/pages/points-record/points-record',
-  },
-  {
-    key: 'exchange',
-    label: '积分兑菜',
-    desc: '用积分换一份招牌菜',
-    url: '/packageMember/pages/points-exchange/points-exchange',
-  },
-  {
-    key: 'balance',
-    label: '我的储值',
-    desc: '余额、充值与赠送',
-    url: '/packageMember/pages/balance/balance',
-  },
-  {
-    key: 'reservation',
-    label: '我的预约',
-    desc: '订座记录与状态',
-    url: '/packageMember/pages/reservation-list/reservation-list',
-  },
-  {
-    key: 'reserve',
-    label: '预约订座',
-    desc: '选时段与桌型',
-    url: '/packageOther/pages/table-reserve/table-reserve',
-  },
-  {
-    key: 'store',
-    label: '门店信息',
-    desc: '营业时间与地址',
-    url: '/packageOther/pages/store-list/store-list',
-  },
+];
+
+const SERVICE_ENTRIES = [
+  { key: 'queue', icon: '/assets/icons/queue.png', label: '排队号', url: '/pages/queue/queue' },
+  { key: 'reserve', icon: '/assets/icons/reserve-table.png', label: '预约订座', url: '/packageOther/pages/table-reserve/table-reserve' },
+  { key: 'reservation', icon: '/assets/icons/reservation.png', label: '我的预约', url: '/packageMember/pages/reservation-list/reservation-list' },
+  { key: 'store', icon: '/assets/icons/store.png', label: '门店信息', url: '/packageOther/pages/store-list/store-list' },
+];
+
+const BENEFIT_ENTRIES = [
+  { key: 'bundle', icon: '/assets/icons/bundle.png', label: '团购套餐', url: '/pages/bundle-list/bundle-list' },
+  { key: 'verify', icon: '/assets/icons/verify.png', label: '核销记录', url: '/packageMember/pages/verify-record/verify-record' },
+  { key: 'exchange', icon: '/assets/icons/points-exchange.png', label: '积分兑菜', url: '/packageMember/pages/points-exchange/points-exchange' },
+  { key: 'balance', icon: '/assets/icons/balance.png', label: '我的储值', url: '/packageMember/pages/balance/balance' },
 ];
 
 Page({
@@ -81,9 +41,13 @@ Page({
     nickname: '微信用户',
     phone: '手机号未获取',
     avatarText: '客',
-    balance: 0,
     levelName: '普通会员',
-    menuItems: MENU_ITEMS,
+    balanceAmount: 0,
+    points: 0,
+    couponCount: 0,
+    orderEntries: ORDER_ENTRIES,
+    serviceEntries: SERVICE_ENTRIES,
+    benefitEntries: BENEFIT_ENTRIES,
   },
 
   async onLoad() {
@@ -95,8 +59,7 @@ Page({
       redirectToLogin();
       return;
     }
-    await this.loadMember();
-    await this.loadAccount();
+    await Promise.all([this.loadMember(), this.loadPoints(), this.loadBalance(), this.loadCoupon()]);
   },
 
   async loadMember() {
@@ -114,20 +77,43 @@ Page({
     }
   },
 
-  async loadAccount() {
+  async loadPoints() {
     try {
       const account = await getPointsAccount();
       this.setData({
-        balance: account.balance ?? 0,
+        points: account.balance ?? 0,
         levelName: account.levelName || '普通会员',
       });
     } catch (error) {
-      this.setData({ balance: 0, levelName: '普通会员' });
+      this.setData({ points: 0, levelName: '普通会员' });
     }
   },
 
-  onTapCell(event) {
+  async loadBalance() {
+    try {
+      const account = await getBalanceAccount();
+      this.setData({ balanceAmount: account.balance ?? 0 });
+    } catch (error) {
+      this.setData({ balanceAmount: 0 });
+    }
+  },
+
+  /** 只取分页 total 当角标，不展示券列表 */
+  async loadCoupon() {
+    try {
+      const page = await getCoupons({ tab: 'unused', current: 1, size: 1 });
+      this.setData({ couponCount: page.total ?? 0 });
+    } catch (error) {
+      this.setData({ couponCount: 0 });
+    }
+  },
+
+  onTapEntry(event) {
     wx.navigateTo({ url: event.currentTarget.dataset.url });
+  },
+
+  onTapRecharge() {
+    wx.navigateTo({ url: '/packageMember/pages/balance/balance' });
   },
 
   onTapLevel() {

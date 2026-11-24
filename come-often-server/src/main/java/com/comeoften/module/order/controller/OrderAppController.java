@@ -61,9 +61,11 @@ public class OrderAppController {
     public Result<PageResult<OrderSummaryVO>> page(
             @Parameter(description = "当前页，从 1 开始") @RequestParam(defaultValue = "1") Long current,
             @Parameter(description = "每页条数") @RequestParam(defaultValue = "10") Long size,
-            @Parameter(description = "状态过滤，多个状态用逗号分隔") @RequestParam(required = false) String status) {
+            @Parameter(description = "状态过滤，多个状态用逗号分隔") @RequestParam(required = false) String status,
+            @Parameter(description = "只看已完成且未评价的订单，「待评价」Tab 用；为真时忽略 status")
+            @RequestParam(required = false) Boolean needReview) {
         return Result.ok(orderService.pageForApp(LoginUserHolder.getRequired().getUserId(),
-                storeService.defaultStoreId(), current, size, status));
+                storeService.defaultStoreId(), current, size, status, Boolean.TRUE.equals(needReview)));
     }
 
     @Operation(summary = "订单详情", description = "含金额快照、明细、取餐码与状态日志；仅本人可查")

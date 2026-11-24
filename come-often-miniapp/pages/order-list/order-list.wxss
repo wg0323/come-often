@@ -4,18 +4,20 @@
   box-sizing: border-box;
 }
 
+/* 七组 Tab 放不下一屏，横向滚动；inline-block + nowrap 是小程序 scroll-x 的稳妥写法 */
 .tabs {
-  display: flex;
-  justify-content: space-between;
   margin-bottom: var(--co-space-gap);
   padding: 8rpx;
   border-radius: var(--co-radius-button);
   background-color: var(--co-card);
+  box-sizing: border-box;
+  font-size: 0;
+  white-space: nowrap;
 }
 
 .tab {
-  flex: 1;
-  padding: 12rpx 0;
+  display: inline-block;
+  padding: 12rpx 24rpx;
   border-radius: var(--co-radius-button);
   color: var(--co-text-secondary);
   font-size: 24rpx;

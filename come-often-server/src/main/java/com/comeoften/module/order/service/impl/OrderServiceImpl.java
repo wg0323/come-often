@@ -489,20 +489,28 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public PageResult<OrderSummaryVO> pageForApp(Long memberId, Long storeId,
-                                                 Long current, Long size, String status) {
+                                                 Long current, Long size, String status,
+                                                 boolean needReview) {
         // 顾客端状态 Tab 是业务分组（待上菜 = PAID + ACCEPTED），允许逗号分隔多状态；
         // 单状态仍走原来的 eq，后台看板的调用方式完全不变。
         List<String> statuses = parseStatuses(status);
         long pageNo = current == null || current < 1 ? 1L : current;
         long pageSize = size == null || size < 1 ? DEFAULT_APP_PAGE_SIZE : Math.min(size, MAX_APP_PAGE_SIZE);
-        IPage<TradeOrder> page = tradeOrderMapper.selectPage(new Page<>(pageNo, pageSize),
-                new LambdaQueryWrapper<TradeOrder>()
-                        .eq(TradeOrder::getMemberId, memberId)
-                        .eq(TradeOrder::getStoreId, storeId)
-                        .in(!statuses.isEmpty() && statuses.size() > 1, TradeOrder::getStatus, statuses)
-                        .eq(statuses.size() == 1, TradeOrder::getStatus,
-                                statuses.isEmpty() ? null : statuses.get(0))
-                        .orderByDesc(TradeOrder::getCreateTime));
+        LambdaQueryWrapper<TradeOrder> wrapper = new LambdaQueryWrapper<TradeOrder>()
+                .eq(TradeOrder::getMemberId, memberId)
+                .eq(TradeOrder::getStoreId, storeId)
+                .orderByDesc(TradeOrder::getCreateTime);
+        if (needReview) {
+            // 待评价 = 状态 COMPLETED 且评价表里没有该单；memberId 是 Long，拼接无注入风险
+            wrapper.eq(TradeOrder::getStatus, OrderStatus.COMPLETED.name())
+                    .notInSql(TradeOrder::getId,
+                            "SELECT order_id FROM review WHERE member_id = " + memberId);
+        } else {
+            wrapper.in(!statuses.isEmpty() && statuses.size() > 1, TradeOrder::getStatus, statuses)
+                    .eq(statuses.size() == 1, TradeOrder::getStatus,
+                            statuses.isEmpty() ? null : statuses.get(0));
+        }
+        IPage<TradeOrder> page = tradeOrderMapper.selectPage(new Page<>(pageNo, pageSize), wrapper);
         return toPageResult(page, memberId);
     }
 

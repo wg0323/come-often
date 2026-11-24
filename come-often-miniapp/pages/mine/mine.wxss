@@ -4,7 +4,11 @@
   box-sizing: border-box;
 }
 
+/* 会员身份卡：深墨绿底 + 金色等级徽章 */
 .member-card {
+  display: flex;
+  align-items: center;
+  gap: var(--co-space-gap);
   padding: var(--co-space-card);
   background-color: var(--co-ink);
   border-radius: var(--co-radius-card);
@@ -13,8 +17,10 @@
 
 .member-head {
   display: flex;
+  flex: 1;
   align-items: center;
   gap: var(--co-space-gap);
+  min-width: 0;
 }
 
 .avatar {
@@ -34,6 +40,7 @@
   flex: 1;
   flex-direction: column;
   gap: 8rpx;
+  min-width: 0;
 }
 
 .member-name {
@@ -43,98 +50,159 @@
 
 .member-phone {
   color: var(--co-divider);
-  font-size: 24rpx;
+  font-size: 22rpx;
   font-variant-numeric: tabular-nums;
 }
 
-.member-foot {
-  display: flex;
-  margin-top: var(--co-space-card);
-  padding-top: var(--co-space-card);
-  border-top: 1rpx solid rgba(255, 255, 255, 0.16);
-}
-
-.stat {
-  display: flex;
-  flex: 1;
-  flex-direction: column;
-  gap: 6rpx;
-}
-
-.stat--link {
-  align-items: flex-end;
-}
-
-.stat-num {
+.level-badge {
+  flex: none;
+  padding: 8rpx 16rpx;
+  border: 1rpx solid var(--co-gold);
+  border-radius: var(--co-radius-tag);
   color: var(--co-gold);
+  font-size: 22rpx;
+}
+
+/* 资产卡：余额与充值入口 */
+.asset-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: var(--co-space-gap);
+  padding: var(--co-space-card);
+  background-color: var(--co-card);
+  border-radius: var(--co-radius-card);
+}
+
+.asset-main {
+  display: flex;
+  flex-direction: column;
+  gap: 8rpx;
+}
+
+.asset-label {
+  color: var(--co-text-tertiary);
+  font-size: 22rpx;
+}
+
+.asset-value {
+  display: flex;
+  align-items: baseline;
+  gap: 4rpx;
+  color: var(--co-ink);
+}
+
+.asset-symbol {
+  font-size: 24rpx;
+}
+
+.asset-num {
   font-size: 44rpx;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
 }
 
-.stat-level {
+.asset-action {
+  padding: 12rpx 28rpx;
+  border: 1rpx solid var(--co-gold);
+  border-radius: var(--co-radius-button);
   color: var(--co-gold);
-  font-size: 28rpx;
-  font-weight: 600;
+  font-size: 24rpx;
 }
 
-.stat-label {
-  color: var(--co-divider);
-  font-size: 22rpx;
-}
-
-.cell-group {
+/* 双列快捷卡：券与积分 */
+.quick-row {
+  display: flex;
+  gap: var(--co-space-gap);
   margin-top: var(--co-space-gap);
+}
+
+.quick-card {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 8rpx;
+  padding: var(--co-space-card);
   background-color: var(--co-card);
   border-radius: var(--co-radius-card);
-  overflow: hidden;
 }
 
-.cell {
+.quick-label {
+  color: var(--co-text-secondary);
+  font-size: 24rpx;
+}
+
+.quick-value {
+  color: var(--co-ink);
+  font-size: 32rpx;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+/* 分组卡：标题 + 宫格入口 */
+.section {
+  margin-top: var(--co-space-gap);
+  padding: var(--co-space-card);
+  background-color: var(--co-card);
+  border-radius: var(--co-radius-card);
+}
+
+.section-head {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  min-height: 88rpx;
-  padding: 20rpx var(--co-space-card);
-  box-sizing: border-box;
-  border-bottom: 1rpx solid var(--co-divider);
 }
 
-.cell:last-child {
-  border-bottom: none;
-}
-
-.cell--hover,
-.entry--hover {
-  opacity: 0.86;
-}
-
-.cell-body {
-  display: flex;
-  flex-direction: column;
-  gap: 6rpx;
-}
-
-.cell-label {
+.section-title {
   color: var(--co-text-primary);
-  font-size: 28rpx;
+  font-size: 32rpx;
+  font-weight: 600;
 }
 
-.cell-desc {
+.section-more {
   color: var(--co-text-tertiary);
   font-size: 22rpx;
 }
 
-.cell-arrow {
-  color: var(--co-text-tertiary);
-  font-size: 32rpx;
+.entry-grid {
+  display: flex;
+  flex-wrap: wrap;
+  margin-top: 12rpx;
 }
 
-.cell--logout {
+.entry-grid--four .entry {
+  width: 25%;
+}
+
+.entry {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10rpx;
+  padding: 10rpx 0;
+  box-sizing: border-box;
+}
+
+.entry-icon {
+  width: 56rpx;
+  height: 56rpx;
+}
+
+.entry-label {
+  color: var(--co-text-secondary);
+  font-size: 22rpx;
+}
+
+.section--logout {
+  display: flex;
   justify-content: center;
 }
 
-.cell-label--logout {
+.logout-text {
   color: var(--co-danger);
   font-size: 28rpx;
+}
+
+.card--hover {
+  opacity: 0.86;
 }
